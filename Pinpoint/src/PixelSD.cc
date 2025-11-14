@@ -34,6 +34,7 @@ struct PixelID {
   bool operator<(const PixelID& other) const {
     if (layerID != other.layerID) return layerID < other.layerID;
     if (rowID != other.rowID) return rowID < other.rowID;
+    if (trackID != other.trackID) return trackID < other.trackID;
     return colID < other.colID;
   }
 
@@ -44,6 +45,32 @@ struct PixelID {
   }
 
 };
+
+struct PixelKey {
+  G4int layerID;
+  G4int rowID;
+  G4int colID;
+
+  bool operator==(const PixelKey& other) const {
+    return layerID == other.layerID &&
+           rowID == other.rowID &&
+           colID == other.colID;
+  }
+};
+
+// Hash function for PixelKey
+namespace std {
+  template <>
+  struct hash<PixelKey> {
+    std::size_t operator()(const PixelKey& k) const {
+      return ((std::hash<G4int>()(k.layerID) ^ (std::hash<G4int>()(k.rowID) << 1)) >> 1)
+             ^ (std::hash<G4int>()(k.colID) << 1);
+    }
+  };
+}
+
+static std::unordered_map<PixelKey, PixelID> bestPixels;
+static std::unordered_map<PixelKey, double>  totalCharge;
 
 
 // Map to accumulate charge in each pixel during an event
@@ -68,6 +95,8 @@ void PixelSD::Initialize(G4HCofThisEvent* hce)
   // Clear the pixel charge map for this event
   pixelChargeMap.clear();
   pixelFromMuonMap.clear();
+  bestPixels.clear();
+  totalCharge.clear();
   fCurrentHitId = 0;
 }
 
@@ -110,47 +139,17 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
 
   // Create pixel identifier
   PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID};
+  pixelChargeMap[pixelId] += edep;
 
   // Register hit in TrackInformation
-  TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
-  if (!trackInfo) {
-      trackInfo = new TrackInformation(track); // or just new TrackInformation();
-      track->SetUserInformation(trackInfo);
-  }
-  trackInfo->InsertHit(fCurrentHitId);
+  // TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
+  // if (!trackInfo) {
+  //     trackInfo = new TrackInformation(track); // or just new TrackInformation();
+  //     track->SetUserInformation(trackInfo);
+  // }
+  // trackInfo->InsertHit(fCurrentHitId);
   fCurrentHitId++;
 
-
-  // Source - https://stackoverflow.com/a
-  // Posted by Mark Ingram, modified by community. See post 'Timeline' for change history
-  // Retrieved 2025-11-14, License - CC BY-SA 3.0
-
-  //* BEHOLD my hacky code to abuse std::map to keep track of the most energetic particle hitting each pixel!
-  auto findResult = std::find_if(std::begin(pixelChargeMap), std::end(pixelChargeMap), [&](const std::pair<PixelID, G4double> &pair)
-  {
-      return pair.first == pixelId;
-  });
-
-  PixelID foundID = {0, 0, 0, {0,0,0,0}, 0, 0, 0};
-  if (findResult != std::end(pixelChargeMap))
-  {
-    foundID = findResult->first;
-    G4double current_max_hit_energy = foundID.p4.e();
-    
-    // If this particle has more energy, replace the entry
-    if (pixelId.p4.e() > current_max_hit_energy) {
-      pixelChargeMap[pixelId] += edep;
-    }
-    else // otherwise, just accumulate the energy deposit
-    {
-      pixelChargeMap[foundID] += edep;
-    }
-
-  }
-  else // New pixel entry
-  {
-    pixelChargeMap[pixelId] = edep;
-  }
 
   // Track if this pixel received energy from a muon descendant
   if (IsFromMuon(trackID)) {
@@ -171,6 +170,29 @@ void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
   // G4double pixelSizeX = DetectorConstruction::GetPixelSizeX();
   // G4double pixelSizeY = DetectorConstruction::GetPixelSizeY();
   // G4double layerThickness = DetectorConstruction::GetLayerThickness();
+
+  for (const auto& [pixel, charge] : pixelChargeMap) {
+    PixelKey key{pixel.layerID, pixel.rowID, pixel.colID};
+  
+    auto it = bestPixels.find(key);
+    if (it == bestPixels.end()) {
+      bestPixels[key] = pixel;
+      totalCharge[key] = charge;
+    } else {
+      const auto& existing = it->second;
+      if (pixel.trackID != existing.trackID) {
+        if (pixel.p4.e() > existing.p4.e()) {
+          bestPixels[key] = pixel;
+        }
+        totalCharge[key] += charge;
+      }
+    }
+  }
+  pixelChargeMap.clear();
+  for (const auto& [key, pixel] : bestPixels) {
+    pixelChargeMap[pixel] = totalCharge[key];
+  }
+  
 
   // Create hits from accumulated charge in each pixel
   for (const auto& pixel : pixelChargeMap) {

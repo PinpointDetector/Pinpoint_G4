@@ -524,13 +524,13 @@ void AnalysisManager::FillHitsOutput()
           fPixelEnergies.push_back(hit->GetEnergy());
           fPixelCharges.push_back(hit->GetCharge());
 
-          G4cout << "Filling hit: TrackID=" << hit->GetTrackID() 
-                 << " PDG=" << hit->GetPDGCode() 
-                 << " Layer=" << hit->GetLayerID() 
-                 << " Row=" << hit->GetRowID() 
-                 << " Col=" << hit->GetColID() 
-                 << " E=" << hit->GetEnergy()/keV << " keV" 
-                 << G4endl;
+          // G4cout << "Filling hit: TrackID=" << hit->GetTrackID() 
+          //        << " PDG=" << hit->GetPDGCode() 
+          //        << " Layer=" << hit->GetLayerID() 
+          //        << " Row=" << hit->GetRowID() 
+          //        << " Col=" << hit->GetColID() 
+          //        << " E=" << hit->GetEnergy()/keV << " keV" 
+          //        << G4endl;
 
       }
   
