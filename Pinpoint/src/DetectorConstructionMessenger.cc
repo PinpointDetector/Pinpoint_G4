@@ -14,12 +14,12 @@
 
 #include "DetectorConstructionMessenger.hh"
 #include "DetectorConstruction.hh"
-#include "DetectorParameters.hh"
+#include "DetectorConstruction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstruction* manager) 
-  : det(manager) {
+DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstruction* detector) 
+  : det(detector) {
     detDir = new G4UIdirectory("/det/");
     detDir->SetGuidance("detector control");
  
@@ -28,7 +28,51 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     // detGdmlCmd->SetParameterName("saveGdml", true);
     // detGdmlCmd->SetDefaultValue(false);
     
-    
+    tungstenThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setTungstenThickness", this);
+    tungstenThicknessCmd->SetUnitCategory("Length");
+    tungstenThicknessCmd->SetDefaultUnit("mm");
+    tungstenThicknessCmd->SetParameterName("TungstenThickness", false);
+    tungstenThicknessCmd->SetRange("TungstenThickness>0.");
+
+    siliconThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setSiliconThickness", this);
+    siliconThicknessCmd->SetUnitCategory("Length");
+    siliconThicknessCmd->SetDefaultUnit("um");
+    siliconThicknessCmd->SetParameterName("SiliconThickness", false);
+    siliconThicknessCmd->SetRange("SiliconThickness>0.");
+
+    nLayersCmd = new G4UIcmdWithAnInteger("/det/setNLayers", this);
+    nLayersCmd->SetParameterName("NLayers", false);
+    nLayersCmd->SetRange("NLayers>0");
+    nLayersCmd->SetDefaultValue(100);
+
+    pixelHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelHeight", this);
+    pixelHeightCmd->SetParameterName("PixelHeight", false);
+    pixelHeightCmd->SetDefaultUnit("um");
+    pixelHeightCmd->SetRange("PixelHeight>0.");
+    pixelHeightCmd->SetDefaultValue(22.8);
+
+    pixelWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelWidth", this);
+    pixelWidthCmd->SetParameterName("PixelWidth", false);
+    pixelWidthCmd->SetDefaultUnit("um");
+    pixelWidthCmd->SetRange("PixelWidth>0.");
+    pixelWidthCmd->SetDefaultValue(20.8);
+
+    detectorWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorWidth", this);
+    detectorWidthCmd->SetParameterName("DetectorWidth", false);
+    detectorWidthCmd->SetDefaultUnit("cm");
+    detectorWidthCmd->SetRange("DetectorWidth>0.");
+    detectorWidthCmd->SetDefaultValue(26.6);
+
+    detectorHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorHeight", this);
+    detectorHeightCmd->SetParameterName("DetectorHeight", false);
+    detectorHeightCmd->SetDefaultUnit("cm");
+    detectorHeightCmd->SetRange("DetectorHeight>0.");
+    detectorHeightCmd->SetDefaultValue(19.6);
+
+    detGdmlCmd = new G4UIcmdWithAString("/det/setGDMLFile", this);
+    detGdmlCmd->SetParameterName("GDMLFile", false);
+    detGdmlCmd->SetDefaultValue("pinpoint.gdml");
+
     // magnetFieldCmd = new G4UIcmdWithADoubleAndUnit("/det/magnetField", this);
     // magnetFieldCmd->SetUnitCategory("Magnetic flux density");
     // magnetFieldCmd->SetDefaultUnit("tesla");
@@ -42,17 +86,57 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
 //   delete detGdmlCmd;
   // delete magnetFieldCmd;
   delete detDir;
+  delete tungstenThicknessCmd;
+  delete siliconThicknessCmd;
+  delete nLayersCmd;
+  delete pixelHeightCmd;
+  delete pixelWidthCmd;
+  delete detectorWidthCmd;
+  delete detectorHeightCmd;
+  delete detGdmlCmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
   
-  // flare
+  if (command == tungstenThicknessCmd) {
+    G4double thickness = tungstenThicknessCmd->ConvertToDimensionedDouble(newValues);
+    det->SetTungstenThickness(thickness);
+  }
+  if (command == siliconThicknessCmd) {
+    G4double thickness = siliconThicknessCmd->ConvertToDimensionedDouble(newValues);
+    det->SetSiliconThickness(thickness);
+  }
+  if (command == nLayersCmd) {
+    G4int nLayers = nLayersCmd->GetNewIntValue(newValues);
+    det->SetNLayers(nLayers);
+  }
+  if (command == pixelHeightCmd) {
+    G4double height = pixelHeightCmd->GetNewDoubleValue(newValues);
+    det->SetPixelHeight(height);
+  }
+  if (command == pixelWidthCmd) {
+    G4double width = pixelWidthCmd->GetNewDoubleValue(newValues);
+    det->SetPixelWidth(width);
+  }
+  if (command == detectorWidthCmd) {
+    G4double width = detectorWidthCmd->GetNewDoubleValue(newValues);
+    det->SetDetectorWidth(width);
+  }
+  if (command == detectorHeightCmd) {
+    G4double height = detectorHeightCmd->GetNewDoubleValue(newValues);
+    det->SetDetectorHeight(height);
+  }
+  if (command == detGdmlCmd) {
+    // G4String filename = detGdmlCmd->GetNewStringValue(newValues);
+    det->SetGDMLFile(newValues);
+  }
+
 //   if (command == detGdmlCmd) det->SaveGDML(detGdmlCmd->GetNewBoolValue(newValues));
     // if (command == magnetFieldCmd) { 
     //   G4cout << "Changing magnetic field!!!" << G4endl;
-    //   GeometricalParameters::Get()->SetSpectrometerMagnetField(magnetFieldCmd->ConvertToDimensionedDouble(newValues)); 
+    //   GeometricalParameters->SetSpectrometerMagnetField(magnetFieldCmd->ConvertToDimensionedDouble(newValues)); 
     //   G4RunManager::GetRunManager()->ReinitializeGeometry();
     //   }; 
 }

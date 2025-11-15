@@ -79,6 +79,7 @@
 # Now ready for /run/beamOn.
 
 /run/initialize
+/control/execute macros/geom.mac
 # /vis/drawVolume
 # /vis/scene/add/trajectories smooth
 # /vis/scene/endOfEventAction accumulate

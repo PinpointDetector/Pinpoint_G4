@@ -1,16 +1,19 @@
-#ifndef fasernux_DetectorConstruction_hh
-#define fasernux_DetectorConstruction_hh
+#ifndef pinpoint_DetectorConstruction_hh
+#define pinpoint_DetectorConstruction_hh
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4GDMLParser.hh"
+#include "G4SystemOfUnits.hh"
+#include "DetectorConstructionMessenger.hh"
+#include "G4RunManager.hh"
 
 class G4VPhysicalVolume;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction() = default;
-    ~DetectorConstruction() override = default;
+    DetectorConstruction();
+    ~DetectorConstruction() override;
 
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
@@ -21,13 +24,46 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4int GetNlayers() const { return fTarget_phys.size(); }
 
+    void SetTungstenThickness(G4double thickness) { 
+      if (thickness <= 0) {
+        G4cerr << "Error: Tungsten thickness must be positive." << G4endl;
+        return;
+    }
+
+    fTungstenThickness = thickness; 
+    G4cout << "Set tungsten thickness to " << fTungstenThickness/mm << " mm" << G4endl;
+
+    // Optional: trigger geometry rebuild
+    // G4RunManager::GetRunManager()->ReinitializeGeometry();
+}
+    void SetSiliconThickness(G4double thickness) { fSiliconThickness = thickness; }
+    void SetNLayers(G4int nLayers) { fNLayers = nLayers; }
+    void SetPixelHeight(G4double height) { fPixelHeight = height; }
+    void SetPixelWidth(G4double width) { fPixelWidth = width; }
+    void SetDetectorWidth(G4double width) { fDetectorWidth = width; }
+    void SetDetectorHeight(G4double height) { fDetectorHeight = height; }
+    void SetCheckOverlaps(G4bool check) { fCheckOverlaps = check; }
+    void SetGDMLFile(const G4String& filename) { fWriteFile = filename; }
+
   private:
-    G4String fWriteFile = "fasernux.gdml";
+    G4String fWriteFile = "pinpoint.gdml";
     G4GDMLParser fParser;
     G4LogicalVolume* fPixelLV;
+
+    DetectorConstructionMessenger* messenger;
+
+    G4double fTungstenThickness = 5 * mm;
+    G4double fSiliconThickness = 50 * um;
+    G4int fNLayers = 100;
+    G4double fPixelHeight = 22.8 * um;
+    G4double fPixelWidth = 20.8 * um;
+    G4double fDetectorWidth = 26.6 * cm;
+    G4double fDetectorHeight = 19.6 * cm;
+
+    G4bool fCheckOverlaps = true;
 
     std::vector<G4VPhysicalVolume*> fTarget_phys;
 };
 
 
-#endif // fasernux_DetectorConstruction_hh
+#endif // pinpoint_DetectorConstruction_hh

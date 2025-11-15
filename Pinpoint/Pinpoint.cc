@@ -1,105 +1,78 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file eventgenerator/HepMC/_HepMC_v1/_HepMC_v1.cc
-/// \brief Main program of the eventgenerator/HepMC/_HepMC_v1 example
-//
-//
-// --------------------------------------------------------------
-//      GEANT 4 - example derived from novice exampleN04
-// --------------------------------------------------------------
+#include <G4RunManager.hh>
+#include <G4UImanager.hh>
 
-#include "G4Types.hh"
+#include <G4VisExecutive.hh>
 
-#include "FTFP_BERT.hh"
-#include "G4RunManagerFactory.hh"
-#include "G4UImanager.hh"
+#include <G4UIExecutive.hh>
 
-#include "DetectorConstruction.hh"
-#include "EventAction.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "RunAction.hh"
-#include "StackingAction.hh"
-#include "SteppingAction.hh"
-#include "TrackingAction.hh"
+#include <G4String.hh>
 #include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
+#include "AnalysisManager.hh"
+// #include "PhysicsList.hh"
+#include "FTFP_BERT.hh"
 
-#include "G4VisExecutive.hh"
-#include "G4UIExecutive.hh"
+/* Main function that enables to:
+ * - run macros
+ * - start interactive UI mode (no arguments)
+ */
+int main(int argc, char** argv) {
+  G4cout<<"Application starting..."<<G4endl;
+//  G4long myseed = 345354;
+//  CLHEP::HepRandom::setTheSeed(myseed);
 
-int main(int argc,char** argv)
-{
-  // Instantiate G4UIExecutive if there are no arguments (interactive mode)
-  G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
-    ui = new G4UIExecutive(argc, argv);
-  }
+  // invoke analysis manager before ui manager to invoke analysis manager messenger
+  AnalysisManager* analysis = AnalysisManager::GetInstance();
 
-  // Serial only Run manager
-  //
-  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
+  // Create the run manager (MT or non-MT) and make it a bit verbose.
+  auto runManager = new G4RunManager();
+  runManager->SetVerboseLevel(1);
 
-  // User Initialization classes (mandatory)
-  //
+  // Set mandatory initialization classes
   runManager->SetUserInitialization(new DetectorConstruction());
-  //
+  
+  // Set Physics list
   G4VUserPhysicsList* physics = new FTFP_BERT;
   runManager->SetUserInitialization(physics);
 
-  runManager->Initialize();
-
-  // User Action classes  //
+  // Set user action classes
   runManager->SetUserInitialization(new ActionInitialization());
 
-  runManager->Initialize();
-
-  G4VisManager* visManager = new G4VisExecutive;
+  // Initialize visualization
+  G4VisManager* visManager = new G4VisExecutive();
+  visManager->SetVerboseLevel(1);   // Default, you can always override this using macro commands
   visManager->Initialize();
 
-  //get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (!ui)   // batch mode
-    {
-      visManager->SetVerboseLevel("quiet");
-      G4String command = "/control/execute ";
-      G4String fileName = argv[1];
-      UImanager->ApplyCommand(command+fileName);
+  // Parse command line arguments
+  if (argc==1) {
+    G4UIExecutive* ui = new G4UIExecutive(argc, argv);
+    UImanager->ApplyCommand("/control/execute macros/vis.mac");
+    ui->SessionStart();
+    delete ui;
+  } else {
+    //G4UIExecutive* ui = new G4UIExecutive(argc, argv);
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command+fileName);
+    if (argc==3) {
+      G4String mode = argv[2];
+      if (mode == "vis") {
+        G4UIExecutive* ui = new G4UIExecutive(argc, argv);
+        ui->SessionStart();
+        delete ui;
+      } else {
+        G4cout<<"Please specify the second argument as vis to visualize the event"<<G4endl;
+        return 0;
+      }
     }
-  else
-    {  // interactive mode : define UI session
-      UImanager->ApplyCommand("/control/execute macros/init_vis.mac");
-      // UImanager->ApplyCommand("/geometry/test/resolution 1000000");
-      ui->SessionStart();
-      delete ui;
-    }
-
-  // Free the store: user actions, physics_list and detector_description are
-  //                 owned and deleted by the run manager, so they should not
-  //                 be deleted in the main() program !
+  }
 
   delete visManager;
   delete runManager;
+
+  G4cout<<"Application sucessfully ended.\nBye :-)"<<G4endl;
+
+  return 0;
 }

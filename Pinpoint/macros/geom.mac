@@ -1,0 +1,5 @@
+/det/setTungstenThickness 5 mm
+/det/setSiliconThickness 50 um
+/det/setNLayers 100
+# /det/setPixelHeight 1 cm
+# /det/setPixelWidth 1 cm

@@ -27,10 +27,17 @@ class DetectorConstructionMessenger: public G4UImessenger {
   private:
     DetectorConstruction* det;
     G4UIdirectory* detDir;
-    
-    // G4UIcmdWithABool* detGdmlCmd;
-    G4UIcmdWithADoubleAndUnit* magnetFieldCmd;
 
+    DetectorConstruction* fDetector; 
+    
+    G4UIcmdWithADoubleAndUnit* tungstenThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* siliconThicknessCmd;
+    G4UIcmdWithAnInteger* nLayersCmd;
+    G4UIcmdWithADoubleAndUnit* pixelHeightCmd;
+    G4UIcmdWithADoubleAndUnit* pixelWidthCmd;
+    G4UIcmdWithADoubleAndUnit* detectorWidthCmd;
+    G4UIcmdWithADoubleAndUnit* detectorHeightCmd;
+    G4UIcmdWithAString* detGdmlCmd;
 
     // G4UIcmdWithABool* detCheckOverlapCmd;
 
