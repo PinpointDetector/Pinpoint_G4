@@ -15,7 +15,7 @@ This code is based off the [`FPFSim` GEANT4 simulation](https://github.com/FPFSo
 This code can be compiled on `lxplus` or any Alma Linux9 machine with `cvmfs` access. To install this code do:
 
 ```bash
-git clone https://github.com/benw22022/Pinpoint_G4.git
+git clone https://github.com/PinpointDetector/Pinpoint_G4.git
 cd Pinpoint_G4
 source Pinpoint/setup.sh
 mkdir build && cd build
