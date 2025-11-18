@@ -128,6 +128,11 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
   G4LorentzVector p4 = track->GetDynamicParticle()->Get4Momentum();
   G4int charge = track->GetDefinition()->GetPDGCharge();
+  
+  // TODO: Min hit energy of 360 eV
+  if (p4.e() <= 360*1E-6) {
+    return false;
+  }
 
   // G4cout << "Processing hit: TrackID=" << trackID 
   //        << " PDG=" << pdgid 
