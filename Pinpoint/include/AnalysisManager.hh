@@ -49,11 +49,13 @@ class AnalysisManager {
     void bookEvtTree();
     void bookTrkTree();
     void bookPrimTree();
+    void bookGeomTree();
     void bookHitsTrees();
 
     void FillEventTree(const G4Event* event);
     void FillPrimariesTree(const G4Event* event);
     void FillTrajectoriesTree(const G4Event* event);
+    void FillGeomTree();
     void FillHitsOutput();
     
     float_t GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m);
@@ -78,10 +80,10 @@ class AnalysisManager {
     TTree*   fEvt;
     TTree*   fTrk;
     TTree*   fPrim;
+    TTree*   fGeom;
 
     TDirectory* fHits;
     TTree*   fPixelHitsTree;
-    TTree*   fActsParticlesTree;
 
     // track to primary ancestor
     std::map<G4int, G4int> trackToPrimaryAncestor;
@@ -147,6 +149,17 @@ class AnalysisManager {
     float_t primPz;
     float_t primE;
     float_t primKE;
+
+    //---------------------------------------------------
+    // Output variables for GEOMETRY tree
+    float_t detectorWidth;
+    float_t detectorHeight;
+    float_t tungstenThickness;
+    float_t siliconThickness;
+    Int_t nLayers;
+    std::vector<double_t> pixelsXPos;
+    std::vector<double_t> pixelsYPos;
+    std::vector<double_t> pixelsZPos;
 
     //---------------------------------------------------
     // OUTPUT VARIABLES FOR Hits TREES

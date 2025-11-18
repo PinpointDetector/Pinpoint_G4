@@ -26,7 +26,8 @@
 #include <THnSparse.h>
 #include <TString.h>
 #include <Math/ProbFunc.h>
-
+#include "G4RunManager.hh"
+#include "DetectorConstruction.hh"
 #include "EventInformation.hh"
 #include "AnalysisManager.hh"
 #include "reco/Barcode.hh"
@@ -132,6 +133,9 @@ void AnalysisManager::bookPrimTree()
   fPrim->Branch("P", &primP, "P/F");
 }
 
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+
 void AnalysisManager::bookTrkTree()
 {
   fTrk = new TTree("trajectories", "trajectories info");
@@ -145,6 +149,24 @@ void AnalysisManager::bookTrkTree()
   fTrk->Branch("trackPointY", &trackPointY);
   fTrk->Branch("trackPointZ", &trackPointZ);
 }
+
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+void AnalysisManager::bookGeomTree()
+{
+  fGeom = new TTree("geometry", "geometry info");
+  fGeom->Branch("detector_width", &detectorWidth, "detectorWidth/F");
+  fGeom->Branch("detector_height", &detectorHeight, "detectorHeight/F");
+  fGeom->Branch("tungsten_thickness", &tungstenThickness, "tungstenThickness/F");
+  fGeom->Branch("silicon_thickness", &siliconThickness, "siliconThickness/F");
+  fGeom->Branch("nLayers", &nLayers, "nLayers/I");
+  fGeom->Branch("pixel_xpos", &pixelsXPos);
+  fGeom->Branch("pixel_Ypos", &pixelsYPos);
+  fGeom->Branch("pixel_Zpos", &pixelsZPos);
+}
+
+
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
@@ -220,6 +242,7 @@ void AnalysisManager::BeginOfRun()
   // Booking common output trees
   bookEvtTree();
   bookPrimTree();
+  bookGeomTree();
   if (fSaveTrack) bookTrkTree();
 
   bookHitsTrees();
@@ -235,6 +258,8 @@ void AnalysisManager::EndOfRun()
   fFile->cd();
   fEvt->Write();
   fPrim->Write();
+  FillGeomTree();
+  fGeom->Write();
   if (fSaveTrack) fTrk->Write();
 
   fFile->cd(fHits->GetName());
@@ -492,6 +517,29 @@ void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
   G4cout << "Total number of recorded track: " << count_tracks << std::endl;
 }
 
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+
+void AnalysisManager::FillGeomTree()
+{
+  G4cout << "Filling geometry tree" << G4endl;
+  const DetectorConstruction* det =
+    static_cast<const DetectorConstruction*>(
+        G4RunManager::GetRunManager()->GetUserDetectorConstruction()
+    );
+  detectorWidth = det->GetDetectorWidth()/mm;
+  detectorHeight = det->GetDetectorHeight()/mm;
+  tungstenThickness = det->GetTungstenThickness()/mm;
+  siliconThickness = det->GetSiliconThickness()/um;
+  nLayers = det->GetNumberOfLayers();
+  
+  // get pixel positions: Idea is that we can get the x,y,z of all hits by indexing into these arrays
+  pixelsXPos = det->GetPixelXPositions();
+  pixelsYPos = det->GetPixelYPositions();
+  pixelsZPos = det->GetPixelZPositions();
+
+  fGeom->Fill();
+}
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
