@@ -31,6 +31,7 @@ public:
   void SetColID(G4int column) { fColID = column; }
   void SetLayerID(G4int layer) { fLayerID = layer; }
   void SetTrackID(G4int trackID) { fTrackID = trackID; }
+  void SetParentID(G4int parentID) { fParentID = parentID; }
   void SetPixelX(G4int pixelX) { fPixelX = pixelX; }
   void SetPixelY(G4int pixelY) { fPixelY = pixelY; }
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
@@ -46,6 +47,7 @@ public:
   G4int GetColID() const { return fColID; }
   G4int GetLayerID() const { return fLayerID; }
   G4int GetTrackID() const { return fTrackID; }
+  G4int GetParentID() const { return fParentID; }
   G4int GetPixelX() const { return fPixelX; }
   G4int GetPixelY() const { return fPixelY; }
   G4int GetPixelZ() const { return fPixelZ; }
@@ -62,6 +64,7 @@ public:
 
 private:
   G4int fTrackID = -1;
+  G4int fParentID = -1;
   G4int fPDGCode = 0;
   G4LorentzVector fP4 = G4LorentzVector();
   G4int fRowID = -1;
