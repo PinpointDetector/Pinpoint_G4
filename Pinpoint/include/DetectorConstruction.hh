@@ -45,6 +45,44 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetCheckOverlaps(G4bool check) { fCheckOverlaps = check; }
     void SetGDMLFile(const G4String& filename) { fWriteFile = filename; }
 
+    std::vector<G4double> GetPixelXPositions() const {
+      std::vector<G4double> xPositions;
+      G4int nPixelsX = static_cast<G4int>(fDetectorWidth / fPixelWidth);
+      G4double startX = -fDetectorWidth / 2 + fPixelWidth / 2;
+      for (G4int i = 0; i < nPixelsX; ++i) {
+        xPositions.push_back(startX + i * fPixelWidth);
+      }
+      return xPositions;
+    }
+    std::vector<G4double> GetPixelYPositions() const
+    {
+      std::vector<G4double> yPositions;
+      G4int nPixelsY = static_cast<G4int>(fDetectorHeight / fPixelHeight);
+      G4double startY = -fDetectorHeight / 2 + fPixelHeight / 2;
+      for (G4int i = 0; i < nPixelsY; ++i) {
+        yPositions.push_back(startY + i * fPixelHeight);
+      }
+      return yPositions;
+    };
+    std::vector<G4double> GetPixelZPositions() const
+    {
+      std::vector<G4double> zPositions;
+      G4double layerSpacing = fTungstenThickness + fSiliconThickness;
+      G4double startZ = -((fNLayers - 1) * layerSpacing) / 2;
+      for (G4int i = 0; i < fNLayers; ++i) {
+        zPositions.push_back(startZ + i * layerSpacing);
+      }
+      return zPositions;
+    };
+
+    G4double GetTungstenThickness() const { return fTungstenThickness; }
+    G4double GetSiliconThickness() const { return fSiliconThickness; }
+    G4int GetNumberOfLayers() const { return fNLayers; }
+    G4double GetPixelHeight() const { return fPixelHeight; }
+    G4double GetPixelWidth() const { return fPixelWidth; }
+    G4double GetDetectorWidth() const { return fDetectorWidth; }
+    G4double GetDetectorHeight() const { return fDetectorHeight; }
+
   private:
     G4String fWriteFile = "pinpoint.gdml";
     G4GDMLParser fParser;
