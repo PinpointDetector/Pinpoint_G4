@@ -21,6 +21,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetReadFile(const G4String& File);
     void SetWriteFile(const G4String& File);
     std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
+    G4VPhysicalVolume* GetLayerPhysVol() const { return fLayerPV; }
 
     G4int GetNlayers() const { return fTarget_phys.size(); }
 
@@ -101,6 +102,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4bool fCheckOverlaps = true;
 
     std::vector<G4VPhysicalVolume*> fTarget_phys;
+    G4VPhysicalVolume* fLayerPV;
 };
 
 

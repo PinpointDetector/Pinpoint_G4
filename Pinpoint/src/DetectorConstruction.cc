@@ -70,7 +70,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Layer
   auto layerS = new G4Box("Layer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, layerThickness / 2);
   auto layerLV = new G4LogicalVolume(layerS, worldMaterial, "Layer");
-  new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, layerThickness);
+  fLayerPV = new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, layerThickness);
 
   // Tungsten
   auto tungstenS = new G4Box("Tungsten", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fTungstenThickness);
@@ -80,7 +80,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4VisAttributes* TargetVisAtt =  new G4VisAttributes(G4Colour::Red());
   TargetVisAtt->SetForceWireframe(true);
   tungstenLV->SetVisAttributes(TargetVisAtt);
-
 
   // Silicon layer (will contain pixels)
   G4VisAttributes* invisAtrrib = new G4VisAttributes();
