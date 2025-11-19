@@ -171,41 +171,12 @@ class AnalysisManager {
     std::vector<Float_t> fPixelLayerIDs;
     std::vector<Int_t> fPixelPDGCs;
     std::vector<UInt_t> fPixelTrackIDs;
-    // std::vector<UInt_t> fPixelParentID;
+    std::vector<UInt_t> fPixelParentIDs;
     std::vector<Float_t> fPixelPxs;
     std::vector<Float_t> fPixelPys;
     std::vector<Float_t> fPixelPzs;
     std::vector<Float_t> fPixelEnergies;
     std::vector<Float_t> fPixelCharges;
-
-    // Acts Particle Information - need the truth info on the particles in order to do the truth tracking
-    std::vector<std::uint64_t> ActsParticlesParticleId;
-    std::vector<std::int32_t> ActsParticlesParticleType;
-    std::vector<std::uint32_t> ActsParticlesProcess;
-    std::vector<float> ActsParticlesVx;
-    std::vector<float> ActsParticlesVy;
-    std::vector<float> ActsParticlesVz;
-    std::vector<float> ActsParticlesVt;
-    std::vector<float> ActsParticlesPx;
-    std::vector<float> ActsParticlesPy;
-    std::vector<float> ActsParticlesPz;
-    std::vector<float> ActsParticlesM;
-    std::vector<float> ActsParticlesQ;
-    std::vector<float> ActsParticlesEta;
-    std::vector<float> ActsParticlesPhi;
-    std::vector<float> ActsParticlesPt;
-    std::vector<float> ActsParticlesP;
-    std::vector<std::uint32_t> ActsParticlesVertexPrimary;
-    std::vector<std::uint32_t> ActsParticlesVertexSecondary;
-    std::vector<std::uint32_t> ActsParticlesParticle;
-
-    std::vector<std::uint32_t> ActsParticlesGeneration;
-    std::vector<std::uint32_t> ActsParticlesSubParticle;
-    std::vector<float> ActsParticlesELoss;
-    std::vector<float> ActsParticlesPathInX0;
-    std::vector<float> ActsParticlesPathInL0;
-    std::vector<std::int32_t> ActsParticlesNumberOfHits;
-    std::vector<std::uint32_t> ActsParticlesOutcome;
 
 };
 

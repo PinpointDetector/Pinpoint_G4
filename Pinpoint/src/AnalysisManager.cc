@@ -185,43 +185,12 @@ void AnalysisManager::bookHitsTrees()
   fPixelHitsTree->Branch("hit_layerID", &fPixelLayerIDs);
   fPixelHitsTree->Branch("hit_pdgc", &fPixelPDGCs);
   fPixelHitsTree->Branch("hit_trackID", &fPixelTrackIDs);
-  // fPixelHitsTree->Branch("hit_parentID", &recoHitsParentID);
+  fPixelHitsTree->Branch("hit_parentID", &fPixelParentIDs);
   fPixelHitsTree->Branch("hit_px", &fPixelPxs);
   fPixelHitsTree->Branch("hit_py", &fPixelPys);
   fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
   fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
   fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
-
-
-  //* Acts truth particle tree
-  // fActsParticlesTree = new TTree("particles", "ActsParticlesTree");
-  // fActsParticlesTree->Branch("event_id", &recoHitsEventID, "event_id/i");
-  // fActsParticlesTree->Branch("particle_id", &ActsParticlesParticleId);
-  // fActsParticlesTree->Branch("particle_type", &ActsParticlesParticleType);
-  // fActsParticlesTree->Branch("process", &ActsParticlesProcess);
-  // fActsParticlesTree->Branch("vx", &ActsParticlesVx);
-  // fActsParticlesTree->Branch("vy", &ActsParticlesVy);
-  // fActsParticlesTree->Branch("vz", &ActsParticlesVz);
-  // fActsParticlesTree->Branch("vt", &ActsParticlesVt);
-  // fActsParticlesTree->Branch("px", &ActsParticlesPx);
-  // fActsParticlesTree->Branch("py", &ActsParticlesPy);
-  // fActsParticlesTree->Branch("pz", &ActsParticlesPz);
-  // fActsParticlesTree->Branch("m", &ActsParticlesM);
-  // fActsParticlesTree->Branch("q", &ActsParticlesQ);
-  // fActsParticlesTree->Branch("eta", &ActsParticlesEta);
-  // fActsParticlesTree->Branch("phi", &ActsParticlesPhi);
-  // fActsParticlesTree->Branch("pt", &ActsParticlesPt);
-  // fActsParticlesTree->Branch("p", &ActsParticlesP);
-  // fActsParticlesTree->Branch("vertex_primary", &ActsParticlesVertexPrimary);
-  // fActsParticlesTree->Branch("vertex_secondary", &ActsParticlesVertexSecondary);
-  // fActsParticlesTree->Branch("particle", &ActsParticlesParticle);
-  // fActsParticlesTree->Branch("generation", &ActsParticlesGeneration);
-  // fActsParticlesTree->Branch("sub_particle", &ActsParticlesSubParticle);
-  // fActsParticlesTree->Branch("e_loss", &ActsParticlesELoss);
-  // fActsParticlesTree->Branch("total_x0", &ActsParticlesPathInX0);
-  // fActsParticlesTree->Branch("total_l0", &ActsParticlesPathInL0);
-  // fActsParticlesTree->Branch("number_of_hits", &ActsParticlesNumberOfHits);
-  // fActsParticlesTree->Branch("outcome", &ActsParticlesOutcome);
 
   fFile->cd();
 }
@@ -294,38 +263,13 @@ void AnalysisManager::BeginOfEvent()
   fPixelLayerIDs.clear();
   fPixelPDGCs.clear();
   fPixelTrackIDs.clear();
+  fPixelTrackIDs.clear();
   fPixelPxs.clear();
   fPixelPys.clear();
   fPixelPzs.clear();
   fPixelEnergies.clear();
   fPixelCharges.clear();
 
-  ActsParticlesParticleId.clear();
-  ActsParticlesParticleType.clear();
-  ActsParticlesProcess.clear();
-  ActsParticlesVx.clear();
-  ActsParticlesVy.clear();
-  ActsParticlesVz.clear();
-  ActsParticlesVt.clear();
-  ActsParticlesPx.clear();
-  ActsParticlesPy.clear();
-  ActsParticlesPz.clear();
-  ActsParticlesM.clear();
-  ActsParticlesQ.clear();
-  ActsParticlesEta.clear();
-  ActsParticlesPhi.clear();
-  ActsParticlesPt.clear();
-  ActsParticlesP.clear();
-  ActsParticlesVertexPrimary.clear();
-  ActsParticlesVertexSecondary.clear();
-  ActsParticlesParticle.clear();
-  ActsParticlesGeneration.clear();
-  ActsParticlesSubParticle.clear();
-  ActsParticlesELoss.clear();
-  ActsParticlesPathInX0.clear();
-  ActsParticlesPathInL0.clear();
-  ActsParticlesNumberOfHits.clear();
-  ActsParticlesOutcome.clear();
 }
 
 //---------------------------------------------------------------------
@@ -566,6 +510,7 @@ void AnalysisManager::FillHitsOutput()
           fPixelLayerIDs.push_back(hit->GetLayerID());
           fPixelPDGCs.push_back(hit->GetPDGCode());
           fPixelTrackIDs.push_back(hit->GetTrackID());
+          fPixelParentIDs.push_back(hit->GetParentID());
           fPixelPxs.push_back(hit->GetPx());
           fPixelPys.push_back(hit->GetPy());
           fPixelPzs.push_back(hit->GetPz());
