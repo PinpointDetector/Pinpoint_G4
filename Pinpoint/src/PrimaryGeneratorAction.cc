@@ -4,6 +4,7 @@
 #include "generators/GeneratorBase.hh"
 #include "generators/GENIEGenerator.hh"
 #include "generators/HepMCGenerator.hh"
+#include "generators/GFaserGenerator.hh"
 #include "generators/GPSGenerator.hh"
 
 #include "EventInformation.hh"
@@ -35,6 +36,8 @@ void PrimaryGeneratorAction::SetGenerator(G4String name)
 
   if( name == "genie" )
     fGenerator = new GENIEGenerator();
+  else if ( name == "gfaser" )
+    fGenerator = new GFaserGenerator();
   else if( name == "hepmc" )
     fGenerator = new HepMCGenerator();
   else if ( name == "gun" )

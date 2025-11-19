@@ -16,7 +16,7 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGeneratorAction* act
   fGeneratorOption = new G4UIcmdWithAString("/gen/select", this);
   fGeneratorOption->SetGuidance("select generator option");
   fGeneratorOption->SetParameterName("generator",false);
-  fGeneratorOption->SetCandidates("gun genie hepmc");
+  fGeneratorOption->SetCandidates("gun genie hepmc gfaser");
   fGeneratorOption->SetDefaultValue("gun");
   fGeneratorOption->AvailableForStates(G4State_PreInit, G4State_Init, G4State_Idle);
 
