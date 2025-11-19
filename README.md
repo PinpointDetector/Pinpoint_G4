@@ -65,7 +65,7 @@ There are a number of user defined macro commands which can be used to control t
   - [ ] Check deposited energy (smear with Landau distribution)
   - [ ] Add messenger to enable/disable from macro files
 - [ ] Neutrino Interactions (Tobi)
-  - [ ] Set z-position of vertex to random position within one layer
+  - [x] Set z-position of vertex to random position within one layer
   - [ ] Check charm decays (Tobi)
 - [ ] Output (Ben)
   - [ ] Add parent track id, or write out tau decay products
