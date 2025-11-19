@@ -1,6 +1,8 @@
 #include "generators/GFaserGenerator.hh"
 #include "generators/GFaserGeneratorMessenger.hh"
+#include "DetectorConstruction.hh"
 
+#include "G4RunManager.hh"
 #include "G4Box.hh"
 #include "G4Event.hh"
 #include "G4LogicalVolume.hh"
@@ -14,6 +16,7 @@
 #include "G4String.hh"
 #include "G4Types.hh"
 #include "G4IonTable.hh"
+#include "G4TransportationManager.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -54,15 +57,15 @@ GFaserGenerator::~GFaserGenerator()
 
 void GFaserGenerator::LoadData()
 {
-  if (fGfaserFileName.empty()) {
-    G4cout << "Error: Missing GFaser file." << G4endl;
+  if (fInputFileName.empty()) {
+    G4cout << "Error: Missing *.gfaser.root file." << G4endl;
     return;
   }
   
-  fGfaserFile = TFile::Open(fGfaserFileName.c_str(), "READ");
+  fGfaserFile = TFile::Open(fInputFileName.c_str(), "READ");
   if (!fGfaserFile || fGfaserFile->IsZombie()) {
     G4ExceptionDescription msg;
-    msg << "Cannot open Gfaser file: " << fGfaserFileName;
+    msg << "Cannot open Gfaser file: " << fInputFileName;
     G4Exception("GFaserGenerator::LoadData()", "FileError", FatalErrorInArgument, msg);
     return;
   }
@@ -70,7 +73,7 @@ void GFaserGenerator::LoadData()
   fGfaserTree = (TTree*)fGfaserFile->Get("gFaser");
   if (!fGfaserTree) {
     G4ExceptionDescription msg;
-    msg << "Cannot find gFaser tree in file: " << fGfaserFileName;
+    msg << "Cannot find gFaser tree in file: " << fInputFileName;
     G4Exception("GFaserGenerator::LoadData()", "FileError", FatalErrorInArgument, msg);
     return;
   }
@@ -86,9 +89,11 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("py", &fPy);
   fGfaserTree->SetBranchAddress("pz", &fPz);
   fGfaserTree->SetBranchAddress("E", &fE);
+
+  fCurrentEvent = fFirstEvent;
   fTotalEvents = fGfaserTree->GetEntries();
   
-  G4cout << "Opened Gfaser file: " << fGfaserFileName << G4endl;
+  G4cout << "Opened Gfaser file: " << fInputFileName << G4endl;
   G4cout << "Total events: " << fTotalEvents << G4endl;
 }
 
@@ -98,7 +103,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   // complete line from PrimaryGeneratorAction...
   G4cout << ") : GFaser Generator ===oooOOOooo===" << G4endl;
   G4cout << "oooOOOooo Event # " << fCurrentEvent << "/" << fTotalEvents << " oooOOOooo" << G4endl;
-  G4cout << "GeneratePrimaries from file " << fGfaserFileName << G4endl;
+  G4cout << "GeneratePrimaries from file " << fInputFileName << G4endl;
 
   event->SetEventID(fCurrentEvent);
   if (fCurrentEvent >= fTotalEvents) {
@@ -106,7 +111,10 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   }
 
   fGfaserTree->GetEntry(fCurrentEvent);
-  G4ThreeVector vertexPosition(fVx * m, fVy * m, 0);
+  if (fUseFixedZPosition) {
+    fVz = GenerateRandomZVertex(fLayerId);
+  }
+  G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
@@ -157,3 +165,32 @@ G4bool GFaserGenerator::FindParticleDefinition(G4int const pdg, G4ParticleDefini
 
   return true; //return good
 }
+
+
+G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
+  auto *runManager = G4RunManager::GetRunManager();
+  auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
+  G4VPhysicalVolume* layerPV = detector->GetLayerPhysVol();
+
+  if (!layerPV) {
+    G4cerr << "Error: Layer volume not found!" << G4endl;
+    return 0.0;
+  }
+
+  EAxis axis;
+  G4int nReplicas;
+  G4double width;
+  G4double offset;
+  G4bool consuming;
+  layerPV->GetReplicationData(axis, nReplicas, width, offset, consuming);
+  
+  if (layerIndex >= nReplicas) {
+    G4cerr << "Error: Layer index " << layerIndex << " is out of range."
+           << "Only " << nReplicas << " layers available." << G4endl;
+    return 0.0;
+  }
+
+  G4double z = (layerIndex + G4UniformRand()) * width + offset;
+  return z/m; // convert to meters
+}
+

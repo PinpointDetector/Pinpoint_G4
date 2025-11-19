@@ -8,6 +8,7 @@ class GFaserGenerator;
 class G4UIdirectory;
 class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
+class G4UIcmdWithABool;
 
 
 class GFaserGeneratorMessenger: public G4UImessenger
@@ -21,8 +22,9 @@ class GFaserGeneratorMessenger: public G4UImessenger
     GFaserGenerator* fGFaserAction;
 
     G4UIdirectory* fGFaserGeneratorDir;
-    G4UIcmdWithAString* fGFaserFileCmd;
-    G4UIcmdWithAnInteger* fGFaserStartEventIdCmd;
+    G4UIcmdWithAString* fInputFileCmd;
+    G4UIcmdWithAnInteger* fFirstEventCmd;
+    G4UIcmdWithABool* fUseFixedZPositionCmd;
 };
 
 #endif
