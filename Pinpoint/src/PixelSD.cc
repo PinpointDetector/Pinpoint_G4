@@ -29,7 +29,7 @@ struct PixelID {
   G4int pdgCode;
   G4int charge;
   G4int trackID;
-   
+  G4int parentID;
   
   bool operator<(const PixelID& other) const {
     if (layerID != other.layerID) return layerID < other.layerID;
@@ -124,6 +124,7 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   G4int colID = touchable->GetCopyNumber(colIDVolume);
   G4int layerID = touchable->GetCopyNumber(layerVolume);
   G4int trackID = track->GetTrackID();
+  G4int parentID = track->GetParentID();
   // G4ThreeVector hitPosition = preStepPoint->GetPosition();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
   G4LorentzVector p4 = track->GetDynamicParticle()->Get4Momentum();
@@ -143,7 +144,7 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   //        << G4endl;
 
   // Create pixel identifier
-  PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID};
+  PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID, parentID};
   pixelChargeMap[pixelId] += edep;
 
   // Register hit in TrackInformation
@@ -213,6 +214,7 @@ void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
       newHit->SetP4(pixelId.p4);
       newHit->SetCharge(pixelId.charge);
       newHit->SetTrackID(pixelId.trackID);
+      newHit->SetParentID(pixelId.parentID);
       newHit->SetPDGCode(pixelId.pdgCode);
       newHit->SetEnergyDeposit(totalCharge);
       newHit->SetFromMuon(pixelFromMuonMap[pixelId]);  // Set if any track from muon hit this pixel
