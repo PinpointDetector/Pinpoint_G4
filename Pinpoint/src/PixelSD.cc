@@ -30,6 +30,9 @@ struct PixelID {
   G4int charge;
   G4int trackID;
   G4int parentID;
+  G4bool fromPrimaryPi0;
+  G4bool fromFSLPi0;
+  G4bool fromPrimaryLepton;
   
   bool operator<(const PixelID& other) const {
     if (layerID != other.layerID) return layerID < other.layerID;
@@ -143,12 +146,27 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   //        << " Edep=" << edep/keV << " keV" 
   //        << G4endl;
 
+  // Get information from TrackInformation if available
+  TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
+  G4bool fromPrimaryPi0 = trackInfo ? (trackInfo->IsTrackFromPrimaryPizero() != 0) : false;
+  G4bool fromFSLPi0 = trackInfo ? (trackInfo->IsTrackFromFSLPizero() != 0) : false;
+  G4bool fromPrimaryLepton = trackInfo ? (trackInfo->IsTrackFromPrimaryLepton() != 0) : false;
+
+  // if (trackInfo) {
+  //   G4cout << "TrackID=" << trackID 
+  //          << " fromPrimaryPi0=" << fromPrimaryPi0
+  //          << " fromFSLPi0=" << fromFSLPi0
+  //          << " fromPrimaryLepton=" << fromPrimaryLepton
+  //          << G4endl;
+  // }
+
   // Create pixel identifier
-  PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID, parentID};
+  PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID, parentID, fromPrimaryPi0, fromFSLPi0, fromPrimaryLepton};
   pixelChargeMap[pixelId] += edep;
 
-  // Register hit in TrackInformation
-  // TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
+
+
+ 
   // if (!trackInfo) {
   //     trackInfo = new TrackInformation(track); // or just new TrackInformation();
   //     track->SetUserInformation(trackInfo);
@@ -218,6 +236,9 @@ void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
       newHit->SetPDGCode(pixelId.pdgCode);
       newHit->SetEnergyDeposit(totalCharge);
       newHit->SetFromMuon(pixelFromMuonMap[pixelId]);  // Set if any track from muon hit this pixel
+      newHit->SetFromPrimaryPizero(pixelId.fromPrimaryPi0);
+      newHit->SetFromFSLPizero(pixelId.fromFSLPi0);
+      newHit->SetFromPrimaryLepton(pixelId.fromPrimaryLepton);
       
       // Calculate pixel center position in global coordinates
       // X position: pixel index to world coordinates

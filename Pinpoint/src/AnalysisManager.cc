@@ -161,7 +161,7 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("tungsten_thickness", &tungstenThickness, "tungstenThickness/F");
   fGeom->Branch("silicon_thickness", &siliconThickness, "siliconThickness/F");
   fGeom->Branch("nLayers", &nLayers, "nLayers/I");
-  fGeom->Branch("pixel_xpos", &pixelsXPos);
+  fGeom->Branch("pixel_Xpos", &pixelsXPos);
   fGeom->Branch("pixel_Ypos", &pixelsYPos);
   fGeom->Branch("pixel_Zpos", &pixelsZPos);
 }
@@ -191,6 +191,9 @@ void AnalysisManager::bookHitsTrees()
   fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
   fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
   fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
+  fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
+  fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
+  fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
 
   fFile->cd();
 }
@@ -269,7 +272,9 @@ void AnalysisManager::BeginOfEvent()
   fPixelPzs.clear();
   fPixelEnergies.clear();
   fPixelCharges.clear();
-
+  fPixelFromPrimaryPizero.clear();
+  fPixelFromFSLPizero.clear();
+  fPixelFromPrimaryLepton.clear();
 }
 
 //---------------------------------------------------------------------
@@ -516,6 +521,9 @@ void AnalysisManager::FillHitsOutput()
           fPixelPzs.push_back(hit->GetPz());
           fPixelEnergies.push_back(hit->GetEnergy());
           fPixelCharges.push_back(hit->GetCharge());
+          fPixelFromPrimaryPizero.push_back(hit->GetFromPrimaryPizero());
+          fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
+          fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
 
           // G4cout << "Filling hit: TrackID=" << hit->GetTrackID() 
           //        << " PDG=" << hit->GetPDGCode() 
