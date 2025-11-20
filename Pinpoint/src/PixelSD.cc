@@ -26,6 +26,7 @@ struct PixelID {
   G4int rowID;
   G4int colID;
   G4LorentzVector p4;
+  G4ThreeVector truthPos;
   G4int pdgCode;
   G4int charge;
   G4int trackID;
@@ -128,7 +129,7 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   G4int layerID = touchable->GetCopyNumber(layerVolume);
   G4int trackID = track->GetTrackID();
   G4int parentID = track->GetParentID();
-  // G4ThreeVector hitPosition = preStepPoint->GetPosition();
+  G4ThreeVector truthPos = preStepPoint->GetPosition();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
   G4LorentzVector p4 = track->GetDynamicParticle()->Get4Momentum();
   G4int charge = track->GetDefinition()->GetPDGCharge();
@@ -161,7 +162,7 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
   // }
 
   // Create pixel identifier
-  PixelID pixelId = {layerID, rowID, colID, p4, pdgid, charge, trackID, parentID, fromPrimaryPi0, fromFSLPi0, fromPrimaryLepton};
+  PixelID pixelId = {layerID, rowID, colID, p4, truthPos, pdgid, charge, trackID, parentID, fromPrimaryPi0, fromFSLPi0, fromPrimaryLepton};
   pixelChargeMap[pixelId] += edep;
 
 
@@ -239,6 +240,7 @@ void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
       newHit->SetFromPrimaryPizero(pixelId.fromPrimaryPi0);
       newHit->SetFromFSLPizero(pixelId.fromFSLPi0);
       newHit->SetFromPrimaryLepton(pixelId.fromPrimaryLepton);
+      newHit->SetTruthHitPos(pixelId.truthPos);
       
       // Calculate pixel center position in global coordinates
       // X position: pixel index to world coordinates

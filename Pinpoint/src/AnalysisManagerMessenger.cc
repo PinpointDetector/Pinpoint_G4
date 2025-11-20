@@ -53,6 +53,12 @@
   fSaveTrackCmd->SetGuidance("whether save the information of all tracks");
   fSaveTrackCmd->SetParameterName("saveTrack", true);
   fSaveTrackCmd->SetDefaultValue(false);
+
+  fSaveTruthHitsCmd = new G4UIcmdWithABool("/out/saveTruthHits", this);
+  fSaveTruthHitsCmd->SetGuidance("whether save the truth hits information");
+  fSaveTruthHitsCmd->SetParameterName("saveTruthHits", true);
+  fSaveTruthHitsCmd->SetDefaultValue(false);
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -61,6 +67,7 @@ AnalysisManagerMessenger::~AnalysisManagerMessenger()
 {
   delete fFileCmd;
   delete fSaveTrackCmd;
+  delete fSaveTruthHitsCmd;
   delete fOutDir;
 }
 
@@ -70,6 +77,7 @@ void AnalysisManagerMessenger::SetNewValue(G4UIcommand* command,G4String newValu
 {
   if (command == fFileCmd) fAnalysisManager->setFileName(newValues);
   if (command == fSaveTrackCmd) fAnalysisManager->saveTrack(fSaveTrackCmd->GetNewBoolValue(newValues));
+  if (command == fSaveTruthHitsCmd) fAnalysisManager->saveTruthHits(fSaveTruthHitsCmd->GetNewBoolValue(newValues));
 
 }
 

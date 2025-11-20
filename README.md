@@ -58,6 +58,7 @@ There are a number of user defined macro commands which can be used to control t
 |:--|:--|
 |/out/fileName     | option for AnalysisManagerMessenger, set name of the file saving all analysis variables|
 |/out/saveTrack    | if `true` save all tracks, `false` by default, requires `\tracking\storeTrajectory 1`|
+|/out/saveTruthHits| if `true` save truth hit x, y, z position, `false` by default|
 
 ### Next steps
 - [ ] Geometry (Dhruv)

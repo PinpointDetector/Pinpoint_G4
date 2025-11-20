@@ -32,6 +32,7 @@ class AnalysisManager {
     // functions for controlling from the configuration file
     void setFileName(std::string val) { fFilename = val; }
     void saveTrack(G4bool val) { fSaveTrack = val; }
+    void saveTruthHits(G4bool val) { fSaveTruthHits = val; }
 
     // build TID to primary ancestor association
     // filled progressively from StackingAction
@@ -64,6 +65,7 @@ class AnalysisManager {
     AnalysisManagerMessenger* fMessenger{nullptr};
 
     G4bool fSaveTrack;
+    G4bool fSaveTruthHits;
     
     std::map<int, std::string> fSDNamelist;
 
@@ -166,10 +168,10 @@ class AnalysisManager {
 
     //* Reco space points
     UInt_t fPixelEventID;
-    std::vector<Float_t> fPixelRowIDs;
-    std::vector<Float_t> fPixelColIDs;
-    std::vector<Float_t> fPixelLayerIDs;
-    std::vector<Int_t> fPixelPDGCs;
+    std::vector<UInt_t> fPixelRowIDs;
+    std::vector<UInt_t> fPixelColIDs;
+    std::vector<UInt_t> fPixelLayerIDs;
+    std::vector<UInt_t> fPixelPDGCs;
     std::vector<UInt_t> fPixelTrackIDs;
     std::vector<UInt_t> fPixelParentIDs;
     std::vector<Float_t> fPixelPxs;
@@ -180,6 +182,12 @@ class AnalysisManager {
     // std::vector<G4bool> fPixelFromPrimaryPizero;
     // std::vector<G4bool> fPixelFromFSLPizero;
     std::vector<G4bool> fPixelFromPrimaryLepton;
-};
+
+    // Truth position of hit in x, y, z
+    std::vector<Float_t> fPixelTruthX;
+    std::vector<Float_t> fPixelTruthY;
+    std::vector<Float_t> fPixelTruthZ;
+
+  };
 
 #endif

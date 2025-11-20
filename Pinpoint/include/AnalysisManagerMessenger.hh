@@ -56,7 +56,8 @@ class AnalysisManagerMessenger: public G4UImessenger
 
     G4UIdirectory* fOutDir; 
     G4UIcmdWithAString* fFileCmd;
-    G4UIcmdWithABool* fSaveTrackCmd; 
+    G4UIcmdWithABool* fSaveTrackCmd;
+    G4UIcmdWithABool* fSaveTruthHitsCmd; 
 
 };
 

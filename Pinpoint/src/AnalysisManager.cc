@@ -195,6 +195,13 @@ void AnalysisManager::bookHitsTrees()
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
   fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
 
+  if (fSaveTruthHits)
+  {
+    fPixelHitsTree->Branch("hit_truth_x", &fPixelTruthX);
+    fPixelHitsTree->Branch("hit_truth_y", &fPixelTruthY);
+    fPixelHitsTree->Branch("hit_truth_z", &fPixelTruthZ);
+  }
+
   fFile->cd();
 }
 
@@ -275,6 +282,9 @@ void AnalysisManager::BeginOfEvent()
   // fPixelFromPrimaryPizero.clear();
   // fPixelFromFSLPizero.clear();
   fPixelFromPrimaryLepton.clear();
+  fPixelTruthX.clear();
+  fPixelTruthY.clear();
+  fPixelTruthZ.clear();
 }
 
 //---------------------------------------------------------------------
@@ -524,6 +534,13 @@ void AnalysisManager::FillHitsOutput()
           // fPixelFromPrimaryPizero.push_back(hit->GetFromPrimaryPizero());
           // fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
           fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
+
+          if (fSaveTruthHits)
+          {
+            fPixelTruthX.push_back(hit->GetTruthHitPos().x());
+            fPixelTruthY.push_back(hit->GetTruthHitPos().y());
+            fPixelTruthZ.push_back(hit->GetTruthHitPos().z());
+          }
 
           // G4cout << "Filling hit: TrackID=" << hit->GetTrackID() 
           //        << " PDG=" << hit->GetPDGCode() 
