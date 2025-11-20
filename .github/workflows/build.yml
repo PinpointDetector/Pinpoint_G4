@@ -1,0 +1,45 @@
+name: Build Pinpoint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: cvmfs/ci-cvmfs:almalinux9
+      options: --device /dev/fuse --cap-add SYS_ADMIN
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Mount CVMFS
+      run: |
+        echo "Mounting CVMFS..."
+        cvmfs_config setup
+        cvmfs_config probe
+
+    - name: Load LCG view
+      run: |
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+
+        echo "Using compiler:"
+        which g++
+
+    - name: Build with CMake
+      run: |
+        mkdir -p build
+        cd build
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+        cmake ..
+        make -j$(nproc)
+
+    - name: Save pinpoint executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: pinpoint
+        path: build/pinpoint
