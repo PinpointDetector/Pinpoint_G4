@@ -68,6 +68,6 @@ There are a number of user defined macro commands which can be used to control t
   - [x] Set z-position of vertex to random position within one layer
   - [ ] Check charm decays (Tobi)
 - [ ] Output (Ben)
-  - [ ] Add parent track id, or write out tau decay products
+  - [x] Add parent track id, or write out tau decay products
   - [ ] Check file size including true position of all particles
 - [ ] Add HTCondor submission script
