@@ -3,9 +3,7 @@
 
 /run/initialize
 
-/gen/select gfaser
-/gen/gfaser/inputFile /Users/tboeckh/Documents/faser/neutrino-detector/Pinpoint_G4/Pinpoint/nu.gfaser.root
-/gen/gfaser/useFixedZPosition 1
+/gen/select gun
 /gps/particle mu-
 /gps/pos/type Volume
 /gps/pos/shape Para
@@ -24,6 +22,4 @@
 /gps/ene/mono 300 GeV
 /gps/ene/sigma 5 GeV
 
-
-/run/beamOn 2
-
+/run/beamOn 1
