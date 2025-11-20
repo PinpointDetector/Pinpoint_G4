@@ -1,35 +1,42 @@
-name: Build Pinpoint
+name: CI - Build Check
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     container:
       image: almalinux:9
       options: --privileged
 
     steps:
-      - uses: cvmfs-contrib/github-action-cvmfs@v4
-      
-      - name: Load LCG environment
-        run: |
-          source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
-          which cmake
-          which g++
+    - name: Install dependencies
+      run: |
+        dnf -y install epel-release
+        dnf -y install git cmake gcc gcc-c++ make fuse fuse3 cvmfs cvmfs-config-default
 
-      - name: Build project
-        run: |
-          source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
-          mkdir build && cd build
-          cmake ..
-          make -j$(nproc)
+    - name: Mount CVMFS
+      run: |
+        mkdir -p /cvmfs
+        echo "CVMFS_REPOSITORIES=sft.cern.ch" >> /etc/cvmfs/default.local
+        echo "CVMFS_QUOTA_LIMIT=10000" >> /etc/cvmfs/default.local
+        cvmfs_config setup
+        cvmfs_config probe
 
-      - name: Upload pinpoint executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: pinpoint
-          path: build/pinpoint
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Source LCG environment
+      run: |
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+
+    - name: Configure and build
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j$(nproc)
