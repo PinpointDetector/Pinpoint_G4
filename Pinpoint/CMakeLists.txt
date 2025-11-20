@@ -6,6 +6,17 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
 endif()
 project(pinpoint)
 
+##----------------------------------------------------------------------------
+# Find Pythia8 (required package)
+set(PYTHIA8_PREFIX "/cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt")
+
+add_library(Pythia8::Pythia8 UNKNOWN IMPORTED)
+
+set_target_properties(Pythia8::Pythia8 PROPERTIES
+    IMPORTED_LOCATION "${PYTHIA8_PREFIX}/lib/libpythia8.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${PYTHIA8_PREFIX}/include"
+)
+
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
@@ -37,24 +48,15 @@ include(${ROOT_USE_FILE})
 message(STATUS "Set ROOT : ${ROOT_USE_FILE}")
 message(STATUS "ROOT : ${ROOT_LIBRARIES}")
 
-##----------------------------------------------------------------------------
-## Find Pythia6 (optional package)
-##
-#find_package(Pythia6 QUIET)
-#if(PYTHIA6_FOUND)
-#  message(STATUS "G4 Examples: Pythia6 found. --> pinpoint example with Pythia6 enabled.") 
-#  add_definitions(-DG4LIB_USE_PYTHIA) 
-#else()
-#  set(PYTHIA6_LIBRARIES "")  
-#endif()
-
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
 include_directories(${PROJECT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR}
                     ${HEPMC3_INCLUDE_DIR}
-                    ${ROOT_INCLUDE_DIR})
+                    ${ROOT_INCLUDE_DIR}
+                    ${PYTHIA8_INCLUDE_DIRS}
+                    )
 
 file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*.cc 
                     ${PROJECT_SOURCE_DIR}/src/reco/*.cc
@@ -88,7 +90,9 @@ target_link_libraries(pinpoint
                       ${HEPMC3_LIBRARIES} 
                       ${HEPMC3_FIO_LIBRARIES} 
                       ${HEPMC3_LIB}
-                      ${ROOT_LIBRARIES})
+                      ${ROOT_LIBRARIES}
+                      Pythia8::Pythia8
+                      )
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX

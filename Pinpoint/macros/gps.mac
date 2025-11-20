@@ -4,16 +4,16 @@
 /run/initialize
 
 /gen/select gun
-/gps/particle mu-
+/gps/particle tau-
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/ang/rot1 -1 0 0
-/gps/pos/centre 0 0 -50 cm
+/gps/pos/centre 0 0 -200 cm
 /gps/pos/halfx 0.5 cm
 /gps/pos/halfy 0.5 cm
 /gps/pos/halfz 0.5 cm
 /gps/ang/type iso
-/gps/ang/maxtheta 3 deg
+/gps/ang/maxtheta 0 deg
 /gps/ang/mintheta 0 deg
 /gps/ang/maxphi 360 deg
 /gps/ang/minphi 0 deg
