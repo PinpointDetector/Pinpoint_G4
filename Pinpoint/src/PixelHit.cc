@@ -35,7 +35,7 @@ void PixelHit::Print()
     //  << "  trackID: " << fTrackID
     //  << "  PDG: " << fPDGCode
      << "  layer: " << fLayerID
-     << "  pixel(" << fPixelX << "," << fPixelY << ")"
+     << "  pixel(" << fRowID << "," << fColID << ")"
     //  << "  Position: " << std::setw(7) << G4BestUnit( fPos,"Length")
      << "  Charge: " << std::setw(7) << G4BestUnit(fEnergyDeposit,"Energy")
      << G4endl;

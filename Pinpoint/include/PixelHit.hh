@@ -32,8 +32,6 @@ public:
   void SetLayerID(G4int layer) { fLayerID = layer; }
   void SetTrackID(G4int trackID) { fTrackID = trackID; }
   void SetParentID(G4int parentID) { fParentID = parentID; }
-  void SetPixelX(G4int pixelX) { fPixelX = pixelX; }
-  void SetPixelY(G4int pixelY) { fPixelY = pixelY; }
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
   // void SetIsFromPrimary(G4bool fromPrimary) { fIsFromPrimary = fromPrimary; }
   void SetEnergyDeposit(G4double edep) { fEnergyDeposit = edep; }
@@ -44,6 +42,7 @@ public:
   void SetFromPrimaryPizero(G4bool fromPrimaryPizero) { fFromPrimaryPizero = fromPrimaryPizero; }
   void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
+  void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetRowID() const { return fRowID; }
@@ -51,12 +50,9 @@ public:
   G4int GetLayerID() const { return fLayerID; }
   G4int GetTrackID() const { return fTrackID; }
   G4int GetParentID() const { return fParentID; }
-  G4int GetPixelX() const { return fPixelX; }
-  G4int GetPixelY() const { return fPixelY; }
-  G4int GetPixelZ() const { return fPixelZ; }
   G4LorentzVector GetP4() const { return fP4; }
   G4int GetCharge() const { return fCharge; }
-  // G4ThreeVector GetPos() const { return fPos; }
+  G4ThreeVector GetTruthHitPos() const { return fTruthHitPos; }
   // G4bool GetIsFromPrimary() const { return fIsFromPrimary; }
   G4double GetEnergyDeposit() const { return fEnergyDeposit; }
   G4bool GetFromMuon() const { return fFromMuon; }
@@ -76,16 +72,12 @@ private:
   G4int fRowID = -1;
   G4int fColID = -1;
   G4int fLayerID = -1;
-  G4int fPixelX = -1;
-  G4int fPixelY = -1;
-  G4int fPixelZ = -1;
   G4int fCharge = 0;
   G4bool fFromPrimaryLepton = false;
   G4bool fFromPrimaryPizero = false;
   G4bool fFromFSLPizero = false;
+  G4ThreeVector fTruthHitPos;
 
-  // G4ThreeVector fPos;
-  // G4bool fIsFromPrimary = false;
   G4double fEnergyDeposit = 0.0;
   G4bool fFromMuon = false;
 };
