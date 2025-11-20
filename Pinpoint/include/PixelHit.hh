@@ -41,6 +41,9 @@ public:
   // void AddEnergyDeposit(G4double edep) { fEnergyDeposit += edep; }
   void SetP4(const G4LorentzVector& p4) { fP4 = p4; }
   void SetCharge(G4int charge) { fCharge = charge; }
+  void SetFromPrimaryPizero(G4bool fromPrimaryPizero) { fFromPrimaryPizero = fromPrimaryPizero; }
+  void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
+  void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetRowID() const { return fRowID; }
@@ -61,6 +64,9 @@ public:
   G4double GetPy() const { return fP4.py(); }
   G4double GetPz() const { return fP4.pz(); }
   G4double GetEnergy() const { return fP4.e(); }
+  G4bool GetFromPrimaryPizero() const { return fFromPrimaryPizero; }
+  G4bool GetFromFSLPizero() const { return fFromFSLPizero; }
+  G4bool GetFromPrimaryLepton() const { return fFromPrimaryLepton; }
 
 private:
   G4int fTrackID = -1;
@@ -74,6 +80,9 @@ private:
   G4int fPixelY = -1;
   G4int fPixelZ = -1;
   G4int fCharge = 0;
+  G4bool fFromPrimaryLepton = false;
+  G4bool fFromPrimaryPizero = false;
+  G4bool fFromFSLPizero = false;
 
   // G4ThreeVector fPos;
   // G4bool fIsFromPrimary = false;
