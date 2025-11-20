@@ -161,7 +161,7 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("tungsten_thickness", &tungstenThickness, "tungstenThickness/F");
   fGeom->Branch("silicon_thickness", &siliconThickness, "siliconThickness/F");
   fGeom->Branch("nLayers", &nLayers, "nLayers/I");
-  fGeom->Branch("pixel_xpos", &pixelsXPos);
+  fGeom->Branch("pixel_Xpos", &pixelsXPos);
   fGeom->Branch("pixel_Ypos", &pixelsYPos);
   fGeom->Branch("pixel_Zpos", &pixelsZPos);
 }
