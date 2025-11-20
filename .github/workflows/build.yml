@@ -7,36 +7,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     container:
       image: almalinux:9
       options: --privileged
 
     steps:
-      - name: Install prerequisites
-        run: |
-          dnf install -y yum-utils epel-release
-          dnf install -y fuse fuse-libs fuse3 fuse3-libs
-          dnf install -y wget
-
-      - name: Install CVMFS
-        run: |
-          wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest.noarch.rpm
-          dnf install -y cvmfs-release-latest.noarch.rpm
-          dnf install -y cvmfs cvmfs-config-default
-          mkdir -p /etc/cvmfs/default.local
-          echo "CVMFS_REPOSITORIES=sft.cern.ch" > /etc/cvmfs/default.local
-          echo "CVMFS_HTTP_PROXY=DIRECT" >> /etc/cvmfs/default.local
-          cvmfs_config setup
-          mount -t cvmfs sft.cern.ch /cvmfs/sft.cern.ch
-
-      - name: Verify CVMFS
-        run: |
-          ls /cvmfs/sft.cern.ch/lcg/views/LCG_107 || (echo "CVMFS mount failed!" && exit 1)
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: cvmfs-contrib/github-action-cvmfs@v4
+      
       - name: Load LCG environment
         run: |
           source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
