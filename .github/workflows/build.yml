@@ -9,37 +9,49 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: cvmfs/ci-cvmfs:almalinux9
-      options: --device /dev/fuse --cap-add SYS_ADMIN
+      image: almalinux:9
+      options: --privileged
 
     steps:
+      - name: Install prerequisites
+        run: |
+          dnf install -y yum-utils epel-release
+          dnf install -y fuse fuse-libs fuse3 fuse3-libs
+          dnf install -y wget
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Install CVMFS
+        run: |
+          wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest.noarch.rpm
+          dnf install -y cvmfs-release-latest.noarch.rpm
+          dnf install -y cvmfs cvmfs-config-default
+          mkdir -p /etc/cvmfs/default.local
+          echo "CVMFS_REPOSITORIES=sft.cern.ch" > /etc/cvmfs/default.local
+          echo "CVMFS_HTTP_PROXY=DIRECT" >> /etc/cvmfs/default.local
+          cvmfs_config setup
+          mount -t cvmfs sft.cern.ch /cvmfs/sft.cern.ch
 
-    - name: Mount CVMFS
-      run: |
-        echo "Mounting CVMFS..."
-        cvmfs_config setup
-        cvmfs_config probe
+      - name: Verify CVMFS
+        run: |
+          ls /cvmfs/sft.cern.ch/lcg/views/LCG_107 || (echo "CVMFS mount failed!" && exit 1)
 
-    - name: Load LCG view
-      run: |
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        echo "Using compiler:"
-        which g++
+      - name: Load LCG environment
+        run: |
+          source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+          which cmake
+          which g++
 
-    - name: Build with CMake
-      run: |
-        mkdir -p build
-        cd build
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
-        cmake ..
-        make -j$(nproc)
+      - name: Build project
+        run: |
+          source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
 
-    - name: Save pinpoint executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: pinpoint
-        path: build/pinpoint
+      - name: Upload pinpoint executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinpoint
+          path: build/pinpoint
