@@ -4,6 +4,8 @@
 
 # Pixel Instrument For Precision Neutrino Observations
 
+[![CI - Build Check](https://github.com/PinpointDetector/Pinpoint_G4/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/PinpointDetector/Pinpoint_G4/actions/workflows/build.yml)
+
 ## Introduction
 
 This is the GEANT4 simulation code for Pinpoint, a pixel-based neutrino detector concept for the FASER Run 4 upgrade.
