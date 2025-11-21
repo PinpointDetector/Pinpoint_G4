@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: cvmfs/service
+      image: cmssw/el9:x86_64
       options: --privileged
 
     steps:
