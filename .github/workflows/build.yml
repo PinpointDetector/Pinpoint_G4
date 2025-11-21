@@ -28,13 +28,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Source LCG environment
-      run: |
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt/setup.sh
-
     - name: Configure and build
       run: |
+        source Pinpoint/setup.sh 
         mkdir -p build
         cd build
-        cmake ..
+        cmake ../Pinpoint
         make -j$(nproc)
