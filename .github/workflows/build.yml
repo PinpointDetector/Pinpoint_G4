@@ -2,30 +2,30 @@ name: CI - Build Check
 
 on:
   push:
-    branches: [ bewilson/ci-cd/ ]
+    # branches: [ bewilson/ci-cd/ ]
   pull_request:
-    branches: [ main ]
+    # branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: almalinux:9
+      image: cvmfs/service
       options: --privileged
 
     steps:
-    - name: Install dependencies
-      run: |
-        dnf -y install epel-release
-        dnf -y install git cmake gcc gcc-c++ make fuse fuse3 cvmfs cvmfs-config-default
+    # - name: Install dependencies
+    #   run: |
+    #     dnf -y install epel-release
+    #     dnf -y install git cmake gcc gcc-c++ make fuse fuse3 cvmfs cvmfs-config-default
 
-    - name: Mount CVMFS
-      run: |
-        mkdir -p /cvmfs
-        echo "CVMFS_REPOSITORIES=sft.cern.ch" >> /etc/cvmfs/default.local
-        echo "CVMFS_QUOTA_LIMIT=10000" >> /etc/cvmfs/default.local
-        cvmfs_config setup
-        cvmfs_config probe
+    # - name: Mount CVMFS
+    #   run: |
+    #     mkdir -p /cvmfs
+    #     echo "CVMFS_REPOSITORIES=sft.cern.ch" >> /etc/cvmfs/default.local
+    #     echo "CVMFS_QUOTA_LIMIT=10000" >> /etc/cvmfs/default.local
+    #     cvmfs_config setup
+    #     cvmfs_config probe
 
     - name: Checkout code
       uses: actions/checkout@v3
