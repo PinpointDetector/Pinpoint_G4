@@ -10,22 +10,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: cmssw/el9:x86_64
-      options: --privileged
+      image: benw22022/faser:el9-cvmfs
+      options: '--privileged --user root'
 
     steps:
-    # - name: Install dependencies
-    #   run: |
-    #     dnf -y install epel-release
-    #     dnf -y install git cmake gcc gcc-c++ make fuse fuse3 cvmfs cvmfs-config-default
-
-    # - name: Mount CVMFS
-    #   run: |
-    #     mkdir -p /cvmfs
-    #     echo "CVMFS_REPOSITORIES=sft.cern.ch" >> /etc/cvmfs/default.local
-    #     echo "CVMFS_QUOTA_LIMIT=10000" >> /etc/cvmfs/default.local
-    #     cvmfs_config setup
-    #     cvmfs_config probe
+    - name: Start CVMFS
+      run: | 
+        sudo mount -t cvmfs atlas.cern.ch /cvmfs/atlas.cern.ch
+        sudo mount -t cvmfs atlas-condb.cern.ch /cvmfs/atlas-condb.cern.ch
+        sudo mount -t cvmfs atlas-nightlies.cern.ch /cvmfs/atlas-nightlies.cern.ch
+        sudo mount -t cvmfs grid.cern.ch /cvmfs/grid.cern.ch
+        sudo mount -t cvmfs sft-nightlies.cern.ch /cvmfs/sft-nightlies.cern.ch
+        sudo mount -t cvmfs sft.cern.ch /cvmfs/sft.cern.ch
+        sudo mount -t cvmfs unpacked.cern.ch /cvmfs/unpacked.cern.ch
+        sudo mount -t cvmfs geant4.cern.ch /cvmfs/geant4.cern.ch
 
     - name: Checkout code
       uses: actions/checkout@v3
