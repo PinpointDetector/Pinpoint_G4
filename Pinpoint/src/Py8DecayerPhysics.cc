@@ -88,10 +88,13 @@ void Py8DecayerPhysics::ConstructProcess()
     // a) tau's
     // b) B+/-
     // c) D+/-
+    // d) D0
+
     // so that G4Decay will use the external decayer
     if (std::abs(particle->GetPDGEncoding()) == 15 || 
         std::abs(particle->GetPDGEncoding()) == 521 ||
-        std::abs(particle->GetPDGEncoding()) == 411) 
+        std::abs(particle->GetPDGEncoding()) == 411 ||
+        std::abs(particle->GetPDGEncoding() == 421)) 
         {
           if (particle->GetDecayTable()) {
             delete particle->GetDecayTable();
