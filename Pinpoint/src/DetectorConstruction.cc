@@ -106,6 +106,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   if(sim_flag == 0)  { layerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
   if(sim_flag == 1)  { layerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
   //auto layerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
+  auto maxLayers = static_cast<int>(100.0*cm / layerThickness); // maximum layers allowed
+  if(fNLayers > maxLayers) {
+      G4cout << "Warning: Reducing number of layers from " << fNLayers 
+            << " to " << maxLayers << " to keep detector thickness <= 100 cm." << G4endl;
+      fNLayers = maxLayers;
+  }
   auto detectorThickness = fNLayers * layerThickness;
   auto worldSizeX = 1.2 * fDetectorWidth;
   auto worldSizeY = 1.2 * fDetectorHeight;
@@ -228,7 +234,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         // Vertical bars inside the container
         auto scintColS = new G4Box("ScintColumn2",0.5 * fScintBarWidth,0.5 * fDetectorHeight, 0.5 * fScintThickness);
         auto scintColLV =new G4LogicalVolume(scintColS, scintillator, "ScintColumn2");
-        new G4PVReplica("ScintColumn2", scintColLV, scintContainerLV, kXAxis, nScintBarsX, fScintBarWidth * 2);
+        new G4PVReplica("ScintColumn2", scintColLV, scintContainerLV, kXAxis, nScintBarsX, fScintBarWidth);
         scintLVs.push_back(scintColLV);
       }
     zCursor += 0.5 * fScintThickness;
@@ -259,7 +265,7 @@ if(sim_flag == 1)
         // Horizontal bars inside container
         auto scintRowS = new G4Box("ScintRow1",0.5 * fDetectorWidth,0.5 * fScintBarHeight,0.5 * fScintThickness);
         auto scintRowLV =new G4LogicalVolume(scintRowS, scintillator, "ScintRow1");
-        new G4PVReplica("ScintRow1", scintRowLV, scintContainer2LV, kYAxis, nScintBarsY, fScintBarHeight * 2);
+        new G4PVReplica("ScintRow1", scintRowLV, scintContainer2LV, kYAxis, nScintBarsY, fScintBarHeight);
         scintLVs.push_back(scintRowLV);
     }
 
@@ -276,12 +282,12 @@ if(sim_flag == 1)
   // G4cout << "Detector consists of " << fNLayers << " layers of: [ " << fTungstenThickness / mm << "mm of " << tungstenMaterial->GetName() << " + " << fSiliconThickness / mm << "mm of "
   //        << siliconMaterial->GetName() <<  " + " << boxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
 
-  // // Write GDML file if it doesn't exist
-  // std::ifstream file(fWriteFile);
-  // if (!file.good()) {
-  //   fParser.Write(fWriteFile, worldPV);
-  // }
-  // file.close();
+  // Write GDML file if it doesn't exist
+  std::ifstream file(fWriteFile);
+  if (!file.good()) {
+    fParser.Write(fWriteFile, worldPV);
+  }
+  file.close();
   
   return worldPV;
 }
