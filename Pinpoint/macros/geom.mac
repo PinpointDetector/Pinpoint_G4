@@ -3,3 +3,5 @@
 /det/setNLayers 100
 # /det/setPixelHeight 1 cm
 # /det/setPixelWidth 1 cm
+/det/setSimFlag 1
+/det/setScintBarFlag true
