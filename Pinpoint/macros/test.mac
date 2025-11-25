@@ -1,23 +1,69 @@
-# Macro for running a single event, no visualization
+# ======================================================
+# Global control
+# ======================================================
+/control/verbose 1
+/run/verbose 1
 
-/control/verbose 2
-/run/verbose 2
+# ======================================================
+# Detector geometry setup  (/det/)
+# ======================================================
 
-# Choose geometry
-/control/execute macros/geom.mac
+# Set tungsten absorber thickness
+/det/setTungstenThickness 5.0 mm   # <-- choose your value
+
+# Set silicon sensor thickness
+/det/setSiliconThickness 50 um    # default category is um
+
+# Number of sampling layers
+/det/setNLayers 100
+
+# Pixel dimensions
+/det/setPixelHeight 22.8 um
+/det/setPixelWidth 20.8 um
+
+# Overall detector transverse size
+/det/setDetectorWidth 26.6 cm
+/det/setDetectorHeight 19.6 cm
+
+# Set name of GDML file to be produced
+/det/setGDMLFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geometry/pinpoint.gdml
+
+# Scintillator configuration
+#  -1: no scintillator
+#   0: one scintillator layer
+#   1: two scintillator layers
+/det/setSimFlag 0
+
+# Scintillator geometry flag
+#  true  = bar geometry
+#  false = solid block
+/det/setScintBarFlag true
+
+# ======================================================
+# Generator setup  (/gen/gfaser)
+# ======================================================
+
+# Primary generator: gfaser
+#/gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/your_input.gfaser.root   # <-- set actual path
+#/gen/gfaser/firstEvent 0
+#/gen/gfaser/useFixedZPosition false
+
+# ======================================================
+# Output and analysis options  (/out/)
+# ======================================================
+
+# Output ROOT file name for histograms / ntuples
+/out/fileName /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Output/output.root
+
+# Flags for extra output detail
+/out/saveTrack false
+/out/saveTruthHits false
+
+# ======================================================
+# Initialize and run
+# ======================================================
 
 /run/initialize
+# (optionally geometry, cuts, etc., here if you have other messengers)
 
-# Detector parameters
-/det/setTungstenThickness 5 mm
-/det/setSiliconThickness 50 um
-/det/setNLayers 100
-/det/setSimFlag 1
-
-# GENIE generator settings (assuming your C++ messenger defines these)
-/gen/genie/genieInput myInputFile.gst
-/gen/genie/genieIStart 0
-/gen/genie/randomVtx false
-
-# Start one event
-/run/beamOn 1
+/run/beamOn 1   # <-- set number of events
