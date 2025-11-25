@@ -52,12 +52,14 @@ class AnalysisManager {
     void bookPrimTree();
     void bookGeomTree();
     void bookHitsTrees();
+    void bookScintTrees();
 
     void FillEventTree(const G4Event* event);
     void FillPrimariesTree(const G4Event* event);
     void FillTrajectoriesTree(const G4Event* event);
     void FillGeomTree();
     void FillHitsOutput();
+    void FillScintOutput();
     
     float_t GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m);
 
@@ -86,6 +88,8 @@ class AnalysisManager {
 
     TDirectory* fHits;
     TTree*   fPixelHitsTree;
+
+    TTree* fScintTree = nullptr;
 
     // track to primary ancestor
     std::map<G4int, G4int> trackToPrimaryAncestor;
@@ -188,6 +192,17 @@ class AnalysisManager {
     std::vector<Float_t> fPixelTruthY;
     std::vector<Float_t> fPixelTruthZ;
 
+    //----------------------------------------------------
+    //OUTPUT VARIABLES FOR SCINTILLATOR
+    UInt_t fScintEventID;
+    std::vector<int> fScintLayerID;
+    std::vector<int> fScintTrackID;
+    std::vector<int> fScintParentID;
+    std::vector<int> fScintPDG;
+    std::vector<float> fScintEdep;
+    std::vector<int> fScintFromMuon;
+    std::vector<int> fScintFromPrimaryLepton;
+    
   };
 
 #endif

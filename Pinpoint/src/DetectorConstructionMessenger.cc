@@ -73,6 +73,22 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     detGdmlCmd->SetParameterName("GDMLFile", false);
     detGdmlCmd->SetDefaultValue("pinpoint.gdml");
 
+    // --- sim_flag : -1 = no scint, 0 = single layer, 1 = double layer ---
+    simFlagCmd = new G4UIcmdWithAnInteger("/det/setSimFlag", this);
+    simFlagCmd->SetGuidance("Set simulation scintillator configuration.");
+    simFlagCmd->SetGuidance(" -1: no scintillator");
+    simFlagCmd->SetGuidance("  0: one scintillator layer");
+    simFlagCmd->SetGuidance("  1: two scintillator layers");
+    simFlagCmd->SetParameterName("SimFlag", false);
+    simFlagCmd->SetRange("SimFlag>=-1 && SimFlag<=1");
+    simFlagCmd->SetDefaultValue(0);
+
+    // --- scint_bar_flag : true = bar geometry, false = block geometry ---
+    scintBarFlagCmd = new G4UIcmdWithABool("/det/setScintBarFlag", this);
+    scintBarFlagCmd->SetGuidance("Use scintillator bar geometry (true) or solid block (false).");
+    scintBarFlagCmd->SetParameterName("ScintBarFlag", false);
+    scintBarFlagCmd->SetDefaultValue(false);
+
     // magnetFieldCmd = new G4UIcmdWithADoubleAndUnit("/det/magnetField", this);
     // magnetFieldCmd->SetUnitCategory("Magnetic flux density");
     // magnetFieldCmd->SetDefaultUnit("tesla");
@@ -94,6 +110,8 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
   delete detectorWidthCmd;
   delete detectorHeightCmd;
   delete detGdmlCmd;
+  delete simFlagCmd;
+  delete scintBarFlagCmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -132,6 +150,13 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
     // G4String filename = detGdmlCmd->GetNewStringValue(newValues);
     det->SetGDMLFile(newValues);
   }
+  if (command == simFlagCmd) {
+    det->SetSimFlag(simFlagCmd->GetNewIntValue(newValues));
+  }
+  if (command == scintBarFlagCmd) {
+      det->SetScintBarFlag(scintBarFlagCmd->GetNewBoolValue(newValues));
+  }
+
 
 //   if (command == detGdmlCmd) det->SaveGDML(detGdmlCmd->GetNewBoolValue(newValues));
     // if (command == magnetFieldCmd) { 

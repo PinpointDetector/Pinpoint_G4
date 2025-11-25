@@ -17,7 +17,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
-
+    void DefineMaterial();
+  
     void SetReadFile(const G4String& File);
     void SetWriteFile(const G4String& File);
     std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
@@ -45,6 +46,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetDetectorHeight(G4double height) { fDetectorHeight = height; }
     void SetCheckOverlaps(G4bool check) { fCheckOverlaps = check; }
     void SetGDMLFile(const G4String& filename) { fWriteFile = filename; }
+    void SetSimFlag(G4int flag) { sim_flag = flag; }
+    void SetScintBarFlag(G4bool flag) { scint_bar_flag = flag; }
+
 
     std::vector<G4double> GetPixelXPositions() const {
       std::vector<G4double> xPositions;
@@ -83,6 +87,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double GetPixelWidth() const { return fPixelWidth; }
     G4double GetDetectorWidth() const { return fDetectorWidth; }
     G4double GetDetectorHeight() const { return fDetectorHeight; }
+    
 
   private:
     G4String fWriteFile = "pinpoint.gdml";
@@ -98,11 +103,19 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fPixelWidth = 20.8 * um;
     G4double fDetectorWidth = 26.6 * cm;
     G4double fDetectorHeight = 19.6 * cm;
+    G4double fScintBarWidth = 10.0 * mm;
+    G4double fScintBarHeight = 10.0 * mm;
+    G4double fScintThickness = 5.0 * mm;
+    G4int sim_flag = 0;
+    G4bool scint_bar_flag = true;
 
     G4bool fCheckOverlaps = true;
 
+    std::vector<G4LogicalVolume*> scintLVs;
     std::vector<G4VPhysicalVolume*> fTarget_phys;
     G4VPhysicalVolume* fLayerPV;
+
+    G4Material* scintillator = nullptr;
 };
 
 

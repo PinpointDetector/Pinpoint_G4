@@ -1,0 +1,23 @@
+# Macro for running a single event, no visualization
+
+/control/verbose 2
+/run/verbose 2
+
+# Choose geometry
+/control/execute macros/geom.mac
+
+/run/initialize
+
+# Detector parameters
+/det/setTungstenThickness 5 mm
+/det/setSiliconThickness 50 um
+/det/setNLayers 100
+/det/setSimFlag 1
+
+# GENIE generator settings (assuming your C++ messenger defines these)
+/gen/genie/genieInput myInputFile.gst
+/gen/genie/genieIStart 0
+/gen/genie/randomVtx false
+
+# Start one event
+/run/beamOn 1

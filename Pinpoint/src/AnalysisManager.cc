@@ -33,6 +33,7 @@
 #include "reco/Barcode.hh"
 #include "FPFParticle.hh"
 #include "PixelHit.hh"
+#include "ScintHit.hh"
 
 
 //---------------------------------------------------------------------
@@ -205,6 +206,23 @@ void AnalysisManager::bookHitsTrees()
   fFile->cd();
 }
 
+//// --- NEW FOR SCINTILLATORS ---
+void AnalysisManager::bookScintTrees()
+{
+    fFile->cd(fHits->GetName());
+
+    fScintTree = new TTree("scintHits", "scintillator hits");
+
+    fScintTree->Branch("event_id", &fScintEventID, "event_id/i");
+    fScintTree->Branch("layerID", &fScintLayerID);
+    fScintTree->Branch("trackID", &fScintTrackID);
+    fScintTree->Branch("parentID", &fScintParentID);
+    fScintTree->Branch("pdg", &fScintPDG);
+    fScintTree->Branch("edep", &fScintEdep);
+    fScintTree->Branch("fromMuon", &fScintFromMuon);
+    fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
+}
+
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 
@@ -225,6 +243,8 @@ void AnalysisManager::BeginOfRun()
   if (fSaveTrack) bookTrkTree();
 
   bookHitsTrees();
+  bookScintTrees();
+
 }
 
 //---------------------------------------------------------------------
@@ -243,6 +263,8 @@ void AnalysisManager::EndOfRun()
 
   fFile->cd(fHits->GetName());
   fPixelHitsTree->Write();
+  fScintTree->Write();
+
   // fActsParticlesTree->Write();
   fFile->cd(); // go back to top
 
@@ -285,6 +307,16 @@ void AnalysisManager::BeginOfEvent()
   fPixelTruthX.clear();
   fPixelTruthY.clear();
   fPixelTruthZ.clear();
+
+  //clean scintillator hits
+  //// --- NEW FOR SCINTILLATORS ---
+  fScintLayerID.clear();
+  fScintTrackID.clear();
+  fScintParentID.clear();
+  fScintPDG.clear();
+  fScintEdep.clear();
+  fScintFromMuon.clear();
+  fScintFromPrimaryLepton.clear();
 }
 
 //---------------------------------------------------------------------
@@ -317,7 +349,7 @@ void AnalysisManager::EndOfEvent(const G4Event *event)
   }
 
   FillHitsOutput();
-
+  FillScintOutput();
 }
 
 //---------------------------------------------------------------------
@@ -558,7 +590,39 @@ void AnalysisManager::FillHitsOutput()
   } // Close loop over hit collections
 }
 
+//// --- NEW FOR SCINTILLATORS ---
+void AnalysisManager::FillScintOutput()
+{
+    fScintEventID = evtID;
+
+    G4int nHC = fHCofEvent->GetNumberOfCollections();
+
+    for(G4int i = 0; i < nHC; ++i)
+    {
+        auto* hc = fHCofEvent->GetHC(i);
+        auto* scintHC = dynamic_cast<ScintHitsCollection*>(hc);
+        if(!scintHC) continue;
+        if(scintHC->GetName() != "ScintHitsCollection") continue;
+
+        for(size_t h = 0; h < scintHC->entries(); ++h)
+        {
+            auto* hit = (*scintHC)[h];
+
+            fScintLayerID.push_back(hit->GetLayerID());
+            fScintTrackID.push_back(hit->GetTrackID());
+            fScintParentID.push_back(hit->GetParentID());
+            fScintPDG.push_back(hit->GetPDGCode());
+            fScintEdep.push_back(hit->GetEnergyDeposit());
+            fScintFromMuon.push_back(hit->GetFromMuon());
+            fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
+        }
+    }
+
+    fScintTree->Fill();
+}
+
 float_t AnalysisManager::GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m)
 {
   return TMath::Sqrt(px * px + py * py + pz * pz + m * m);
 }
+

@@ -38,6 +38,8 @@ class DetectorConstructionMessenger: public G4UImessenger {
     G4UIcmdWithADoubleAndUnit* detectorWidthCmd;
     G4UIcmdWithADoubleAndUnit* detectorHeightCmd;
     G4UIcmdWithAString* detGdmlCmd;
+    G4UIcmdWithAnInteger* simFlagCmd;
+    G4UIcmdWithABool* scintBarFlagCmd;
 
     // G4UIcmdWithABool* detCheckOverlapCmd;
 
