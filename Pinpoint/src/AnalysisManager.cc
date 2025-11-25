@@ -58,7 +58,7 @@ AnalysisManager *AnalysisManager::GetInstance()
 AnalysisManager::AnalysisManager()
 {
   fFile = nullptr;
-  fFilename = "/eos/project/f/fasersim-bonn/public/pinpoint/test_outputs/test.root";
+  fFilename = "test.root";
 
   fMessenger = new AnalysisManagerMessenger(this);
 
