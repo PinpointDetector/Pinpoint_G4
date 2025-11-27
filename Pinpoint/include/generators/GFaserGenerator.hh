@@ -40,6 +40,13 @@ class GFaserGenerator : public GeneratorBase
     
     int fN;
     double fVx, fVy, fVz;
+    int fNuPdg, fLeptonPdg, fHitPdg;
+    double fPxv, fPyv, fPzv, fEv;
+    double fQ2, fW, fX, fY;
+    int fIntType, fScatType;
+    bool fIsCc, fIsNc;
+    int fTgtZ, fTgtA, fTgtPdg;
+
     std::vector<std::string>* fName = nullptr;
     std::vector<int>* fPdgc = nullptr;
     std::vector<int>* fStatus = nullptr;
@@ -50,6 +57,7 @@ class GFaserGenerator : public GeneratorBase
 
     G4bool FindParticleDefinition(G4int pdg, G4ParticleDefinition* &particleDefinition) const;
     G4double GenerateRandomZVertex(G4int layerIndex) const;
+    G4String EncodeProcessName() const;
 };
 
 #endif // GFaserGenerator_hh
