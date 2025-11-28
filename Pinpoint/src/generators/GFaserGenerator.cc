@@ -89,12 +89,49 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("py", &fPy);
   fGfaserTree->SetBranchAddress("pz", &fPz);
   fGfaserTree->SetBranchAddress("E", &fE);
+  fGfaserTree->SetBranchAddress("pxv", &fPxv);
+  fGfaserTree->SetBranchAddress("pyv", &fPyv);
+  fGfaserTree->SetBranchAddress("pzv", &fPzv);
+  fGfaserTree->SetBranchAddress("Ev", &fEv);
+  fGfaserTree->SetBranchAddress("Q2", &fQ2);
+  fGfaserTree->SetBranchAddress("W", &fW);
+  fGfaserTree->SetBranchAddress("x", &fX);
+  fGfaserTree->SetBranchAddress("y", &fY);
+  fGfaserTree->SetBranchAddress("xsec", &xsec);
+  fGfaserTree->SetBranchAddress("intType", &fIntType);
+  fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
+  fGfaserTree->SetBranchAddress("cc", &fIsCc);
+  fGfaserTree->SetBranchAddress("nc", &fIsNc);
+  fGfaserTree->SetBranchAddress("Z", &fTgtZ);
+  fGfaserTree->SetBranchAddress("A", &fTgtA);
+  fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
+  fGfaserTree->SetBranchAddress("neu", &fNuPdg);
+  fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
+  fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
 
   fCurrentEvent = fFirstEvent;
   fTotalEvents = fGfaserTree->GetEntries();
   
   G4cout << "Opened Gfaser file: " << fInputFileName << G4endl;
   G4cout << "Total events: " << fTotalEvents << G4endl;
+}
+
+
+G4String GFaserGenerator::EncodeProcessName() const
+{
+  G4String process = "";
+  if (fIsCc) process += "WeakCC";
+  else if (fIsNc) process += "WeakNC";
+
+  if(fScatType == 2) process += " QE";
+  else if(fScatType == 5) process += " RES";
+  else if(fScatType == 4) process += " DIS";
+  else if(fScatType == 6) process += " COH";
+  else if(fScatType == 9) process += " IMD";
+  else if(fScatType == 11) process += " MEC";
+  else if(fScatType == 8) process += " nuELASTIC";
+
+  return process;
 }
 
 
@@ -129,6 +166,30 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   }
   // Add vertex to event
   event->AddPrimaryVertex(vertex);
+
+  GeneratorVertexMetadata metadata;
+  metadata.generatorType = fGeneratorName;
+  metadata.processName = EncodeProcessName();
+  metadata.weight = 1.0;
+  metadata.pdg = fNuPdg; 
+  metadata.x4 = G4LorentzVector(fVx*m, fVy*m, fVz*m, 0.);
+  metadata.p4 = G4LorentzVector(fPxv*GeV, fPyv*GeV, fPzv*GeV, fEv*GeV);
+  metadata.mass = 0.; // neutrinos always massless
+  metadata.charge = 0.; // neutrinos always no charge
+  metadata.intType = fIntType;
+  metadata.scatteringType = fScatType;
+  metadata.fsl_pdg = fLeptonPdg;
+  metadata.tgt_pdg = fTgtPdg;
+  metadata.tgt_A = fTgtA;
+  metadata.tgt_Z = fTgtZ;
+  metadata.hitnuc_pdg = fHitPdg;
+  metadata.Q2 = fQ2;
+  metadata.xBj = fX;
+  metadata.y = fY;
+  metadata.W = fW;
+  metadata.xs = xsec;
+  fVertexMetadata.push_back(metadata);
+
   fCurrentEvent++;
 }
 
