@@ -46,6 +46,7 @@ class GFaserGenerator : public GeneratorBase
     int fIntType, fScatType;
     bool fIsCc, fIsNc;
     int fTgtZ, fTgtA, fTgtPdg;
+    double xsec;
 
     std::vector<std::string>* fName = nullptr;
     std::vector<int>* fPdgc = nullptr;

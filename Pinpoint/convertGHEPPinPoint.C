@@ -156,6 +156,7 @@ void convertGHEPPinPoint(const std::string& inputFilename, const std::string& ou
   double W;
   double x;
   double y;
+  double Xsec;
   double crossingAngle;
   bool isVerticalCrossingAngle;
   // to do: add interaction information
@@ -198,6 +199,7 @@ void convertGHEPPinPoint(const std::string& inputFilename, const std::string& ou
   outTree->Branch("W",&W,"W/D");
   outTree->Branch("x",&x,"x/D");
   outTree->Branch("y",&y,"y/D");
+  outTree->Branch("XSec", &Xsec, "XSec/D");
   outTree->Branch("crossingAngle",&crossingAngle,"crossingAngle/D");
   outTree->Branch("isVerticalCrossingAngle",&isVerticalCrossingAngle,
                   "isVerticalCrossingAngle/O");
@@ -299,6 +301,8 @@ void convertGHEPPinPoint(const std::string& inputFilename, const std::string& ou
     
     // Hit nucleon
     hitnuc = (hitnucl) ? hitnucl->Pdg() : 0;
+
+    Xsec  = event.XSec() * (1E+38/units::cm2);
     
     // Process type
     cc = proc_info.IsWeakCC();

@@ -97,15 +97,16 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("W", &fW);
   fGfaserTree->SetBranchAddress("x", &fX);
   fGfaserTree->SetBranchAddress("y", &fY);
+  fGfaserTree->SetBranchAddress("xsec", &xsec);
   fGfaserTree->SetBranchAddress("intType", &fIntType);
   fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
   fGfaserTree->SetBranchAddress("cc", &fIsCc);
   fGfaserTree->SetBranchAddress("nc", &fIsNc);
   fGfaserTree->SetBranchAddress("Z", &fTgtZ);
   fGfaserTree->SetBranchAddress("A", &fTgtA);
-  fGfaserTree->SetBranchAddress("tgt_pdg", &fTgtPdg);
-  fGfaserTree->SetBranchAddress("nu_pdg", &fNuPdg);
-  fGfaserTree->SetBranchAddress("lepton_pdg", &fLeptonPdg);
+  fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
+  fGfaserTree->SetBranchAddress("neu", &fNuPdg);
+  fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
   fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
 
   fCurrentEvent = fFirstEvent;
@@ -186,6 +187,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   metadata.xBj = fX;
   metadata.y = fY;
   metadata.W = fW;
+  metadata.xs = xsec;
   fVertexMetadata.push_back(metadata);
 
   fCurrentEvent++;
