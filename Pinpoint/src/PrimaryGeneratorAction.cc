@@ -8,6 +8,7 @@
 #include "generators/GPSGenerator.hh"
 
 #include "EventInformation.hh"
+#include "ProfilingManager.hh"
 
 #include "G4Event.hh"
 #include "G4Exception.hh"
@@ -54,10 +55,14 @@ void PrimaryGeneratorAction::SetGenerator(G4String name)
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
+  PROFILE_START("PrimaryGeneratorAction");
+
   // load generator data at first event
   // this function opens files, reads trees, etc (if required)
   if(!fInitialized){
+    PROFILE_START("Generator::LoadData");
     fGenerator->LoadData();
+    PROFILE_STOP("Generator::LoadData");
     fInitialized = true;
   }
 
@@ -68,9 +73,12 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   fGenerator->ResetEventMetadata();
 
   // produce an event with current generator
+  PROFILE_START("Generator::GeneratePrimaries");
   fGenerator->GeneratePrimaries(anEvent);
+  PROFILE_STOP("Generator::GeneratePrimaries");
 
   // save vertex metadata information into the event
   anEvent->SetUserInformation(new EventInformation(fGenerator->GetEventMetadata()));
 
+  PROFILE_STOP("PrimaryGeneratorAction");
 }

@@ -14,6 +14,7 @@
 #include "G4RunManager.hh"
 #include "G4Event.hh"
 #include "TrackInformation.hh"
+#include "ProfilingManager.hh"
 
 
 // std::set<G4int> PixelSD::sPrimaryDescendants;
@@ -107,6 +108,8 @@ void PixelSD::Initialize(G4HCofThisEvent* hce)
 
 G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
 {
+  PROFILE_START("PixelSD::ProcessHits");
+
   G4Track* track = step->GetTrack();
   
   if (track->GetDefinition()->GetPDGCharge() == 0) {
@@ -181,12 +184,15 @@ G4bool PixelSD::ProcessHits(G4Step* step, G4TouchableHistory* /*history*/)
     pixelFromMuonMap[pixelId] = true;
   }
   
+  PROFILE_STOP("PixelSD::ProcessHits");
   return true;
 }
 
 
 void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
 {
+  PROFILE_START("PixelSD::EndOfEvent");
+
   // Get detector geometry parameters from DetectorConstruction
   // G4double tungstenThickness = DetectorConstruction::GetTungstenThickness();
   // G4double siliconThickness = DetectorConstruction::GetSiliconThickness();
@@ -274,6 +280,8 @@ void PixelSD::EndOfEvent(G4HCofThisEvent* /*hce*/)
     for (std::size_t i = 0; i < nofHits; i++)
       (*fHitsCollection)[i]->Print();
   }
+
+  PROFILE_STOP("PixelSD::EndOfEvent");
 }
 
 

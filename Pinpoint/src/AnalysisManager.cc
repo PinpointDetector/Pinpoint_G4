@@ -34,6 +34,7 @@
 #include "FPFParticle.hh"
 #include "PixelHit.hh"
 #include "ScintHit.hh"
+#include "ProfilingManager.hh"
 
 
 //---------------------------------------------------------------------
@@ -357,6 +358,7 @@ void AnalysisManager::EndOfEvent(const G4Event *event)
 
 void AnalysisManager::FillEventTree(const G4Event *event)
 {
+  PROFILE_START("FillEventTree");
   G4cout << "Filling event tree" << G4endl;
   EventInformation* eventInfo = static_cast<EventInformation*>(event->GetUserInformation());
   eventInfo->Print();
@@ -393,6 +395,7 @@ void AnalysisManager::FillEventTree(const G4Event *event)
 
     fEvt->Fill();
   }
+  PROFILE_STOP("FillEventTree");
 }
 
 //---------------------------------------------------------------------
@@ -400,6 +403,7 @@ void AnalysisManager::FillEventTree(const G4Event *event)
 
 void AnalysisManager::FillPrimariesTree(const G4Event *event)
 {
+  PROFILE_START("FillPrimariesTree");
   G4cout << "Filling primaries tree" << G4endl;
   nPrimaryVertex = event->GetNumberOfPrimaryVertex();
   G4cout << "\nNumber of primary vertices  : " << nPrimaryVertex << G4endl;
@@ -466,6 +470,7 @@ void AnalysisManager::FillPrimariesTree(const G4Event *event)
   }
 
   G4cout << "\nNumber of primaries  : " << primaryIDs.size() << G4endl;
+  PROFILE_STOP("FillPrimariesTree");
 }
 
 //---------------------------------------------------------------------
@@ -473,6 +478,7 @@ void AnalysisManager::FillPrimariesTree(const G4Event *event)
 
 void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
 {
+  PROFILE_START("FillTrajectoriesTree");
   G4cout << "Filling trajectories tree" << G4endl;
   int count_tracks = 0;
 
@@ -506,6 +512,7 @@ void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
     trackPointZ.clear();
   }
   G4cout << "Total number of recorded track: " << count_tracks << std::endl;
+  PROFILE_STOP("FillTrajectoriesTree");
 }
 
 //---------------------------------------------------------------------
@@ -537,6 +544,7 @@ void AnalysisManager::FillGeomTree()
 
 void AnalysisManager::FillHitsOutput()
 {
+  PROFILE_START("FillHitsOutput");
   G4cout << "==== Filling Hits output trees ====" << G4endl;
   int nHits = 0;
   G4int nHC = fHCofEvent->GetNumberOfCollections();
@@ -588,11 +596,13 @@ void AnalysisManager::FillHitsOutput()
       
     } 
   } // Close loop over hit collections
+  PROFILE_STOP("FillHitsOutput");
 }
 
 //// --- NEW FOR SCINTILLATORS ---
 void AnalysisManager::FillScintOutput()
 {
+    PROFILE_START("FillScintOutput");
     fScintEventID = evtID;
 
     G4int nHC = fHCofEvent->GetNumberOfCollections();
@@ -619,6 +629,7 @@ void AnalysisManager::FillScintOutput()
     }
 
     fScintTree->Fill();
+    PROFILE_STOP("FillScintOutput");
 }
 
 float_t AnalysisManager::GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m)

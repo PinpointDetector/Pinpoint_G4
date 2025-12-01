@@ -5,6 +5,7 @@
 #include <G4Electron.hh>
 #include <G4TrackStatus.hh>
 #include <G4SystemOfUnits.hh>
+#include "ProfilingManager.hh"
 
 #include <TMath.h>
 
@@ -14,6 +15,7 @@ SteppingAction::SteppingAction(RunAction* runAction)
 }
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep) {
+  PROFILE_START("SteppingAction");
 
   //TrackLiveDebugging(aStep);
 
@@ -24,6 +26,8 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep) {
   G4VPhysicalVolume* volume = aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
 
   // if( volume->GetName() == "expHall_P" ) aTrack->SetTrackStatus(G4TrackStatus::fStopAndKill);
+
+  PROFILE_STOP("SteppingAction");
 }
 
 void SteppingAction::TrackLiveDebugging(const G4Step* step){

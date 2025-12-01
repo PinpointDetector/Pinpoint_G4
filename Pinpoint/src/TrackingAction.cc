@@ -1,6 +1,7 @@
 #include "TrackingAction.hh"
 #include "TrackInformation.hh"
 #include "AnalysisManager.hh"
+#include "ProfilingManager.hh"
 
 #include "G4TrackingManager.hh"
 #include "G4Track.hh"
@@ -13,6 +14,8 @@ void TrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 
 void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 {
+  PROFILE_START("TrackingAction::Post");
+
   if (aTrack->GetParentID()==0) 
   {
     AnalysisManager::GetInstance()->AddOnePrimaryTrack();
@@ -105,4 +108,6 @@ void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
   //    aTrackInfo->Print();
   //  }
   //}
+
+  PROFILE_STOP("TrackingAction::Post");
 }

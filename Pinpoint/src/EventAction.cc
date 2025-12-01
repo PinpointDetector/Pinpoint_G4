@@ -6,6 +6,7 @@
 #include "G4Circle.hh"
 #include "G4VisAttributes.hh"
 #include "AnalysisManager.hh"
+#include "ProfilingManager.hh"
 
 using namespace std;
 
@@ -26,12 +27,16 @@ EventAction::~EventAction() {;}
 
 void EventAction::BeginOfEventAction(const G4Event* event)
 {
+  PROFILE_START("Event");
+
   // Reset all accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->Reset();
 
+  PROFILE_START("AnalysisManager::BeginOfEvent");
   AnalysisManager* ana = AnalysisManager::GetInstance();
   ana->BeginOfEvent();
+  PROFILE_STOP("AnalysisManager::BeginOfEvent");
 }
 
 void EventAction::EndOfEventAction(const G4Event* event)
@@ -54,12 +59,17 @@ void EventAction::EndOfEventAction(const G4Event* event)
     G4cout << " * No secondary tracks (excluding gamma) produced" << G4endl;
 
   // skip AnalysisManager if there are no tracks at all!
-  if(!fNPrimaryTrack.GetValue() && !fNSecondaryTrack.GetValue() && !fNSecondaryTrackNotGamma.GetValue()) 
+  if(!fNPrimaryTrack.GetValue() && !fNSecondaryTrack.GetValue() && !fNSecondaryTrackNotGamma.GetValue()) {
+    PROFILE_STOP("Event");
     return;
+  }
 
+  PROFILE_START("AnalysisManager::EndOfEvent");
   AnalysisManager* ana = AnalysisManager::GetInstance();
   ana->EndOfEvent(event);
+  PROFILE_STOP("AnalysisManager::EndOfEvent");
 
+  PROFILE_STOP("Event");
 }
 
 void EventAction::AddPrimaryTrack() 

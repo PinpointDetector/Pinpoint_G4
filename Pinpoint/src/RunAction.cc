@@ -1,6 +1,7 @@
 #include "RunAction.hh"
 
 #include "AnalysisManager.hh"
+#include "ProfilingManager.hh"
 
 RunAction::RunAction() :
   G4UserRunAction() 
@@ -11,6 +12,9 @@ RunAction::RunAction() :
 }
 
 void RunAction::BeginOfRunAction(const G4Run*) {
+  PROFILE_START("Run");
+  ProfilingManager::GetInstance()->Reset();
+
   AnalysisManager* analysis = AnalysisManager::GetInstance();
   analysis->BeginOfRun();
 }
@@ -24,6 +28,11 @@ void RunAction::EndOfRunAction(const G4Run* run) {
 
   // do nothing, if no events were processed
   if (nofEvents == 0) return;
+
+  PROFILE_STOP("Run");
+
+  // Print profiling report
+  ProfilingManager::GetInstance()->PrintReport();
 }
 
 RunAction::~RunAction() {;}
