@@ -26,7 +26,7 @@
 /det/setDetectorHeight 19.6 cm
 
 # Set name of GDML file to be produced
-/det/setGDMLFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geometry/pinpoint.gdml
+/det/setGDMLFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geometry/tungsten_5mm_pixel_5mm_scint_5mm_single_bar.gdml
 
 # Scintillator configuration
 #  -1: no scintillator
@@ -44,16 +44,17 @@
 # ======================================================
 
 # Primary generator: gfaser
-#/gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/your_input.gfaser.root   # <-- set actual path
-#/gen/gfaser/firstEvent 0
-#/gen/gfaser/useFixedZPosition false
+/gen/select gfaser
+/gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/nutau_775_795.root   # <-- set actual path
+/gen/gfaser/firstEvent 0
+/gen/gfaser/useFixedZPosition true
 
 # ======================================================
 # Output and analysis options  (/out/)
 # ======================================================
 
 # Output ROOT file name for histograms / ntuples
-/out/fileName /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Output/output.root
+/out/fileName /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Output/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/t4p5s5_energyRange.root
 
 # Flags for extra output detail
 /out/saveTrack false

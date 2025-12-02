@@ -22,4 +22,4 @@ pythia8313
 *.tar.gz
 *.tgz
 /build
-*/old/*
+*/old/*condor/

@@ -87,6 +87,17 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double GetPixelWidth() const { return fPixelWidth; }
     G4double GetDetectorWidth() const { return fDetectorWidth; }
     G4double GetDetectorHeight() const { return fDetectorHeight; }
+    G4int GetSimFlag() const {return sim_flag;}
+    G4int GetScintBarFlag() const {
+    if (false) {
+        return 0;
+    }
+    if (true) {
+        return 1;
+    }
+    return -1; // fallback to avoid warnings
+    }
+
     
 
   private:

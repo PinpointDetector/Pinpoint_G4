@@ -165,6 +165,8 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("pixel_Xpos", &pixelsXPos);
   fGeom->Branch("pixel_Ypos", &pixelsYPos);
   fGeom->Branch("pixel_Zpos", &pixelsZPos);
+  fGeom->Branch("sim_flag", &simFlag, "simFlag/F");
+  fGeom->Branch("scint_bar_flag", &scintBarFlag, "scintBarFlag/F");
 }
 
 
@@ -523,6 +525,8 @@ void AnalysisManager::FillGeomTree()
   tungstenThickness = det->GetTungstenThickness()/mm;
   siliconThickness = det->GetSiliconThickness()/um;
   nLayers = det->GetNumberOfLayers();
+  simFlag = det->GetSimFlag();
+  scintBarFlag = det->GetScintBarFlag();
   
   // get pixel positions: Idea is that we can get the x,y,z of all hits by indexing into these arrays
   pixelsXPos = det->GetPixelXPositions();

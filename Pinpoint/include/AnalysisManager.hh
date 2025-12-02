@@ -163,6 +163,8 @@ class AnalysisManager {
     float_t tungstenThickness;
     float_t siliconThickness;
     Int_t nLayers;
+    Int_t simFlag;
+    Int_t scintBarFlag;
     std::vector<double_t> pixelsXPos;
     std::vector<double_t> pixelsYPos;
     std::vector<double_t> pixelsZPos;

@@ -32,7 +32,8 @@ void DetectorConstruction::DefineMaterial()
   scintillator = nist->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
   std::vector<G4double> refractiveIndexScint = { 1.58, 1.58 };
-  std::vector<G4double> absorptionScint = {210.0*cm, 210.0*cm};
+  std::vector<G4double> absorptionScint = {0.1*cm, 0.1*cm};
+  //std::vector<G4double> absorptionScint = {210.0*cm, 210.0*cm};
   std::vector<G4double> energiesSmall = { 1.907*eV, 3.542*eV };
 
   std::vector<G4double> energyScint = { 
@@ -60,7 +61,7 @@ void DetectorConstruction::DefineMaterial()
 	MPT->AddProperty("RINDEX",energiesSmall, refractiveIndexScint);
 	MPT->AddProperty("ABSLENGTH",energiesSmall, absorptionScint);
 	MPT->AddProperty("SCINTILLATIONCOMPONENT1", energyScint, emissionIntensityScint);    									
-	MPT->AddConstProperty("SCINTILLATIONYIELD", 14400.0/MeV);
+	MPT->AddConstProperty("SCINTILLATIONYIELD", 144.0/MeV);
 	MPT->AddConstProperty("RESOLUTIONSCALE", 1.0);  //FWHM divided by Energy, also Fano Factor
 	MPT->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.1*ns);   //was previous 2.1, chaged to 0.9 where scintillator time reaches peak
 	scintillator->SetMaterialPropertiesTable(MPT);
@@ -119,6 +120,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // Get materials
   G4NistManager* nist = G4NistManager::Instance();
+  G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
   G4Material* worldMaterial = nist->FindOrBuildMaterial("G4_AIR");
   G4Material* tungstenMaterial = nist->FindOrBuildMaterial("G4_W");
   G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
@@ -217,7 +219,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
       // --- Create container for FIRST scintillator layer ---
       auto scintContainerS = new G4Box("ScintContainer1",0.5 * fDetectorWidth,0.5 * fDetectorHeight,0.5 * fScintThickness);
-      auto scintContainerLV = new G4LogicalVolume(scintContainerS, worldMaterial, "ScintContainer1");
+      auto scintContainerLV = new G4LogicalVolume(scintContainerS, scintillator, "ScintContainer1");
       new G4PVPlacement(0, G4ThreeVector(0.,0.,zCursor),scintContainerLV, "ScintContainer1",layerLV, false, 100, fCheckOverlaps);
       scintContainerLV->SetVisAttributes(ScintLayerAtrrib);
 
@@ -249,7 +251,7 @@ if(sim_flag == 1)
 
     // --- Container for second scintillator layer ---
     auto scintContainer2S = new G4Box("ScintContainer2", 0.5 * fDetectorWidth,0.5 * fDetectorHeight,0.5 * fScintThickness);
-    auto scintContainer2LV =new G4LogicalVolume(scintContainer2S, worldMaterial, "ScintContainer2");
+    auto scintContainer2LV =new G4LogicalVolume(scintContainer2S, scintillator, "ScintContainer2");
     new G4PVPlacement(0, G4ThreeVector(0.,0.,zCursor),scintContainer2LV, "ScintContainer2",layerLV, false, 101, fCheckOverlaps);
     scintContainer2LV->SetVisAttributes(ScintLayerAtrrib);
 
