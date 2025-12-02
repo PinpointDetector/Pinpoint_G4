@@ -6,6 +6,7 @@
 #include "G4SystemOfUnits.hh"
 #include "DetectorConstructionMessenger.hh"
 #include "G4RunManager.hh"
+#include "G4OpticalSurface.hh"
 
 class G4VPhysicalVolume;
 
@@ -18,6 +19,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
     void DefineMaterial();
+    void PrintLayerVolumePositions();
+
   
     void SetReadFile(const G4String& File);
     void SetWriteFile(const G4String& File);
@@ -125,6 +128,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     std::vector<G4LogicalVolume*> scintLVs;
     std::vector<G4VPhysicalVolume*> fTarget_phys;
     G4VPhysicalVolume* fLayerPV;
+
+    G4OpticalSurface* scintWrap;
 
     G4Material* scintillator = nullptr;
 };

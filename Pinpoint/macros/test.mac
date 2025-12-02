@@ -44,10 +44,10 @@
 # ======================================================
 
 # Primary generator: gfaser
-/gen/select gfaser
-/gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/nutau_775_795.root   # <-- set actual path
-/gen/gfaser/firstEvent 0
-/gen/gfaser/useFixedZPosition true
+#/gen/select gfaser
+#/gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/nutau_775_795.root   # <-- set actual path
+#/gen/gfaser/firstEvent 0
+#/gen/gfaser/useFixedZPosition true
 
 # ======================================================
 # Output and analysis options  (/out/)
