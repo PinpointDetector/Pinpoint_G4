@@ -117,8 +117,10 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fPixelWidth = 20.8 * um;
     G4double fDetectorWidth = 26.6 * cm;
     G4double fDetectorHeight = 19.6 * cm;
-    G4double fScintBarWidth = 10.0 * mm;
-    G4double fScintBarHeight = 10.0 * mm;
+    // G4double fScintBarWidth = 10.0 * mm;
+    // G4double fScintBarHeight = 10.0 * mm;
+    G4double fScintBarWidth = 9.85 * mm; 
+    G4double fScintBarHeight = 9.80 * mm;
     G4double fScintThickness = 5.0 * mm;
     G4int sim_flag = 0;
     G4bool scint_bar_flag = true;
