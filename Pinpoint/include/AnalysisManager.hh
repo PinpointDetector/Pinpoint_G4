@@ -185,6 +185,7 @@ class AnalysisManager {
     std::vector<Float_t> fPixelPzs;
     std::vector<Float_t> fPixelEnergies;
     std::vector<Float_t> fPixelCharges;
+    std::vector<Float_t> fPixelEDep;
     // std::vector<G4bool> fPixelFromPrimaryPizero;
     // std::vector<G4bool> fPixelFromFSLPizero;
     std::vector<G4bool> fPixelFromPrimaryLepton;
