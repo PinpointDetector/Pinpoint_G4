@@ -194,6 +194,7 @@ void AnalysisManager::bookHitsTrees()
   fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
   fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
   fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
+  fPixelHitsTree->Branch("hit_edep", & fPixelEDep);
   // fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
   fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
@@ -303,6 +304,7 @@ void AnalysisManager::BeginOfEvent()
   fPixelPzs.clear();
   fPixelEnergies.clear();
   fPixelCharges.clear();
+  fPixelEDep.clear();
   // fPixelFromPrimaryPizero.clear();
   // fPixelFromFSLPizero.clear();
   fPixelFromPrimaryLepton.clear();
@@ -567,6 +569,7 @@ void AnalysisManager::FillHitsOutput()
           fPixelPzs.push_back(hit->GetPz());
           fPixelEnergies.push_back(hit->GetEnergy());
           fPixelCharges.push_back(hit->GetCharge());
+          fPixelEDep.push_back(hit->GetEnergyDeposit());
           // fPixelFromPrimaryPizero.push_back(hit->GetFromPrimaryPizero());
           // fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
           fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
