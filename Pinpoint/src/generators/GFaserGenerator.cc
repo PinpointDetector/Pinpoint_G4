@@ -231,27 +231,12 @@ G4bool GFaserGenerator::FindParticleDefinition(G4int const pdg, G4ParticleDefini
 G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
   auto *runManager = G4RunManager::GetRunManager();
   auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
-  G4VPhysicalVolume* layerPV = detector->GetLayerPhysVol();
 
-  if (!layerPV) {
-    G4cerr << "Error: Layer volume not found!" << G4endl;
-    return 0.0;
-  }
-
-  EAxis axis;
-  G4int nReplicas;
-  G4double width;
-  G4double offset;
-  G4bool consuming;
-  layerPV->GetReplicationData(axis, nReplicas, width, offset, consuming);
-  
-  if (layerIndex >= nReplicas) {
-    G4cerr << "Error: Layer index " << layerIndex << " is out of range."
-           << "Only " << nReplicas << " layers available." << G4endl;
-    return 0.0;
-  }
-
-  G4double z = (layerIndex + G4UniformRand()) * width + offset;
+  G4double layerThickness = detector->GetLayerThickness();
+  G4double tungstenThickness = detector->GetTungstenThickness();
+  G4int nLayers = detector->GetNumberOfLayers();
+  G4double startZ = -0.5 * nLayers * layerThickness;
+  G4double z = startZ + layerIndex * layerThickness + tungstenThickness * G4UniformRand();
   return z/m; // convert to meters
 }
 
