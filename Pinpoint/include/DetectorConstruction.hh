@@ -33,14 +33,14 @@ class DetectorConstruction : public G4VUserDetectorConstruction
       if (thickness <= 0) {
         G4cerr << "Error: Tungsten thickness must be positive." << G4endl;
         return;
+      }
+
+      fTungstenThickness = thickness;
+      G4cout << "Set tungsten thickness to " << fTungstenThickness/mm << " mm" << G4endl;
+
+      // Optional: trigger geometry rebuild
+      // G4RunManager::GetRunManager()->ReinitializeGeometry();
     }
-
-    fTungstenThickness = thickness; 
-    G4cout << "Set tungsten thickness to " << fTungstenThickness/mm << " mm" << G4endl;
-
-    // Optional: trigger geometry rebuild
-    // G4RunManager::GetRunManager()->ReinitializeGeometry();
-}
     void SetSiliconThickness(G4double thickness) { fSiliconThickness = thickness; }
     void SetNLayers(G4int nLayers) { fNLayers = nLayers; }
     void SetPixelHeight(G4double height) { fPixelHeight = height; }
@@ -75,10 +75,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     std::vector<G4double> GetPixelZPositions() const
     {
       std::vector<G4double> zPositions;
-      G4double layerSpacing = fTungstenThickness + fSiliconThickness;
-      G4double startZ = -((fNLayers - 1) * layerSpacing) / 2;
+      G4double startZ = -0.5 * fNLayers * fLayerThickness;
       for (G4int i = 0; i < fNLayers; ++i) {
-        zPositions.push_back(startZ + i * layerSpacing);
+        zPositions.push_back(startZ + i * fLayerThickness + fTungstenThickness + fSiliconThickness / 2);
       }
       return zPositions;
     };
@@ -90,6 +89,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double GetPixelWidth() const { return fPixelWidth; }
     G4double GetDetectorWidth() const { return fDetectorWidth; }
     G4double GetDetectorHeight() const { return fDetectorHeight; }
+    G4double GetLayerThickness() const { return fLayerThickness; }
     G4int GetSimFlag() const {return sim_flag;}
     G4int GetScintBarFlag() const {
     if (false) {
@@ -122,6 +122,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fScintBarWidth = 9.85 * mm; 
     G4double fScintBarHeight = 9.80 * mm;
     G4double fScintThickness = 5.0 * mm;
+    G4double fLayerThickness = 0.0 * mm;
     G4int sim_flag = 0;
     G4bool scint_bar_flag = true;
 

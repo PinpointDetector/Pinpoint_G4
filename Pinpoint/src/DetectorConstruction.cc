@@ -174,18 +174,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "Silicon thickness per layer: " << fSiliconThickness/um << " um" << G4endl;
   G4cout << "Creating " << nPixelsX << " x " << nPixelsY << " pixels per silicon layer" << G4endl;
   G4cout << "Pixel size: " << fPixelWidth/micrometer << " x " << fPixelHeight/micrometer << " μm" << G4endl;
-  G4double layerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
-  if(sim_flag == -1) { layerThickness = fTungstenThickness + boxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
-  if(sim_flag == 0)  { layerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
-  if(sim_flag == 1)  { layerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
-  //auto layerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
-  auto maxLayers = static_cast<int>(100.0*cm / layerThickness); // maximum layers allowed
+  fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
+  if(sim_flag == -1) { fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
+  if(sim_flag == 0)  { fLayerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
+  if(sim_flag == 1)  { fLayerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
+  //auto fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
+  auto maxLayers = static_cast<int>(100.0*cm / fLayerThickness); // maximum layers allowed
   if(fNLayers > maxLayers) {
       G4cout << "Warning: Reducing number of layers from " << fNLayers 
             << " to " << maxLayers << " to keep detector thickness <= 100 cm." << G4endl;
       fNLayers = maxLayers;
   }
-  auto detectorThickness = fNLayers * layerThickness;
+  auto detectorThickness = fNLayers * fLayerThickness;
   auto worldSizeX = 1.2 * fDetectorWidth;
   auto worldSizeY = 1.2 * fDetectorHeight;
   auto worldSizeZ = 1.2 * detectorThickness;
@@ -221,18 +221,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   new G4PVPlacement(0, G4ThreeVector(0., 0., 0.5 * detectorThickness), detectorLV, "Detector", worldLV, false, 0, fCheckOverlaps);
 
   // Layer
-  auto layerS = new G4Box("Layer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, layerThickness / 2);
+  auto layerS = new G4Box("Layer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, fLayerThickness / 2);
   auto layerLV = new G4LogicalVolume(layerS, worldMaterial, "Layer");
-  fLayerPV = new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, layerThickness);
+  fLayerPV = new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, fLayerThickness);
 
   //Cursor for placements inside each layer
-  G4double zCursor = -0.5*layerThickness;
+  G4double zCursor = -0.5*fLayerThickness;
 
   // Tungsten
   auto tungstenS = new G4Box("Tungsten", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fTungstenThickness);
   auto tungstenLV = new G4LogicalVolume(tungstenS, tungstenMaterial, "Tungsten");
   zCursor += 0.5*fTungstenThickness;
-  //fTarget_phys.push_back(new G4PVPlacement(0, G4ThreeVector(0., 0., -0.5 * layerThickness + 0.5 * fTungstenThickness), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps));
+  //fTarget_phys.push_back(new G4PVPlacement(0, G4ThreeVector(0., 0., -0.5 * fLayerThickness + 0.5 * fTungstenThickness), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps));
   new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
 
   G4VisAttributes* TargetVisAtt =  new G4VisAttributes(G4Colour::Red());
@@ -368,7 +368,7 @@ if(sim_flag == 1)
   // // Box
   // auto boxS = new G4Box("Box", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * boxThickness);
   // auto boxLV = new G4LogicalVolume(boxS, worldMaterial, "Box");
-  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., -0.5 * layerThickness + fTungstenThickness + fSiliconThickness + 0.5 * boxThickness), boxLV, "Box", layerLV, false, 0, fCheckOverlaps);
+  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., -0.5 * fLayerThickness + fTungstenThickness + fSiliconThickness + 0.5 * boxThickness), boxLV, "Box", layerLV, false, 0, fCheckOverlaps);
 
   // G4cout << "Detector consists of " << fNLayers << " layers of: [ " << fTungstenThickness / mm << "mm of " << tungstenMaterial->GetName() << " + " << fSiliconThickness / mm << "mm of "
   //        << siliconMaterial->GetName() <<  " + " << boxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
