@@ -158,7 +158,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   // Geometry parameters
   // https://iopscience.iop.org/article/10.1088/1748-0221/20/02/C02015
-  G4double boxThickness = fTungstenThickness - fSiliconThickness;
   G4bool fCheckOverlaps = true;
 
   //cleaning scintillator logical volume container
@@ -174,11 +173,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "Silicon thickness per layer: " << fSiliconThickness/um << " um" << G4endl;
   G4cout << "Creating " << nPixelsX << " x " << nPixelsY << " pixels per silicon layer" << G4endl;
   G4cout << "Pixel size: " << fPixelWidth/micrometer << " x " << fPixelHeight/micrometer << " μm" << G4endl;
-  fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
-  if(sim_flag == -1) { fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
-  if(sim_flag == 0)  { fLayerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
-  if(sim_flag == 1)  { fLayerThickness = 2.0*fTungstenThickness + boxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
-  //auto fLayerThickness = fTungstenThickness + boxThickness + fSiliconThickness;
+  fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;
+  if(sim_flag == -1) { fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
+  if(sim_flag == 0)  { fLayerThickness = 2.0*fTungstenThickness + fBoxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
+  if(sim_flag == 1)  { fLayerThickness = 2.0*fTungstenThickness + fBoxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
+  //auto fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;
   auto maxLayers = static_cast<int>(100.0*cm / fLayerThickness); // maximum layers allowed
   if(fNLayers > maxLayers) {
       G4cout << "Warning: Reducing number of layers from " << fNLayers 
@@ -252,7 +251,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   ScintLayerAtrrib->SetVisibility(true);
   ScintLayerAtrrib->SetForceSolid(true);
 
-  zCursor += 0.5*fTungstenThickness + boxThickness + 0.5*fSiliconThickness;
+  zCursor += 0.5*fTungstenThickness + fBoxThickness + 0.5*fSiliconThickness;
 
   auto silicofNLayers = new G4Box("SiliconLayer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fSiliconThickness);
   auto siliconLayerLV = new G4LogicalVolume(silicofNLayers, siliconMaterial, "SiliconLayer");  // Changed to siliconMaterial
@@ -366,12 +365,12 @@ if(sim_flag == 1)
 }
 
   // // Box
-  // auto boxS = new G4Box("Box", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * boxThickness);
+  // auto boxS = new G4Box("Box", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fBoxThickness);
   // auto boxLV = new G4LogicalVolume(boxS, worldMaterial, "Box");
-  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., -0.5 * fLayerThickness + fTungstenThickness + fSiliconThickness + 0.5 * boxThickness), boxLV, "Box", layerLV, false, 0, fCheckOverlaps);
+  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., -0.5 * fLayerThickness + fTungstenThickness + fSiliconThickness + 0.5 * fBoxThickness), boxLV, "Box", layerLV, false, 0, fCheckOverlaps);
 
   // G4cout << "Detector consists of " << fNLayers << " layers of: [ " << fTungstenThickness / mm << "mm of " << tungstenMaterial->GetName() << " + " << fSiliconThickness / mm << "mm of "
-  //        << siliconMaterial->GetName() <<  " + " << boxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
+  //        << siliconMaterial->GetName() <<  " + " << fBoxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
 
   // Write GDML file if it doesn't exist
   std::ifstream file(fWriteFile);

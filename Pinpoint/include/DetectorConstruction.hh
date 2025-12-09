@@ -42,6 +42,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
       // G4RunManager::GetRunManager()->ReinitializeGeometry();
     }
     void SetSiliconThickness(G4double thickness) { fSiliconThickness = thickness; }
+    void SetBoxThickness(G4double thickness) { fBoxThickness = thickness; }
     void SetNLayers(G4int nLayers) { fNLayers = nLayers; }
     void SetPixelHeight(G4double height) { fPixelHeight = height; }
     void SetPixelWidth(G4double width) { fPixelWidth = width; }
@@ -84,6 +85,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4double GetTungstenThickness() const { return fTungstenThickness; }
     G4double GetSiliconThickness() const { return fSiliconThickness; }
+    G4double GetBoxThickness() const { return fBoxThickness; }
     G4int GetNumberOfLayers() const { return fNLayers; }
     G4double GetPixelHeight() const { return fPixelHeight; }
     G4double GetPixelWidth() const { return fPixelWidth; }
@@ -112,6 +114,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4double fTungstenThickness = 5 * mm;
     G4double fSiliconThickness = 50 * um;
+    G4double fBoxThickness = 5.0 * mm;
     G4int fNLayers = 100;
     G4double fPixelHeight = 22.8 * um;
     G4double fPixelWidth = 20.8 * um;
