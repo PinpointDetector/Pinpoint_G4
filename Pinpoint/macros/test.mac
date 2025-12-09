@@ -15,7 +15,7 @@
 /det/setSiliconThickness 50 um    # default category is um
 
 # Set silicon box thickness
-/det/setBoxThickness 5.0 mm    # default category is um
+/det/setBoxThickness 5.0 mm    # default category is mm
 
 # Number of sampling layers
 /det/setNLayers 100
