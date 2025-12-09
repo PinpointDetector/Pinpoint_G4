@@ -178,7 +178,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   if(sim_flag == 0)  { fLayerThickness = 2.0*fTungstenThickness + fBoxThickness + fSiliconThickness + fScintThickness;}  //pixel + single scintillator, TPTSTPTS...
   if(sim_flag == 1)  { fLayerThickness = 2.0*fTungstenThickness + fBoxThickness + fSiliconThickness  + 2.0*fScintThickness;}  //pixel + double scintillator, TPTSSTPTSS...
   //auto fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;
-  auto maxLayers = static_cast<int>(100.0*cm / fLayerThickness); // maximum layers allowed
+  auto maxLayers = static_cast<int>(150.0*cm / fLayerThickness); // maximum layers allowed
   if(fNLayers > maxLayers) {
       G4cout << "Warning: Reducing number of layers from " << fNLayers 
             << " to " << maxLayers << " to keep detector thickness <= 100 cm." << G4endl;
