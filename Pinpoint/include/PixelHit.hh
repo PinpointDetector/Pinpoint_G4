@@ -44,6 +44,8 @@ public:
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
   void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
 
+  void AddEDep(G4double edep) {fEnergyDeposit += edep; }
+
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetRowID() const { return fRowID; }
   G4int GetColID() const { return fColID; }

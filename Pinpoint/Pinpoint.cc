@@ -19,6 +19,9 @@
 #include "G4PhysicsConstructorFactory.hh"
 #include "PrimaryGeneratorAction.hh"
 
+#include "StandardEmWithWoodcock.hh"
+#include "EmExtraPhysics.hh"
+
 // forward declaration
 void PrintAvailable(G4int verb = 1);
 
@@ -68,6 +71,15 @@ int main(int argc, char** argv) {
   plReg->AddPhysicsExtension("PY8DK", "Py8DecayerPhysics");
 
   physicsList = plFactory.GetReferencePhysList(physListName);
+  StandardEmWithWoodcock* em0AndWDCK = new StandardEmWithWoodcock;
+  // set the region name and low energy limit for Woodcock tracking
+  em0AndWDCK->SetRegionNameForWoodcockTracking("World");
+  em0AndWDCK->SetLowEnergyLimitForWoodcockTracking(200.0*CLHEP::keV);
+  physicsList->ReplacePhysics(em0AndWDCK);
+  // the local version of the `G4EmExtraPhysics` that will use the local `GammaGeneralProcess`
+  G4VPhysicsConstructor* emExtra = new EmExtraPhysics;
+  physicsList->ReplacePhysics(emExtra);
+
 
   if (!physicsList) {
     PrintAvailable(1);

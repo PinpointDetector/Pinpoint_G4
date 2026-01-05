@@ -22,8 +22,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep) {
 
   // if the track is out of the active volumes/area, kill this track
   G4VPhysicalVolume* volume = aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
-
-  // if( volume->GetName() == "expHall_P" ) aTrack->SetTrackStatus(G4TrackStatus::fStopAndKill);
+  if( volume->GetName() == "World" ) aTrack->SetTrackStatus(G4TrackStatus::fStopAndKill);
 }
 
 void SteppingAction::TrackLiveDebugging(const G4Step* step){

@@ -24,3 +24,7 @@ pythia8313
 /build
 */old/*condor/
 condor/
+*/old/*
+.lesshst
+.debug/*
+.DS_Store

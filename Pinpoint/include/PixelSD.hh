@@ -6,9 +6,46 @@
 #include <set>
 #include <tuple>
 #include <vector>
+#include <functional>
+#include <map>
 
 class G4Step;
 class G4HCofThisEvent;
+
+// Structure to uniquely identify a pixel
+struct PixelID {
+  G4int layerID;
+  G4int rowID;
+  G4int colID;
+  G4ThreeVector truthPos;
+  G4int trackID;
+  
+  bool operator<(const PixelID& other) const {
+    if (layerID != other.layerID) return layerID < other.layerID;
+    if (rowID != other.rowID) return rowID < other.rowID;
+    if (trackID != other.trackID) return trackID < other.trackID;
+    return colID < other.colID;
+  }
+
+  bool operator==(const PixelID& other) const {
+    return layerID == other.layerID &&
+           rowID == other.rowID &&
+           colID == other.colID;
+  }
+
+};
+
+namespace std {
+    template<>
+    struct hash<PixelID> {
+        std::size_t operator()(const PixelID& id) const noexcept {
+            std::size_t h1 = std::hash<int>{}(id.layerID);
+            std::size_t h2 = std::hash<int>{}(id.rowID);
+            std::size_t h3 = std::hash<int>{}(id.colID);
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        }
+    };
+}
 
 class PixelSD : public G4VSensitiveDetector
 {
@@ -20,24 +57,11 @@ public:
   G4bool ProcessHits(G4Step* step, G4TouchableHistory* history) override;
   void EndOfEvent(G4HCofThisEvent* hitCollection) override;
 
-  // Static methods to track if particles come from muons
-  static void RecordMuonDescendant(G4int trackID, G4bool fromMuon);
-  static G4bool IsFromMuon(G4int trackID);
-  static void ClearMuonHistory();
-
-  // Static method to track descendants of primary lepton (trackId 1)
-  // static void RecordTrackParent(G4int trackID, G4int parentID);
-  // static G4bool IsFromPrimaryTrack(G4int trackID);
-  // static void ClearTrackHistory();
-
 private:
   PixelHitsCollection* fHitsCollection = nullptr;
-  // Static set to track all descendants of the primary lepton (trackId 1)
-  static std::set<G4int> sPrimaryDescendants;
-  // Static set to track particles that have already hit each layer: (trackID, layerID)
-  static std::set<std::pair<G4int, G4int>> sHitParticles;
-  // Static set to track which particles come from muons
-  static std::set<G4int> sMuonDescendants;
+
+  // Map to accumate charge on each pixel
+  std::unordered_map<PixelID, double> fPixelEdepMap;
 
   G4long fCurrentHitId = 0;
 };

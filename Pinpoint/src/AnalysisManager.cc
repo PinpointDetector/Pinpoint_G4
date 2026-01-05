@@ -321,6 +321,8 @@ void AnalysisManager::BeginOfEvent()
   fScintEdep.clear();
   fScintFromMuon.clear();
   fScintFromPrimaryLepton.clear();
+
+  G4cout << "Variables cleared..." << G4endl;
 }
 
 //---------------------------------------------------------------------
