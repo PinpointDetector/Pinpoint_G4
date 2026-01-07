@@ -103,6 +103,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     return -1; // fallback to avoid warnings
     }
 
+    G4int GetNPixelsX() const { return fNPixelsX; }
+    G4int GetNPixelsY() const { return fNPixelsY; }
     
 
   private:
@@ -130,6 +132,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4bool scint_bar_flag = true;
 
     G4bool fCheckOverlaps = true;
+
+    G4int fNPixelsX;
+    G4int fNPixelsY;
 
     std::vector<G4LogicalVolume*> scintLVs;
     std::vector<G4VPhysicalVolume*> fTarget_phys;

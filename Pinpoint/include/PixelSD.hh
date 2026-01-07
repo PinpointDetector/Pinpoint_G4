@@ -3,12 +3,52 @@
 
 #include "PixelHit.hh"
 #include "G4VSensitiveDetector.hh"
-#include <set>
-#include <tuple>
+#include "G4SystemOfUnits.hh"
+#include <map>
 #include <vector>
 
 class G4Step;
 class G4HCofThisEvent;
+
+class PixelHitAccumulator
+{
+  public:
+    PixelHitAccumulator();
+    ~PixelHitAccumulator();
+
+    G4bool AddHit(G4Step* step);
+    void FillHitCollection(PixelHitsCollection* hitCollection) const;
+    void Init();
+    void Clear();
+
+  private:
+    std::vector<G4float> fEdep;
+    std::vector<G4int> fRowID;
+    std::vector<G4int> fColID;
+    std::vector<G4int> fLayerID;
+    // std::vector<G4int> fPixelID;
+    std::vector<G4int> fPDGID;
+    std::vector<G4int> fTrackID;
+    std::vector<G4int> fParentID;
+    std::vector<G4bool> fIsPrimary;
+
+    std::map<G4int, G4int> fUID_VectIdx_Map;
+    
+    G4int fNPixelsX{0};
+    G4int fNPixelsY{0};
+    G4int fTotalPixelsPerLayer{0};
+    
+    G4int currentIndex{0};
+
+    // Minimum energy deposit to register a hit
+    // Based roughly on the fact that ~3.6 eV is needed to create an electron-hole pair in silicon
+    // Roughly 100 electron-hole pairs to be accepted as a hit
+    G4double fEdepThreshold = 360 * eV;
+
+    // Number of hits to reserve memory for, 100,000 seems like a good starting point
+    G4int fNReservedHits{100000};
+};
+
 
 class PixelSD : public G4VSensitiveDetector
 {
@@ -20,26 +60,13 @@ public:
   G4bool ProcessHits(G4Step* step, G4TouchableHistory* history) override;
   void EndOfEvent(G4HCofThisEvent* hitCollection) override;
 
-  // Static methods to track if particles come from muons
-  static void RecordMuonDescendant(G4int trackID, G4bool fromMuon);
-  static G4bool IsFromMuon(G4int trackID);
-  static void ClearMuonHistory();
-
-  // Static method to track descendants of primary lepton (trackId 1)
-  // static void RecordTrackParent(G4int trackID, G4int parentID);
-  // static G4bool IsFromPrimaryTrack(G4int trackID);
-  // static void ClearTrackHistory();
-
 private:
   PixelHitsCollection* fHitsCollection = nullptr;
-  // Static set to track all descendants of the primary lepton (trackId 1)
-  static std::set<G4int> sPrimaryDescendants;
-  // Static set to track particles that have already hit each layer: (trackID, layerID)
-  static std::set<std::pair<G4int, G4int>> sHitParticles;
-  // Static set to track which particles come from muons
-  static std::set<G4int> sMuonDescendants;
+
+  PixelHitAccumulator fHitAccumulator;
 
   G4long fCurrentHitId = 0;
 };
+
 
 #endif

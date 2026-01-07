@@ -165,6 +165,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
     vertex->SetPrimary(primaryParticle);
   }
   // Add vertex to event
+  G4cout << "Placing Vertex at " << vertex->GetX0() / mm << ", " << vertex->GetY0() / mm  << ", " << vertex->GetZ0() / mm  << G4endl;
   event->AddPrimaryVertex(vertex);
 
   GeneratorVertexMetadata metadata;
@@ -237,6 +238,9 @@ G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
   G4int nLayers = detector->GetNumberOfLayers();
   G4double startZ = -0.5 * nLayers * layerThickness;
   G4double z = startZ + layerIndex * layerThickness + tungstenThickness * G4UniformRand();
+
+  G4cout << "Generated random Z vertex at: " << z/m << " m in layer " << layerIndex << G4endl;
+
   return z/m; // convert to meters
 }
 

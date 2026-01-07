@@ -29,7 +29,7 @@ class GFaserGenerator : public GeneratorBase
 
   private:
     G4String fInputFileName;
-    G4long fFirstEvent;
+    G4long fFirstEvent{0};
     G4bool fUseFixedZPosition;
     G4int fLayerId = 4;
 

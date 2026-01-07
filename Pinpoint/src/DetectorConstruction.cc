@@ -165,13 +165,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   
   // G4int nPixelsX = 12788; // 20.8um pixel pitch
   // G4int nPixelsY = 8596;  // 22.8um pixel pitch
-  G4int nPixelsX = static_cast<G4int>(fDetectorWidth / fPixelWidth);
-  G4int nPixelsY = static_cast<G4int>(fDetectorHeight / fPixelHeight);
+  fNPixelsX = static_cast<G4int>(fDetectorWidth / fPixelWidth);
+  fNPixelsY = static_cast<G4int>(fDetectorHeight / fPixelHeight);
   G4cout << "Detector dimensions: " << fDetectorWidth/cm << " cm x " << fDetectorHeight/cm << " cm" << G4endl;
   G4cout << "Number of layers: " << fNLayers << G4endl;
   G4cout << "Tungsten thickness per layer: " << fTungstenThickness/mm << " mm" << G4endl;
   G4cout << "Silicon thickness per layer: " << fSiliconThickness/um << " um" << G4endl;
-  G4cout << "Creating " << nPixelsX << " x " << nPixelsY << " pixels per silicon layer" << G4endl;
+  G4cout << "Creating " << fNPixelsX << " x " << fNPixelsY << " pixels per silicon layer" << G4endl;
   G4cout << "Pixel size: " << fPixelWidth/micrometer << " x " << fPixelHeight/micrometer << " μm" << G4endl;
   fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;
   if(sim_flag == -1) { fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
@@ -261,13 +261,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Create pixel row (Y direction)
   auto pixelRowS = new G4Box("SiliconPixelRow", 0.5 * fDetectorWidth, 0.5 * fPixelHeight, 0.5 * fSiliconThickness);
   auto pixelRowLV = new G4LogicalVolume(pixelRowS, siliconMaterial, "SiliconPixelRow");  // Changed to siliconMaterial
-  new G4PVReplica("SiliconPixelRow", pixelRowLV, siliconLayerLV, kYAxis, nPixelsY, fPixelHeight);
+  new G4PVReplica("SiliconPixelRow", pixelRowLV, siliconLayerLV, kYAxis, fNPixelsY, fPixelHeight);
   pixelRowLV->SetVisAttributes(invisAtrrib);
 
   // Create individual pixels (X direction)
   auto pixelS = new G4Box("SiliconPixel", 0.5 * fPixelWidth, 0.5 * fPixelHeight, 0.5 * fSiliconThickness);
   fPixelLV = new G4LogicalVolume(pixelS, siliconMaterial, "SiliconPixel");
-  new G4PVReplica("SiliconPixel", fPixelLV, pixelRowLV, kXAxis, nPixelsX, fPixelWidth);
+  new G4PVReplica("SiliconPixel", fPixelLV, pixelRowLV, kXAxis, fNPixelsX, fPixelWidth);
   fPixelLV->SetVisAttributes(invisAtrrib);
 
   zCursor += 0.5*fSiliconThickness;

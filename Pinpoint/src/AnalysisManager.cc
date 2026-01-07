@@ -189,22 +189,22 @@ void AnalysisManager::bookHitsTrees()
   fPixelHitsTree->Branch("hit_pdgc", &fPixelPDGCs);
   fPixelHitsTree->Branch("hit_trackID", &fPixelTrackIDs);
   fPixelHitsTree->Branch("hit_parentID", &fPixelParentIDs);
-  fPixelHitsTree->Branch("hit_px", &fPixelPxs);
-  fPixelHitsTree->Branch("hit_py", &fPixelPys);
-  fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
-  fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
-  fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
+  // fPixelHitsTree->Branch("hit_px", &fPixelPxs);
+  // fPixelHitsTree->Branch("hit_py", &fPixelPys);
+  // fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
+  // fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
+  // fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
   fPixelHitsTree->Branch("hit_edep", & fPixelEDep);
   // fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
   fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
 
-  if (fSaveTruthHits)
-  {
-    fPixelHitsTree->Branch("hit_truth_x", &fPixelTruthX);
-    fPixelHitsTree->Branch("hit_truth_y", &fPixelTruthY);
-    fPixelHitsTree->Branch("hit_truth_z", &fPixelTruthZ);
-  }
+  // if (fSaveTruthHits)
+  // {
+  //   fPixelHitsTree->Branch("hit_truth_x", &fPixelTruthX);
+  //   fPixelHitsTree->Branch("hit_truth_y", &fPixelTruthY);
+  //   fPixelHitsTree->Branch("hit_truth_z", &fPixelTruthZ);
+  // }
 
   fFile->cd();
 }
@@ -299,18 +299,18 @@ void AnalysisManager::BeginOfEvent()
   fPixelPDGCs.clear();
   fPixelTrackIDs.clear();
   fPixelTrackIDs.clear();
-  fPixelPxs.clear();
-  fPixelPys.clear();
-  fPixelPzs.clear();
-  fPixelEnergies.clear();
-  fPixelCharges.clear();
+  // fPixelPxs.clear();
+  // fPixelPys.clear();
+  // fPixelPzs.clear();
+  // fPixelEnergies.clear();
+  // fPixelCharges.clear();
   fPixelEDep.clear();
   // fPixelFromPrimaryPizero.clear();
   // fPixelFromFSLPizero.clear();
   fPixelFromPrimaryLepton.clear();
-  fPixelTruthX.clear();
-  fPixelTruthY.clear();
-  fPixelTruthZ.clear();
+  // fPixelTruthX.clear();
+  // fPixelTruthY.clear();
+  // fPixelTruthZ.clear();
 
   //clean scintillator hits
   //// --- NEW FOR SCINTILLATORS ---
@@ -564,22 +564,22 @@ void AnalysisManager::FillHitsOutput()
           fPixelPDGCs.push_back(hit->GetPDGCode());
           fPixelTrackIDs.push_back(hit->GetTrackID());
           fPixelParentIDs.push_back(hit->GetParentID());
-          fPixelPxs.push_back(hit->GetPx());
-          fPixelPys.push_back(hit->GetPy());
-          fPixelPzs.push_back(hit->GetPz());
-          fPixelEnergies.push_back(hit->GetEnergy());
-          fPixelCharges.push_back(hit->GetCharge());
+          // fPixelPxs.push_back(hit->GetPx());
+          // fPixelPys.push_back(hit->GetPy());
+          // fPixelPzs.push_back(hit->GetPz());
+          // fPixelEnergies.push_back(hit->GetEnergy());
+          // fPixelCharges.push_back(hit->GetCharge());
           fPixelEDep.push_back(hit->GetEnergyDeposit());
           // fPixelFromPrimaryPizero.push_back(hit->GetFromPrimaryPizero());
           // fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
           fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
 
-          if (fSaveTruthHits)
-          {
-            fPixelTruthX.push_back(hit->GetTruthHitPos().x());
-            fPixelTruthY.push_back(hit->GetTruthHitPos().y());
-            fPixelTruthZ.push_back(hit->GetTruthHitPos().z());
-          }
+          // if (fSaveTruthHits)
+          // {
+          //   fPixelTruthX.push_back(hit->GetTruthHitPos().x());
+          //   fPixelTruthY.push_back(hit->GetTruthHitPos().y());
+          //   fPixelTruthZ.push_back(hit->GetTruthHitPos().z());
+          // }
 
           // G4cout << "Filling hit: TrackID=" << hit->GetTrackID() 
           //        << " PDG=" << hit->GetPDGCode() 
