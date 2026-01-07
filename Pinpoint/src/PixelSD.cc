@@ -16,33 +16,24 @@
 
 void PixelHitAccumulator::Clear()
 {
-  fEdep.clear();
-  fRowID.clear();
-  fColID.clear();
-  fLayerID.clear();
-  // fPixelID.clear();
-  fPDGID.clear();
-  fTrackID.clear();
-  fParentID.clear();
-  fIsPrimary.clear();
-  fUID_VectIdx_Map.clear();
+  fPixelHits.clear();
 }
 
 void PixelHitAccumulator::Init()
 {
-  Clear();
+  fPixelHits.clear();
+  fPixelHits.reserve(fNReservedHits);
 
-  // Reserve memory for the hit data
-  fEdep.reserve(fNReservedHits);
-  fRowID.reserve(fNReservedHits);
-  fColID.reserve(fNReservedHits);
-  fLayerID.reserve(fNReservedHits);
-  // fPixelID.reserve(fNReservedHits);
-  fPDGID.reserve(fNReservedHits);
-  fTrackID.reserve(fNReservedHits);
-  fParentID.reserve(fNReservedHits);
-  fIsPrimary.reserve(fNReservedHits);
+  const size_t nUID =
+      static_cast<size_t>(fTotalPixelsPerLayer) * fNLayers;
+
+  if (fUIDToHitIndex.size() != nUID) {
+    fUIDToHitIndex.assign(nUID, -1);
+  } else {
+    std::fill(fUIDToHitIndex.begin(), fUIDToHitIndex.end(), -1);
+  }
 }
+
 
 PixelHitAccumulator::PixelHitAccumulator()
 {
@@ -53,6 +44,7 @@ PixelHitAccumulator::PixelHitAccumulator()
 
   fNPixelsX = det->GetNPixelsX();
   fNPixelsY = det->GetNPixelsY();
+  fNLayers = det->GetNlayers();
   fTotalPixelsPerLayer = fNPixelsX * fNPixelsY;
   Init();
 }
@@ -64,80 +56,70 @@ PixelHitAccumulator::~PixelHitAccumulator()
 
 G4bool PixelHitAccumulator::AddHit(G4Step* step)
 {
-  G4Track* track = step->GetTrack();
-  G4int charge = track->GetDefinition()->GetPDGCharge();
-  if (charge == 0) { // Only charged particles hit
-    return false;
-  }
 
-  G4StepPoint* preStepPoint = step->GetPreStepPoint();
+  const auto* track = step->GetTrack();
+  const auto* preStepPoint = step->GetPreStepPoint();
+  const auto& touchable = preStepPoint->GetTouchableHandle();
+
   G4double edep = step->GetTotalEnergyDeposit();
   if (edep <= fEdepThreshold / 100.) { // Ignore deposits less than 1/100th of threshold
     return false;
   }
 
+  G4int charge = track->GetDefinition()->GetPDGCharge();
+  if (charge == 0) { // Only charged particles hit
+    return false;
+  }
+
+
   static const G4int rowIDVolume = 0, colIDVolume = 1, layerVolume = 3;
-  G4TouchableHandle touchable = preStepPoint->GetTouchableHandle();
   G4int rowID = touchable->GetCopyNumber(rowIDVolume);
   G4int colID = touchable->GetCopyNumber(colIDVolume);
   G4int layerID = touchable->GetCopyNumber(layerVolume);
   G4int trackID = track->GetTrackID();
   G4int parentID = track->GetParentID();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
-  TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
-  G4bool fromPrimaryLepton = trackInfo ? (trackInfo->IsTrackFromPrimaryLepton() != 0) : false;
+  const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
+  const G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton();
 
   assert(rowID < fNPixelsY);
   assert(colID < fNPixelsX);
   
   G4int uniqueID = (layerID * fTotalPixelsPerLayer) + (rowID * fNPixelsX) + colID;
 
-  auto it = fUID_VectIdx_Map.find(uniqueID);
-  if (it != fUID_VectIdx_Map.end()) { // We've already had a hit on this pixel, accumulate the energy
-    G4int index = it->second;
-    fEdep[index] += edep;
-  } else { // No hit so far; extend vectors and push back data
-    fEdep.push_back(std::move(edep));
-    fRowID.push_back(std::move(rowID));
-    fColID.push_back(std::move(colID));
-    fLayerID.push_back(std::move(layerID));
-    // fPixelID.push_back(std::move(uniqueID));
-    fPDGID.push_back(std::move(pdgid));
-    fTrackID.push_back(std::move(trackID));
-    fParentID.push_back(std::move(parentID));
-    fIsPrimary.push_back(std::move(fromPrimaryLepton));
+  G4int& index = fUIDToHitIndex[uniqueID];
+
+  G4cout << uniqueID << " " << fUIDToHitIndex.size() << " " << fNLayers << G4endl;
+  G4cout << "HERE1" << G4endl;
+  if (index >= 0) {
+    G4cout << "HERE2" << G4endl;
+    // fPixelHits[index]->AddEnergyDeposit(edep);
+    fPixelHits.at(index)->AddEnergyDeposit(edep);
+    G4cout << "HERE3" << G4endl;
+    } else {
+      G4cout << "HERE4" << G4endl;
+      index = fPixelHits.size();
+      G4cout << "HERE5" << G4endl;
+      fPixelHits.push_back(
+        new PixelHit(edep, rowID, colID, layerID,
+                  trackID, parentID, pdgid, fromPrimaryLepton)
+    );
+    G4cout << "HERE6" << G4endl;
   }
   return true;
 }
 
-
 void PixelHitAccumulator::FillHitCollection(PixelHitsCollection* hitCollection) const
 {
-  for (size_t i = 0; i < fEdep.size(); ++i) {
-    PixelHit* hit = new PixelHit();
-
-    if (fEdep[i] <= fEdepThreshold) 
+  for (size_t i = 0; i < fPixelHits.size(); ++i) {
+  
+    if (fPixelHits[i]->GetEnergyDeposit() <= fEdepThreshold) 
     {
-      // G4cout << "Warning: Pixel hit energy deposit too low: " << fEdep[i]/eV << " eV. Skipping this hit." << G4endl;
+      delete fPixelHits[i];
       continue;
     }
-    
 
-    // G4int layerID  = fPixelID[i] / fTotalPixelsPerLayer;
-    // G4int localID = fPixelID[i] % fTotalPixelsPerLayer;
-    // G4int rowID = localID / fNPixelsX;
-    // G4int colID = localID % fNPixelsX;
-
-    hit->SetEnergyDeposit(std::move(fEdep[i]));
-    hit->SetRowID(std::move(fRowID[i]));
-    hit->SetColID(std::move(fColID[i]));
-    hit->SetLayerID(std::move(fLayerID[i]));
-    hit->SetPDGCode(std::move(fPDGID[i]));
-    hit->SetTrackID(std::move(fTrackID[i]));
-    hit->SetParentID(std::move(fParentID[i]));
-    hit->SetFromPrimaryLepton(std::move(fIsPrimary[i]));
-
-    hitCollection->insert(hit);
+    hitCollection->insert(fPixelHits[i]);
   }
 }
 

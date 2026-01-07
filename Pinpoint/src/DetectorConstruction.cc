@@ -273,9 +273,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   zCursor += 0.5*fSiliconThickness;
 
   //Tungsten again
-  zCursor += 0.5*fTungstenThickness;
-  new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
-  zCursor += 0.5*fTungstenThickness;
+  // zCursor += 0.5*fTungstenThickness;
+  // new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
+  // zCursor += 0.5*fTungstenThickness;
   
   //Scintillator : no scint config, flag = -1 | single scint config, flag = 0 | double scint config, flag = 1
   // ---------------------------------------------------------
@@ -409,6 +409,7 @@ void DetectorConstruction::ConstructSDandField()
 
     // Pixel SD
     if(fPixelLV) {
+        G4cout << "Adding pixel SD" << G4endl;
         auto pixelSD = new PixelSD("PixelDetector", "PixelHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(pixelSD);
         fPixelLV->SetSensitiveDetector(pixelSD);

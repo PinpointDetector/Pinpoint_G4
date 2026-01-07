@@ -6,6 +6,8 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
 endif()
 project(pinpoint)
 
+set(CMAKE_BUILD_TYPE Release)
+
 ##----------------------------------------------------------------------------
 # Find Pythia8 (required package)
 set(PYTHIA8_PREFIX "/cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc11-opt")
@@ -84,6 +86,7 @@ endforeach()
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(pinpoint Pinpoint.cc ${sources})
+# add_compile_definitions(G4MULTITHREADED)
 
 target_link_libraries(pinpoint 
                       ${Geant4_LIBRARIES}

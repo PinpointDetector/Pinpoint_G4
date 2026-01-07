@@ -12,6 +12,7 @@ class PixelHit : public G4VHit
 {
 public:
   PixelHit() = default;
+  PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerId, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim);
   PixelHit(const PixelHit&) = default;
   ~PixelHit() override = default;
 
@@ -35,6 +36,7 @@ public:
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
   // void SetIsFromPrimary(G4bool fromPrimary) { fIsFromPrimary = fromPrimary; }
   void SetEnergyDeposit(G4double edep) { fEnergyDeposit = edep; }
+  void AddEnergyDeposit(G4double edep) { fEnergyDeposit += edep; }
   // void SetFromMuon(G4bool fromMuon) { fFromMuon = fromMuon; }
   // void AddEnergyDeposit(G4double edep) { fEnergyDeposit += edep; }
   // void SetP4(const G4LorentzVector& p4) { fP4 = p4; }
@@ -99,6 +101,19 @@ inline void PixelHit::operator delete(void* hit)
 {
   PixelHitAllocator->FreeSingle((PixelHit*)hit);
 }
+
+// extern G4ThreadLocal G4Allocator<PixelHit>* PixelHitAllocator;
+
+// inline void* operator new(size_t) {
+//   if (!PixelHitAllocator)
+//     PixelHitAllocator = new G4Allocator<PixelHit>;
+//   return PixelHitAllocator->MallocSingle();
+// }
+
+// inline void operator delete(void* hit) {
+//   PixelHitAllocator->FreeSingle((PixelHit*)hit);
+// }
+
 
 
 #endif

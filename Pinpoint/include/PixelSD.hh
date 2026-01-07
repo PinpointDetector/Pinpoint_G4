@@ -22,20 +22,14 @@ class PixelHitAccumulator
     void Clear();
 
   private:
-    std::vector<G4float> fEdep;
-    std::vector<G4int> fRowID;
-    std::vector<G4int> fColID;
-    std::vector<G4int> fLayerID;
-    // std::vector<G4int> fPixelID;
-    std::vector<G4int> fPDGID;
-    std::vector<G4int> fTrackID;
-    std::vector<G4int> fParentID;
-    std::vector<G4bool> fIsPrimary;
+    
+    std::vector<PixelHit*> fPixelHits;
 
-    std::map<G4int, G4int> fUID_VectIdx_Map;
+    std::vector<G4int> fUIDToHitIndex;
     
     G4int fNPixelsX{0};
     G4int fNPixelsY{0};
+    G4int fNLayers{0};
     G4int fTotalPixelsPerLayer{0};
     
     G4int currentIndex{0};

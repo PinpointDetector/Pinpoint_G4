@@ -24,10 +24,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   
     void SetReadFile(const G4String& File);
     void SetWriteFile(const G4String& File);
-    std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
+    // std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
     G4VPhysicalVolume* GetLayerPhysVol() const { return fLayerPV; }
 
-    G4int GetNlayers() const { return fTarget_phys.size(); }
+    // G4int GetNlayers() const { return fTarget_phys.size(); }
+    G4int GetNlayers() const { return fNLayers; }
 
     void SetTungstenThickness(G4double thickness) { 
       if (thickness <= 0) {
@@ -105,7 +106,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4int GetNPixelsX() const { return fNPixelsX; }
     G4int GetNPixelsY() const { return fNPixelsY; }
-    
 
   private:
     G4String fWriteFile = "pinpoint.gdml";
@@ -137,7 +137,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4int fNPixelsY;
 
     std::vector<G4LogicalVolume*> scintLVs;
-    std::vector<G4VPhysicalVolume*> fTarget_phys;
+    // std::vector<G4VPhysicalVolume*> fTarget_phys;
     G4VPhysicalVolume* fLayerPV;
 
     G4OpticalSurface* scintWrap;
