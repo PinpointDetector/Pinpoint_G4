@@ -25,7 +25,7 @@ class PixelHitAccumulator
     
     std::vector<PixelHit*> fPixelHits;
 
-    std::vector<G4int> fUIDToHitIndex;
+    std::unordered_map<std::uint64_t, G4int> fUIDToHitIndex;
     
     G4int fNPixelsX{0};
     G4int fNPixelsY{0};

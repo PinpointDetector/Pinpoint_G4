@@ -16,22 +16,18 @@
 
 void PixelHitAccumulator::Clear()
 {
+  fUIDToHitIndex.clear();
   fPixelHits.clear();
+
 }
 
 void PixelHitAccumulator::Init()
 {
+  G4cout << "Initializing PixelHitAccumulator" << G4endl;
   fPixelHits.clear();
   fPixelHits.reserve(fNReservedHits);
+  fUIDToHitIndex.reserve(fNReservedHits);
 
-  const size_t nUID =
-      static_cast<size_t>(fTotalPixelsPerLayer) * fNLayers;
-
-  if (fUIDToHitIndex.size() != nUID) {
-    fUIDToHitIndex.assign(nUID, -1);
-  } else {
-    std::fill(fUIDToHitIndex.begin(), fUIDToHitIndex.end(), -1);
-  }
 }
 
 
@@ -85,27 +81,26 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   assert(rowID < fNPixelsY);
   assert(colID < fNPixelsX);
   
-  G4int uniqueID = (layerID * fTotalPixelsPerLayer) + (rowID * fNPixelsX) + colID;
+  using PixelUID = std::uint64_t;
 
-  G4int& index = fUIDToHitIndex[uniqueID];
+  PixelUID uniqueID =
+    static_cast<PixelUID>(layerID) * fTotalPixelsPerLayer +
+    static_cast<PixelUID>(rowID)   * fNPixelsX +
+    static_cast<PixelUID>(colID);
 
-  G4cout << uniqueID << " " << fUIDToHitIndex.size() << " " << fNLayers << G4endl;
-  G4cout << "HERE1" << G4endl;
-  if (index >= 0) {
-    G4cout << "HERE2" << G4endl;
-    // fPixelHits[index]->AddEnergyDeposit(edep);
-    fPixelHits.at(index)->AddEnergyDeposit(edep);
-    G4cout << "HERE3" << G4endl;
-    } else {
-      G4cout << "HERE4" << G4endl;
-      index = fPixelHits.size();
-      G4cout << "HERE5" << G4endl;
-      fPixelHits.push_back(
-        new PixelHit(edep, rowID, colID, layerID,
+
+  auto [it, inserted] =
+      fUIDToHitIndex.try_emplace(uniqueID, fPixelHits.size());
+
+  if (!inserted) {
+    fPixelHits[it->second]->AddEnergyDeposit(edep);
+  } else {
+    fPixelHits.push_back(
+      new PixelHit(edep, rowID, colID, layerID,
                   trackID, parentID, pdgid, fromPrimaryLepton)
     );
-    G4cout << "HERE6" << G4endl;
   }
+
   return true;
 }
 
