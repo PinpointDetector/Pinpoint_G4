@@ -188,6 +188,7 @@
     auto worldSizeX = 1.2 * fDetectorWidth;
     auto worldSizeY = 1.2 * fDetectorHeight;
     auto worldSizeZ = 1.2 * detectorThickness;
+    std::cout << "Detector spans from " << -detectorThickness/2/mm << " mm to " << detectorThickness/2/mm << " mm in Z" << std::endl;
 
     // Get materials
     G4NistManager* nist = G4NistManager::Instance();
@@ -402,14 +403,85 @@
           G4SDManager::GetSDMpointer()->AddNewDetector(pixelSD);
           fSiliconLayerLV->SetSensitiveDetector(pixelSD);
       }
+
+    // Make lookup tables to extract x,y,z position of pixels
+    ComputeSiliconZPositions();
+    ComputePixelCentersXY();
   }
 
 
+G4double DetectorConstruction::GetSiliconOffsetInLayer() const
+{
+  // Common to all sim_flag values
+  return -0.5 * fLayerThickness
+         + fTungstenThickness
+         + fBoxThickness
+         + 0.5 * fSiliconThickness;
+}
 
 
 
+void DetectorConstruction::ComputeSiliconZPositions()
+{
+  fSiliconZPositions.clear();
+  fSiliconZPositions.reserve(fNLayers);
+
+  const G4double detectorThickness = fNLayers * fLayerThickness;
+  const G4double siliconOffsetInLayer =
+      -0.5 * fLayerThickness
+      + fTungstenThickness
+      + fBoxThickness
+      + 0.5 * fSiliconThickness;
+
+  for (G4int layerID = 0; layerID < fNLayers; ++layerID) {
+
+    // Center of replicated layer
+    const G4double zLayer =
+        -0.5 * detectorThickness
+        + (layerID + 0.5) * fLayerThickness;
+
+    // Silicon center
+    const G4double zSilicon = zLayer + siliconOffsetInLayer;
+
+    fSiliconZPositions.push_back(zSilicon);
+  }
+
+  G4cout << "Computed Z positions for "
+         << fSiliconZPositions.size()
+         << " silicon planes" << G4endl;
+}
 
 
+void DetectorConstruction::ComputePixelCentersXY()
+{
+  // X (columns)
+  fPixelCenterX.clear();
+  fPixelCenterX.reserve(fNPixelsX);
+
+  const G4double xMin = -0.5 * fDetectorWidth;
+
+  for (G4int col = 0; col < fNPixelsX; ++col) {
+    G4double x =
+        xMin + (col + 0.5) * fPixelWidth;
+    fPixelCenterX.push_back(x);
+  }
+
+  // Y (rows)
+  fPixelCenterY.clear();
+  fPixelCenterY.reserve(fNPixelsY);
+
+  const G4double yMin = -0.5 * fDetectorHeight;
+
+  for (G4int row = 0; row < fNPixelsY; ++row) {
+    G4double y =
+        yMin + (row + 0.5) * fPixelHeight;
+    fPixelCenterY.push_back(y);
+  }
+
+  G4cout << "Computed pixel centers: "
+         << fPixelCenterX.size() << " x "
+         << fPixelCenterY.size() << G4endl;
+}
 
 
 

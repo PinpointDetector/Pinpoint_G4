@@ -531,9 +531,13 @@ void AnalysisManager::FillGeomTree()
   scintBarFlag = det->GetScintBarFlag();
   
   // get pixel positions: Idea is that we can get the x,y,z of all hits by indexing into these arrays
-  pixelsXPos = det->GetPixelXPositions();
-  pixelsYPos = det->GetPixelYPositions();
-  pixelsZPos = det->GetPixelZPositions();
+  // pixelsXPos = det->GetPixelXPositions();
+  // pixelsYPos = det->GetPixelYPositions();
+  // pixelsZPos = det->GetPixelZPositions();
+  pixelsXPos = det->GetPixelCenterX();
+  pixelsYPos = det->GetPixelCenterY();
+  pixelsZPos = det->GetSiliconZPositions();
+  
 
   fGeom->Fill();
 }

@@ -79,7 +79,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
       std::vector<G4double> zPositions;
       G4double startZ = -0.5 * fNLayers * fLayerThickness;
       for (G4int i = 0; i < fNLayers; ++i) {
-        zPositions.push_back(startZ + i * fLayerThickness + fTungstenThickness + fSiliconThickness / 2);
+        // zPositions.push_back(startZ + i * fLayerThickness + fTungstenThickness + fSiliconThickness / 2);
+        zPositions.push_back(startZ + i * fLayerThickness + 0.5 * fLayerThickness);
       }
       return zPositions;
     };
@@ -107,7 +108,26 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4int GetNPixelsX() const { return fNPixelsX; }
     G4int GetNPixelsY() const { return fNPixelsY; }
 
+    const std::vector<G4double>& GetSiliconZPositions() const {
+      return fSiliconZPositions;
+    }
+    const std::vector<G4double>& GetPixelCenterX() const {
+    return fPixelCenterX;
+    }
+    const std::vector<G4double>& GetPixelCenterY() const {
+      return fPixelCenterY;
+    }
+  
   private:
+    
+    G4double GetSiliconOffsetInLayer() const;
+    void ComputeSiliconZPositions();
+    std::vector<G4double> fSiliconZPositions;
+    
+    void ComputePixelCentersXY();
+    std::vector<G4double> fPixelCenterX;
+    std::vector<G4double> fPixelCenterY;
+
     G4String fWriteFile = "pinpoint.gdml";
     G4GDMLParser fParser;
     G4LogicalVolume* fSiliconLayerLV;

@@ -151,7 +151,11 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   if (fUseFixedZPosition) {
     fVz = GenerateRandomZVertex(fLayerId);
   }
-  G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
+  // G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
+  //* TEST **
+  G4ThreeVector vertexPosition(0 * m, 0 * m, -200 * mm);
+
+
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
@@ -173,7 +177,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   metadata.processName = EncodeProcessName();
   metadata.weight = 1.0;
   metadata.pdg = fNuPdg; 
-  metadata.x4 = G4LorentzVector(fVx*m, fVy*m, fVz*m, 0.);
+  metadata.x4 = vertexPosition;
   metadata.p4 = G4LorentzVector(fPxv*GeV, fPyv*GeV, fPzv*GeV, fEv*GeV);
   metadata.mass = 0.; // neutrinos always massless
   metadata.charge = 0.; // neutrinos always no charge

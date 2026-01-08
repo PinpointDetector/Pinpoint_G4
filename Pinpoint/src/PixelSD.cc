@@ -76,10 +76,23 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   // G4int rowID = touchable->GetCopyNumber(rowIDVolume);
   // G4int colID = touchable->GetCopyNumber(colIDVolume);
   auto pos = step->GetPreStepPoint()->GetPosition();
-  G4int rowID = ((pos.x() + 0.5*fDetWidth) / fPixelWidth) - 1;
-  G4int colID = ((pos.y() + 0.5*fDetHeight) / fPixelHeight) - 1;
+  G4int colID = static_cast<G4int>(
+  (pos.x() + 0.5*fDetWidth) / fPixelWidth
+);
+G4int rowID = static_cast<G4int>(
+  (pos.y() + 0.5*fDetHeight) / fPixelHeight
+);
+  
+G4int layerID = touchable->GetCopyNumber(1);
+G4ThreeVector sensorCenterGlobal = touchable->GetTranslation();
+G4double sensorCentreZ = sensorCenterGlobal.z();
+  // if (pos.z() < -200*mm)
+  // {
+  G4cout << "Pixel Hit at (row, col, layer): (" << rowID << ", " << colID << ", " << layerID << "), (" << pos.x() << ", " << pos.y() << ", " << sensorCentreZ << ") mm" << G4endl;
+  // }
+  
 
-  G4int layerID = touchable->GetCopyNumber(1);
+  
   G4int trackID = track->GetTrackID();
   G4int parentID = track->GetParentID();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
