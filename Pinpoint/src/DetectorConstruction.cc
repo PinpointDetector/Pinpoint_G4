@@ -436,8 +436,8 @@ void DetectorConstruction::ComputeSiliconZPositions()
   for (G4int layerID = 0; layerID < fNLayers; ++layerID) {
 
     // Center of replicated layer
-    const G4double zLayer =
-        -0.5 * detectorThickness
+    const G4double zLayer = 0
+        // -0.5 * detectorThickness
         + (layerID + 0.5) * fLayerThickness;
 
     // Silicon center

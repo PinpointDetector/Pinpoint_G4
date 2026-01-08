@@ -153,7 +153,8 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   }
   // G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
   //* TEST **
-  G4ThreeVector vertexPosition(0 * m, 0 * m, -200 * mm);
+  // G4ThreeVector vertexPosition(0 * m, 0 * m, -200 * mm);
+  G4ThreeVector vertexPosition(0 * m, 0 * m, 0 * mm);
 
 
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
