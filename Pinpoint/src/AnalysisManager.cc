@@ -298,7 +298,7 @@ void AnalysisManager::BeginOfEvent()
   fPixelLayerIDs.clear();
   fPixelPDGCs.clear();
   fPixelTrackIDs.clear();
-  fPixelTrackIDs.clear();
+  fPixelParentIDs.clear();
   // fPixelPxs.clear();
   // fPixelPys.clear();
   // fPixelPzs.clear();
