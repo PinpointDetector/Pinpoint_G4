@@ -110,7 +110,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   private:
     G4String fWriteFile = "pinpoint.gdml";
     G4GDMLParser fParser;
-    G4LogicalVolume* fPixelLV;
+    G4LogicalVolume* fSiliconLayerLV;
 
     DetectorConstructionMessenger* messenger;
 

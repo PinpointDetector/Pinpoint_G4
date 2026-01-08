@@ -30,6 +30,10 @@ class PixelHitAccumulator
     G4int fNPixelsX{0};
     G4int fNPixelsY{0};
     G4int fNLayers{0};
+    G4double fPixelWidth{0.0};
+    G4double fPixelHeight{0.0};
+    G4double fDetWidth{0.0};
+    G4double fDetHeight{0.0};
     G4int fTotalPixelsPerLayer{0};
     
     G4int currentIndex{0};

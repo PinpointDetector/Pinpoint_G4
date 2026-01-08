@@ -41,6 +41,10 @@ PixelHitAccumulator::PixelHitAccumulator()
   fNPixelsX = det->GetNPixelsX();
   fNPixelsY = det->GetNPixelsY();
   fNLayers = det->GetNlayers();
+  fPixelWidth = det->GetPixelWidth();
+  fPixelHeight = det->GetPixelHeight();
+  fDetWidth = det->GetDetectorWidth();
+  fDetHeight = det->GetDetectorHeight();
   fTotalPixelsPerLayer = fNPixelsX * fNPixelsY;
   Init();
 }
@@ -69,9 +73,13 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
 
 
   static const G4int rowIDVolume = 0, colIDVolume = 1, layerVolume = 3;
-  G4int rowID = touchable->GetCopyNumber(rowIDVolume);
-  G4int colID = touchable->GetCopyNumber(colIDVolume);
-  G4int layerID = touchable->GetCopyNumber(layerVolume);
+  // G4int rowID = touchable->GetCopyNumber(rowIDVolume);
+  // G4int colID = touchable->GetCopyNumber(colIDVolume);
+  auto pos = step->GetPreStepPoint()->GetPosition();
+  G4int rowID = ((pos.x() + 0.5*fDetWidth) / fPixelWidth) - 1;
+  G4int colID = ((pos.y() + 0.5*fDetHeight) / fPixelHeight) - 1;
+
+  G4int layerID = touchable->GetCopyNumber(1);
   G4int trackID = track->GetTrackID();
   G4int parentID = track->GetParentID();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
