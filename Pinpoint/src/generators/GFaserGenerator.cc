@@ -89,25 +89,25 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("py", &fPy);
   fGfaserTree->SetBranchAddress("pz", &fPz);
   fGfaserTree->SetBranchAddress("E", &fE);
-  fGfaserTree->SetBranchAddress("pxv", &fPxv);
-  fGfaserTree->SetBranchAddress("pyv", &fPyv);
-  fGfaserTree->SetBranchAddress("pzv", &fPzv);
-  fGfaserTree->SetBranchAddress("Ev", &fEv);
-  fGfaserTree->SetBranchAddress("Q2", &fQ2);
-  fGfaserTree->SetBranchAddress("W", &fW);
-  fGfaserTree->SetBranchAddress("x", &fX);
-  fGfaserTree->SetBranchAddress("y", &fY);
-  fGfaserTree->SetBranchAddress("xsec", &xsec);
-  fGfaserTree->SetBranchAddress("intType", &fIntType);
-  fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
-  fGfaserTree->SetBranchAddress("cc", &fIsCc);
-  fGfaserTree->SetBranchAddress("nc", &fIsNc);
-  fGfaserTree->SetBranchAddress("Z", &fTgtZ);
-  fGfaserTree->SetBranchAddress("A", &fTgtA);
-  fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
-  fGfaserTree->SetBranchAddress("neu", &fNuPdg);
-  fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
-  fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
+  // fGfaserTree->SetBranchAddress("pxv", &fPxv);
+  // fGfaserTree->SetBranchAddress("pyv", &fPyv);
+  // fGfaserTree->SetBranchAddress("pzv", &fPzv);
+  // fGfaserTree->SetBranchAddress("Ev", &fEv);
+  // fGfaserTree->SetBranchAddress("Q2", &fQ2);
+  // fGfaserTree->SetBranchAddress("W", &fW);
+  // fGfaserTree->SetBranchAddress("x", &fX);
+  // fGfaserTree->SetBranchAddress("y", &fY);
+  // fGfaserTree->SetBranchAddress("xsec", &xsec);
+  // fGfaserTree->SetBranchAddress("intType", &fIntType);
+  // fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
+  // fGfaserTree->SetBranchAddress("cc", &fIsCc);
+  // fGfaserTree->SetBranchAddress("nc", &fIsNc);
+  // fGfaserTree->SetBranchAddress("Z", &fTgtZ);
+  // fGfaserTree->SetBranchAddress("A", &fTgtA);
+  // fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
+  // fGfaserTree->SetBranchAddress("neu", &fNuPdg);
+  // fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
+  // fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
 
   fCurrentEvent = fFirstEvent;
   fTotalEvents = fGfaserTree->GetEntries();
@@ -152,14 +152,26 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
     fVz = GenerateRandomZVertex(fLayerId);
   }
   G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
-  //* TEST **
-  // G4ThreeVector vertexPosition(0 * m, 0 * m, -200 * mm);
-  // G4ThreeVector vertexPosition(0 * m, 0 * m, 0 * mm);
-
 
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
+
+    // Get the neutrino pdg and p4 (GENIE primaries have status 0)
+    if ((*fStatus)[i] == 0){
+
+      G4int pdg = (*fPdgc)[i];
+      if (abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16)
+      {
+        fNuPdg = pdg;
+        fPxv = (*fPx)[i];
+        fPyv = (*fPy)[i];
+        fPzv = (*fPz)[i];
+        fEv = (*fE)[i];
+      }
+      continue; 
+    }
+
     if ((*fStatus)[i] != 1) continue;
     G4int pdg = (*fPdgc)[i];
     G4ParticleDefinition* particleDefinition;
@@ -179,7 +191,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   metadata.weight = 1.0;
   metadata.pdg = fNuPdg; 
   metadata.x4 = vertexPosition;
-  metadata.p4 = G4LorentzVector(fPxv*GeV, fPyv*GeV, fPzv*GeV, fEv*GeV);
+  metadata.p4 = G4LorentzVector(fPxv, fPyv, fPzv, fEv);
   metadata.mass = 0.; // neutrinos always massless
   metadata.charge = 0.; // neutrinos always no charge
   metadata.intType = fIntType;
