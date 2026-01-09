@@ -261,11 +261,6 @@
 
     zCursor += 0.5*fSiliconThickness;
 
-    //Tungsten again
-    // zCursor += 0.5*fTungstenThickness;
-    // new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
-    // zCursor += 0.5*fTungstenThickness;
-    
     //Scintillator : no scint config, flag = -1 | single scint config, flag = 0 | double scint config, flag = 1
     // ---------------------------------------------------------
     // Scintillator : no scint, single, or double
@@ -277,7 +272,12 @@
 
     // At least one scintillator panel
     if(sim_flag == 0 || sim_flag == 1)
-    {
+    {   
+        //Tungsten again
+        zCursor += 0.5*fTungstenThickness;
+        new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
+        zCursor += 0.5*fTungstenThickness;
+      
         zCursor += 0.5 * fScintThickness;
 
         // --- Create container for FIRST scintillator layer ---
