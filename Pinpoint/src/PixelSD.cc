@@ -84,7 +84,8 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   G4int parentID = track->GetParentID();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
   const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
-  const G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
+  G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
+  fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgid) == 11 || std::abs(pdgid) == 13 || std::abs(pdgid) == 15);
 
   assert(rowID < fNPixelsY);
   assert(colID < fNPixelsX);
