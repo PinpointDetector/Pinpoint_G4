@@ -16,18 +16,15 @@
 
 void PixelHitAccumulator::Clear()
 {
-  fUIDToHitIndex.clear();
   fPixelHits.clear();
-
+  fUIDToHitIndex.clear();
 }
 
 void PixelHitAccumulator::Init()
 {
-  G4cout << "Initializing PixelHitAccumulator" << G4endl;
-  fPixelHits.clear();
+  Clear();
   fPixelHits.reserve(fNReservedHits);
   fUIDToHitIndex.reserve(fNReservedHits);
-
 }
 
 
@@ -71,33 +68,23 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
     return false;
   }
 
-
-  static const G4int rowIDVolume = 0, colIDVolume = 1, layerVolume = 3;
-  // G4int rowID = touchable->GetCopyNumber(rowIDVolume);
-  // G4int colID = touchable->GetCopyNumber(colIDVolume);
   auto pos = step->GetPreStepPoint()->GetPosition();
   G4int colID = static_cast<G4int>(
   (pos.x() + 0.5*fDetWidth) / fPixelWidth
-);
-G4int rowID = static_cast<G4int>(
-  (pos.y() + 0.5*fDetHeight) / fPixelHeight
-);
-  
-G4int layerID = touchable->GetCopyNumber(1);
-G4ThreeVector sensorCenterGlobal = touchable->GetTranslation();
-G4double sensorCentreZ = sensorCenterGlobal.z();
-  // if (pos.z() < -200*mm)
-  // {
-  G4cout << "Pixel Hit at (row, col, layer): (" << rowID << ", " << colID << ", " << layerID << "), (" << pos.x() << ", " << pos.y() << ", " << sensorCentreZ << ") mm" << G4endl;
-  // }
-  
-
-  
+  );
+  G4int rowID = static_cast<G4int>(
+    (pos.y() + 0.5*fDetHeight) / fPixelHeight
+  );
+    
+  G4int layerID = touchable->GetCopyNumber(1);
+  G4ThreeVector sensorCenterGlobal = touchable->GetTranslation();
+  G4double sensorCentreZ = sensorCenterGlobal.z();
+    
   G4int trackID = track->GetTrackID();
   G4int parentID = track->GetParentID();
   G4int pdgid = track->GetParticleDefinition()->GetPDGEncoding();
   const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
-  const G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton();
+  const G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
 
   assert(rowID < fNPixelsY);
   assert(colID < fNPixelsX);
