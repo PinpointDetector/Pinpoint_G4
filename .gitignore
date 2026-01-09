@@ -24,3 +24,6 @@ pythia8313
 /build
 */old/*condor/
 condor/
+analysis/
+condor_photons/
+build/
