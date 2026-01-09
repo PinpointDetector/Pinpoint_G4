@@ -32,6 +32,7 @@ class DetectorConstructionMessenger: public G4UImessenger {
     
     G4UIcmdWithADoubleAndUnit* tungstenThicknessCmd;
     G4UIcmdWithADoubleAndUnit* siliconThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* boxThicknessCmd;
     G4UIcmdWithAnInteger* nLayersCmd;
     G4UIcmdWithADoubleAndUnit* pixelHeightCmd;
     G4UIcmdWithADoubleAndUnit* pixelWidthCmd;

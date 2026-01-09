@@ -17,6 +17,7 @@
 
 // allow ourselves to give the user extra info about available physics ctors
 #include "G4PhysicsConstructorFactory.hh"
+#include "PrimaryGeneratorAction.hh"
 
 // forward declaration
 void PrintAvailable(G4int verb = 1);
@@ -32,10 +33,13 @@ int main(int argc, char** argv) {
 
   // pick physics list
   std::string physListName = "FTFP_BERT+PY8DK";
-
-  for (G4int i = 1; i < argc; i = i + 2) {
+  G4long firstEvent = -1; // -1 indicates not set via command line
+  for (G4int i = 0; i < argc; i = i + 2) {
     G4String g4argv(argv[i]);  // convert only once
     if (g4argv == "-p") physListName = argv[i + 1];
+    else if (g4argv == "-f" || g4argv == "--firstEvent") {
+      firstEvent = std::atol(argv[i + 1]);
+    }
   }
 
   // Choose the Random engine
@@ -86,6 +90,10 @@ int main(int argc, char** argv) {
   visManager->Initialize();
 
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
+
+  if (firstEvent >= 0) {
+    PrimaryGeneratorAction::SetFirstEvent(firstEvent);
+  }
 
   // Parse command line arguments
   if (argc==1) {

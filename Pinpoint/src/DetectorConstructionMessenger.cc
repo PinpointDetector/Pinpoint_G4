@@ -40,6 +40,12 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     siliconThicknessCmd->SetParameterName("SiliconThickness", false);
     siliconThicknessCmd->SetRange("SiliconThickness>0.");
 
+    boxThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setBoxThickness", this);
+    boxThicknessCmd->SetUnitCategory("Length");
+    boxThicknessCmd->SetDefaultUnit("mm");
+    boxThicknessCmd->SetParameterName("BoxThickness", false);
+    boxThicknessCmd->SetRange("BoxThickness>0.");
+
     nLayersCmd = new G4UIcmdWithAnInteger("/det/setNLayers", this);
     nLayersCmd->SetParameterName("NLayers", false);
     nLayersCmd->SetRange("NLayers>0");
@@ -104,6 +110,7 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
   delete detDir;
   delete tungstenThicknessCmd;
   delete siliconThicknessCmd;
+  delete boxThicknessCmd;
   delete nLayersCmd;
   delete pixelHeightCmd;
   delete pixelWidthCmd;
@@ -125,6 +132,10 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
   if (command == siliconThicknessCmd) {
     G4double thickness = siliconThicknessCmd->ConvertToDimensionedDouble(newValues);
     det->SetSiliconThickness(thickness);
+  }
+  if (command == boxThicknessCmd) {
+    G4double thickness = boxThicknessCmd->ConvertToDimensionedDouble(newValues);
+    det->SetBoxThickness(thickness);
   }
   if (command == nLayersCmd) {
     G4int nLayers = nLayersCmd->GetNewIntValue(newValues);

@@ -18,10 +18,10 @@ GFaserGeneratorMessenger::GFaserGeneratorMessenger(GFaserGenerator* action)
   fInputFileCmd->SetGuidance("set input filename of the gfaser generator");
   fInputFileCmd->AvailableForStates(G4State_PreInit, G4State_Init, G4State_Idle);
 
-  fFirstEventCmd = new G4UIcmdWithAnInteger("/gen/gfaser/firstEvent", this);
-  fFirstEventCmd->SetGuidance("set the index of the first event in the *.gfaser.root file");
-  fFirstEventCmd->SetDefaultValue((G4int)0);
-  fFirstEventCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+  // fFirstEventCmd = new G4UIcmdWithAnInteger("/gen/gfaser/firstEvent", this);
+  // fFirstEventCmd->SetGuidance("set the index of the first event in the *.gfaser.root file");
+  // fFirstEventCmd->SetDefaultValue((G4int)0);
+  // fFirstEventCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
   fUseFixedZPositionCmd = new G4UIcmdWithABool("/gen/gfaser/useFixedZPosition", this);
   fUseFixedZPositionCmd->SetGuidance("set whether to use a fixed Z position for the neutrino vertex");
@@ -33,7 +33,7 @@ GFaserGeneratorMessenger::GFaserGeneratorMessenger(GFaserGenerator* action)
 GFaserGeneratorMessenger::~GFaserGeneratorMessenger()
 {
   delete fInputFileCmd;
-  delete fFirstEventCmd;
+  // delete fFirstEventCmd;
   delete fGFaserGeneratorDir;
 }
 
@@ -41,8 +41,8 @@ GFaserGeneratorMessenger::~GFaserGeneratorMessenger()
 void GFaserGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newValues)
 {
   if (command == fInputFileCmd) fGFaserAction->SetInputFileName(newValues);
-  else if (command == fFirstEventCmd)
-    fGFaserAction->SetFirstEvent(fFirstEventCmd->GetNewIntValue(newValues));
+  // else if (command == fFirstEventCmd)
+  //   fGFaserAction->SetFirstEvent(fFirstEventCmd->GetNewIntValue(newValues));
   else if (command == fUseFixedZPositionCmd)
     fGFaserAction->SetUseFixedZPosition(fUseFixedZPositionCmd->GetNewBoolValue(newValues));
 }

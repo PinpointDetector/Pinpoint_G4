@@ -14,6 +14,9 @@
 # Set silicon sensor thickness
 /det/setSiliconThickness 50 um    # default category is um
 
+# Set silicon box thickness
+/det/setBoxThickness 5.0 mm    # default category is mm
+
 # Number of sampling layers
 /det/setNLayers 100
 
@@ -46,7 +49,7 @@
 # Primary generator: gfaser
 /gen/select gfaser
 /gen/gfaser/inputFile /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Input/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/nutau_775_795.root   # <-- set actual path
-/gen/gfaser/firstEvent 0
+# /gen/gfaser/firstEvent 0
 /gen/gfaser/useFixedZPosition true
 
 # ======================================================

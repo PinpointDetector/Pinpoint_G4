@@ -47,6 +47,7 @@ There are a number of user defined macro commands which can be used to control t
 |:--|:--|:--|
 |`/det/setTungstenThickness` | Tungsten sheet thickness in mm | `5 mm`|
 |`/det/setSiliconThickness` | Silicon layer thickness in $\mu$m | `50 um`|
+|`/det/setBoxThickness` | Silicon box (filled with air) thickness in mm | `5 mm`|
 |`/det/setNLayers` | Number of tungsten/pixel layer | `100`|
 |`/det/setPixelHeight`| Set the height of an individual pixel in $\mu$m | `22.8 um` |
 |`/det/setPixelWidth`| Set the width of an individual pixel in $\mu$m | `20.8 um` |

@@ -12,6 +12,7 @@
 #include "G4Event.hh"
 #include "G4Exception.hh"
 
+G4long PrimaryGeneratorAction::fFirstEvent = -1;
 
 PrimaryGeneratorAction::PrimaryGeneratorAction()
 {
@@ -36,8 +37,13 @@ void PrimaryGeneratorAction::SetGenerator(G4String name)
 
   if( name == "genie" )
     fGenerator = new GENIEGenerator();
-  else if ( name == "gfaser" )
-    fGenerator = new GFaserGenerator();
+  else if ( name == "gfaser" ) {
+    GFaserGenerator* gfaserGen = new GFaserGenerator();
+    if (fFirstEvent >= 0) {
+      gfaserGen->SetFirstEvent(fFirstEvent);
+    }
+    fGenerator = gfaserGen;
+  }
   else if( name == "hepmc" )
     fGenerator = new HepMCGenerator();
   else if ( name == "gun" )
