@@ -17,29 +17,29 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep) {
 
   //TrackLiveDebugging(aStep);
 
-  G4Track* aTrack = aStep->GetTrack();
-  G4ThreeVector post_pos = aStep->GetPostStepPoint()->GetPosition();
+  // G4Track* aTrack = aStep->GetTrack();
+  // G4ThreeVector post_pos = aStep->GetPostStepPoint()->GetPosition();
 
-  // if the track is out of the active volumes/area, kill this track
-  G4VPhysicalVolume* volume = aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
+  // // if the track is out of the active volumes/area, kill this track
+  // G4VPhysicalVolume* volume = aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
 
-  // In your G4UserSteppingAction (e.g., in the Stepping() method)
+  // // In your G4UserSteppingAction (e.g., in the Stepping() method)
 
-  G4Track* track = aStep->GetTrack(); // Get the track from the step
-  G4ThreeVector vertexPos = track->GetVertexPosition(); // Get the vertex position
+  // G4Track* track = aStep->GetTrack(); // Get the track from the step
+  // G4ThreeVector vertexPos = track->GetVertexPosition(); // Get the vertex position
   // Access other info if needed
   // G4double vertexKE = track->GetVertexKineticEnergy();
   // G4ThreeVector vertexMomDir = track->GetVertexMomentumDirection();
 
   // Use vertexPos (e.g., print it)
-  if (track->GetParentID() == 0)
-  {
-    // G4cout << "Track " << track->GetTrackID() << " vertex at: " << vertexPos << G4endl;
-  }
-  if (vertexPos.z() < -200.*mm)
-  {
-   G4cout << "track " << track->GetTrackID() << " born before -400 mm at z = " << vertexPos.z()/mm << " mm" << G4endl; 
-  }
+  // if (track->GetParentID() == 0)
+  // {
+  //   // G4cout << "Track " << track->GetTrackID() << " vertex at: " << vertexPos << G4endl;
+  // }
+  // if (vertexPos.z() < -200.*mm)
+  // {
+  //  G4cout << "track " << track->GetTrackID() << " born before -400 mm at z = " << vertexPos.z()/mm << " mm" << G4endl; 
+  // }
   
 
 
