@@ -24,6 +24,10 @@ pythia8313
 /build
 */old/*condor/
 condor/
+.debug/*
+.DS_Store
+.lesshst
+old
 analysis/
 condor_photons/
 build/

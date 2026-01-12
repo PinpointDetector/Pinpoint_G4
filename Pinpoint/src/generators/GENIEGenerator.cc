@@ -336,40 +336,44 @@ G4String GENIEGenerator::EncodeProcessName() const
 
 
 G4ThreeVector GENIEGenerator::GenerateRandomPoint(G4int currentIdx) const {
-  auto *runManager = G4RunManager::GetRunManager();
-  auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
 
-  auto volumes = detector->GetTargetPhysVols();
+  //! BROKEN
+  return G4ThreeVector(0, 0, 0);
 
-  if (volumes.empty()) return G4ThreeVector();
+  // auto *runManager = G4RunManager::GetRunManager();
+  // auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
 
-  // Step 1: Randomly pick a volume
-  size_t index = static_cast<size_t>(G4UniformRand() * volumes.size());
-  G4VPhysicalVolume* physVol = volumes[index];
+  // auto volumes = detector->GetTargetPhysVols();
 
-  // Step 2: Get the solid
-  G4LogicalVolume* logVol = physVol->GetLogicalVolume();
-  G4VSolid* solid = logVol->GetSolid();
-  const G4Box* box = dynamic_cast<const G4Box*>(solid);
-  if (!box) {
-    G4Exception("SamplePointInSolid", "InvalidSolid", FatalException,
-                "Only G4Box supported in this example.");
-  }
+  // if (volumes.empty()) return G4ThreeVector();
 
-  G4double dx = box->GetXHalfLength();
-  G4double dy = box->GetYHalfLength();
-  G4double dz = box->GetZHalfLength();
+  // // Step 1: Randomly pick a volume
+  // size_t index = static_cast<size_t>(G4UniformRand() * volumes.size());
+  // G4VPhysicalVolume* physVol = volumes[index];
 
-  G4Random::setTheSeed(currentIdx+1);
-  G4ThreeVector point;
-  do {
-    point = G4ThreeVector(
-      (2 * G4UniformRand() - 1) * dx,
-      (2 * G4UniformRand() - 1) * dy,
-      (2 * G4UniformRand() - 1) * dz
-    );
-  } while (solid->Inside(point) != kInside);
+  // // Step 2: Get the solid
+  // G4LogicalVolume* logVol = physVol->GetLogicalVolume();
+  // G4VSolid* solid = logVol->GetSolid();
+  // const G4Box* box = dynamic_cast<const G4Box*>(solid);
+  // if (!box) {
+  //   G4Exception("SamplePointInSolid", "InvalidSolid", FatalException,
+  //               "Only G4Box supported in this example.");
+  // }
 
-  // Transform to global coordinates
-  return physVol->GetObjectTranslation() + point;
+  // G4double dx = box->GetXHalfLength();
+  // G4double dy = box->GetYHalfLength();
+  // G4double dz = box->GetZHalfLength();
+
+  // G4Random::setTheSeed(currentIdx+1);
+  // G4ThreeVector point;
+  // do {
+  //   point = G4ThreeVector(
+  //     (2 * G4UniformRand() - 1) * dx,
+  //     (2 * G4UniformRand() - 1) * dy,
+  //     (2 * G4UniformRand() - 1) * dz
+  //   );
+  // } while (solid->Inside(point) != kInside);
+
+  // // Transform to global coordinates
+  // return physVol->GetObjectTranslation() + point;
 }

@@ -62,6 +62,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   // load generator data at first event
   // this function opens files, reads trees, etc (if required)
+  G4cout << "In PrimaryGeneratorAction::GeneratePrimaries" << G4endl;
   if(!fInitialized){
     fGenerator->LoadData();
     fInitialized = true;

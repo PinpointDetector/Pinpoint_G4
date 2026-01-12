@@ -24,10 +24,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   
     void SetReadFile(const G4String& File);
     void SetWriteFile(const G4String& File);
-    std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
+    // std::vector<G4VPhysicalVolume*> GetTargetPhysVols() const { return fTarget_phys; }
     G4VPhysicalVolume* GetLayerPhysVol() const { return fLayerPV; }
 
-    G4int GetNlayers() const { return fTarget_phys.size(); }
+    // G4int GetNlayers() const { return fTarget_phys.size(); }
+    G4int GetNlayers() const { return fNLayers; }
 
     void SetTungstenThickness(G4double thickness) { 
       if (thickness <= 0) {
@@ -78,7 +79,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
       std::vector<G4double> zPositions;
       G4double startZ = -0.5 * fNLayers * fLayerThickness;
       for (G4int i = 0; i < fNLayers; ++i) {
-        zPositions.push_back(startZ + i * fLayerThickness + fTungstenThickness + fSiliconThickness / 2);
+        // zPositions.push_back(startZ + i * fLayerThickness + fTungstenThickness + fSiliconThickness / 2);
+        zPositions.push_back(startZ + i * fLayerThickness + 0.5 * fLayerThickness);
       }
       return zPositions;
     };
@@ -103,12 +105,32 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     return -1; // fallback to avoid warnings
     }
 
-    
+    G4int GetNPixelsX() const { return fNPixelsX; }
+    G4int GetNPixelsY() const { return fNPixelsY; }
 
+    const std::vector<G4double>& GetSiliconZPositions() const {
+      return fSiliconZPositions;
+    }
+    const std::vector<G4double>& GetPixelCenterX() const {
+    return fPixelCenterX;
+    }
+    const std::vector<G4double>& GetPixelCenterY() const {
+      return fPixelCenterY;
+    }
+  
   private:
+    
+    G4double GetSiliconOffsetInLayer() const;
+    void ComputeSiliconZPositions();
+    std::vector<G4double> fSiliconZPositions;
+    
+    void ComputePixelCentersXY();
+    std::vector<G4double> fPixelCenterX;
+    std::vector<G4double> fPixelCenterY;
+
     G4String fWriteFile = "pinpoint.gdml";
     G4GDMLParser fParser;
-    G4LogicalVolume* fPixelLV;
+    G4LogicalVolume* fSiliconLayerLV;
 
     DetectorConstructionMessenger* messenger;
 
@@ -131,8 +153,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4bool fCheckOverlaps = true;
 
+    G4int fNPixelsX;
+    G4int fNPixelsY;
+
     std::vector<G4LogicalVolume*> scintLVs;
-    std::vector<G4VPhysicalVolume*> fTarget_phys;
+    // std::vector<G4VPhysicalVolume*> fTarget_phys;
     G4VPhysicalVolume* fLayerPV;
 
     G4OpticalSurface* scintWrap;

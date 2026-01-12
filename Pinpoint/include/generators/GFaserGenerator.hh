@@ -29,7 +29,7 @@ class GFaserGenerator : public GeneratorBase
 
   private:
     G4String fInputFileName;
-    G4long fFirstEvent;
+    G4long fFirstEvent{0};
     G4bool fUseFixedZPosition;
     G4int fLayerId = 4;
 
@@ -38,15 +38,15 @@ class GFaserGenerator : public GeneratorBase
     G4long fCurrentEvent;
     G4long fTotalEvents;
     
-    int fN;
-    double fVx, fVy, fVz;
-    int fNuPdg, fLeptonPdg, fHitPdg;
-    double fPxv, fPyv, fPzv, fEv;
-    double fQ2, fW, fX, fY;
-    int fIntType, fScatType;
-    bool fIsCc, fIsNc;
-    int fTgtZ, fTgtA, fTgtPdg;
-    double xsec;
+    int fN{0};
+    double fVx{0.}, fVy{0.}, fVz{0.};
+    int fNuPdg{0}, fLeptonPdg{0}, fHitPdg{0};
+    double fPxv{0.}, fPyv{0.}, fPzv{0.}, fEv{0.};
+    double fQ2{0}, fW{0}, fX{0}, fY{0};
+    int fIntType{0}, fScatType{0};
+    bool fIsCc{0}, fIsNc{0};
+    int fTgtZ{0}, fTgtA{0}, fTgtPdg{0};
+    double xsec{0.};
 
     std::vector<std::string>* fName = nullptr;
     std::vector<int>* fPdgc = nullptr;

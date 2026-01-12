@@ -97,13 +97,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   
   // G4int nPixelsX = 12788; // 20.8um pixel pitch
   // G4int nPixelsY = 8596;  // 22.8um pixel pitch
-  G4int nPixelsX = static_cast<G4int>(fDetectorWidth / fPixelWidth);
-  G4int nPixelsY = static_cast<G4int>(fDetectorHeight / fPixelHeight);
+  fNPixelsX = static_cast<G4int>(fDetectorWidth / fPixelWidth);
+  fNPixelsY = static_cast<G4int>(fDetectorHeight / fPixelHeight);
   G4cout << "Detector dimensions: " << fDetectorWidth/cm << " cm x " << fDetectorHeight/cm << " cm" << G4endl;
   G4cout << "Number of layers: " << fNLayers << G4endl;
   G4cout << "Tungsten thickness per layer: " << fTungstenThickness/mm << " mm" << G4endl;
   G4cout << "Silicon thickness per layer: " << fSiliconThickness/um << " um" << G4endl;
-  G4cout << "Creating " << nPixelsX << " x " << nPixelsY << " pixels per silicon layer" << G4endl;
+  G4cout << "Creating " << fNPixelsX << " x " << fNPixelsY << " pixels per silicon layer" << G4endl;
   G4cout << "Pixel size: " << fPixelWidth/micrometer << " x " << fPixelHeight/micrometer << " μm" << G4endl;
   fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;
   if(sim_flag == -1) { fLayerThickness = fTungstenThickness + fBoxThickness + fSiliconThickness;}  //only pixel, TPTPTPTP...
@@ -115,96 +115,84 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       G4cout << "Warning: Reducing number of layers from " << fNLayers 
             << " to " << maxLayers << " to keep detector thickness <= 100 cm." << G4endl;
       fNLayers = maxLayers;
-  }
+    }
   auto detectorThickness = fNLayers * fLayerThickness;
   auto worldSizeX = 1.2 * fDetectorWidth;
   auto worldSizeY = 1.2 * fDetectorHeight;
   auto worldSizeZ = 1.2 * detectorThickness;
 
-  // Get materials
-  G4NistManager* nist = G4NistManager::Instance();
-  G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
-  G4Material* worldMaterial = nist->FindOrBuildMaterial("G4_AIR");
-  G4Material* tungstenMaterial = nist->FindOrBuildMaterial("G4_W");
-  G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
-  
-  //Calling scintillator, wrapping and related variables
-  DefineMaterial();
-  // G4int nScintBarsX = static_cast<G4int>(fDetectorWidth / fScintBarWidth);
-  // G4int nScintBarsY = static_cast<G4int>(fDetectorHeight / fScintBarHeight);
+    // Get materials
+    G4NistManager* nist = G4NistManager::Instance();
+    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
+    G4Material* worldMaterial = nist->FindOrBuildMaterial("G4_AIR");
+    G4Material* tungstenMaterial = nist->FindOrBuildMaterial("G4_W");
+    G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
+    
+    //Calling scintillator, wrapping and related variables
+    DefineMaterial();
+    // G4int nScintBarsX = static_cast<G4int>(fDetectorWidth / fScintBarWidth);
+    // G4int nScintBarsY = static_cast<G4int>(fDetectorHeight / fScintBarHeight);
 
-  G4int nScintBarsX = 27; fScintBarWidth = fDetectorWidth/nScintBarsX;  //~9.85 mm each bar
-  G4int nScintBarsY = 20; fScintBarHeight = fDetectorHeight/nScintBarsY; //~9.80 mm each bar
+    G4int nScintBarsX = 27; fScintBarWidth = fDetectorWidth/nScintBarsX;  //~9.85 mm each bar
+    G4int nScintBarsY = 20; fScintBarHeight = fDetectorHeight/nScintBarsY; //~9.80 mm each bar
 
-  // World
-  G4Box* worldS = new G4Box("World", 0.5 * worldSizeX, 0.5 * worldSizeY, worldSizeZ);
-  G4LogicalVolume* worldLV = new G4LogicalVolume(worldS, worldMaterial, "World");
-  G4VPhysicalVolume* worldPV = new G4PVPlacement(nullptr, G4ThreeVector(), worldLV, "World", nullptr, false, 0, fCheckOverlaps);
+    // World
+    G4Box* worldS = new G4Box("World", 0.5 * worldSizeX, 0.5 * worldSizeY, worldSizeZ);
+    G4LogicalVolume* worldLV = new G4LogicalVolume(worldS, worldMaterial, "World");
+    G4VPhysicalVolume* worldPV = new G4PVPlacement(nullptr, G4ThreeVector(), worldLV, "World", nullptr, false, 0, fCheckOverlaps);
 
-  G4VisAttributes* experimentalHallVisAtt = new G4VisAttributes(G4Colour(1.,1.,1.));
-  experimentalHallVisAtt->SetForceWireframe(true);
-  worldLV->SetVisAttributes(experimentalHallVisAtt);
+    G4VisAttributes* experimentalHallVisAtt = new G4VisAttributes(G4Colour(1.,1.,1.));
+    experimentalHallVisAtt->SetForceWireframe(true);
+    worldLV->SetVisAttributes(experimentalHallVisAtt);
 
-  // Detector
-  auto detectorS = new G4Box("Detector", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * detectorThickness);
-  auto detectorLV = new G4LogicalVolume(detectorS, worldMaterial, "Detector");
-  // Position detector so that first layer starts at z=0 (shift by half detector thickness)
-  new G4PVPlacement(0, G4ThreeVector(0., 0., 0.5 * detectorThickness), detectorLV, "Detector", worldLV, false, 0, fCheckOverlaps);
+    // Detector
+    auto detectorS = new G4Box("Detector", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * detectorThickness);
+    auto detectorLV = new G4LogicalVolume(detectorS, worldMaterial, "Detector");
+    // Position detector so that first layer starts at z=0 (shift by half detector thickness)
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.5 * detectorThickness), detectorLV, "Detector", worldLV, false, 0, fCheckOverlaps);
 
-  // Layer
-  auto layerS = new G4Box("Layer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, fLayerThickness / 2);
-  auto layerLV = new G4LogicalVolume(layerS, worldMaterial, "Layer");
-  fLayerPV = new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, fLayerThickness);
+    // Layer
+    auto layerS = new G4Box("Layer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, fLayerThickness / 2);
+    auto layerLV = new G4LogicalVolume(layerS, worldMaterial, "Layer");
+    fLayerPV = new G4PVReplica("Layer", layerLV, detectorLV, kZAxis, fNLayers, fLayerThickness);
 
-  //Cursor for placements inside each layer
-  G4double zCursor = -0.5*fLayerThickness;
+    //Cursor for placements inside each layer
+    G4double zCursor = -0.5*fLayerThickness;
 
-  // Tungsten
-  auto tungstenS = new G4Box("Tungsten", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fTungstenThickness);
-  auto tungstenLV = new G4LogicalVolume(tungstenS, tungstenMaterial, "Tungsten");
-  zCursor += 0.5*fTungstenThickness;
-  //fTarget_phys.push_back(new G4PVPlacement(0, G4ThreeVector(0., 0., -0.5 * fLayerThickness + 0.5 * fTungstenThickness), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps));
-  new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
+    // Tungsten
+    auto tungstenS = new G4Box("Tungsten", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fTungstenThickness);
+    auto tungstenLV = new G4LogicalVolume(tungstenS, tungstenMaterial, "Tungsten");
+    zCursor += 0.5*fTungstenThickness;
+    //fTarget_phys.push_back(new G4PVPlacement(0, G4ThreeVector(0., 0., -0.5 * fLayerThickness + 0.5 * fTungstenThickness), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps));
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zCursor), tungstenLV, "Tungsten", layerLV, false, 0, fCheckOverlaps);
 
-  G4VisAttributes* TargetVisAtt =  new G4VisAttributes(G4Colour::Red());
-  TargetVisAtt->SetForceWireframe(true);
-  tungstenLV->SetVisAttributes(TargetVisAtt);
+    G4VisAttributes* TargetVisAtt =  new G4VisAttributes(G4Colour::Red());
+    TargetVisAtt->SetForceWireframe(true);
+    tungstenLV->SetVisAttributes(TargetVisAtt);
 
-  // Silicon layer (will contain pixels)
-  G4VisAttributes* invisAtrrib = new G4VisAttributes();
-  invisAtrrib->SetVisibility(false);
-  invisAtrrib->SetForceSolid(false);
+    // Silicon layer (will contain pixels)
+    G4VisAttributes* invisAtrrib = new G4VisAttributes();
+    invisAtrrib->SetVisibility(false);
+    invisAtrrib->SetForceSolid(false);
 
-  G4VisAttributes* LayerAtrrib = new G4VisAttributes(G4Colour::Green());
-  LayerAtrrib->SetVisibility(true);
-  LayerAtrrib->SetForceSolid(true);
+    G4VisAttributes* LayerAtrrib = new G4VisAttributes(G4Colour::Green());
+    LayerAtrrib->SetVisibility(true);
+    LayerAtrrib->SetForceSolid(true);
 
-  G4VisAttributes* ScintLayerAtrrib = new G4VisAttributes(G4Colour::Blue());
-  ScintLayerAtrrib->SetVisibility(true);
-  ScintLayerAtrrib->SetForceSolid(true);
+    G4VisAttributes* ScintLayerAtrrib = new G4VisAttributes(G4Colour::Blue());
+    ScintLayerAtrrib->SetVisibility(true);
+    ScintLayerAtrrib->SetForceSolid(true);
 
-  zCursor += 0.5*fTungstenThickness + fBoxThickness + 0.5*fSiliconThickness;
+    zCursor += 0.5*fTungstenThickness + fBoxThickness + 0.5*fSiliconThickness;
 
-  auto siliconNLayers = new G4Box("SiliconLayer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fSiliconThickness);
-  auto siliconLayerLV = new G4LogicalVolume(siliconNLayers, siliconMaterial, "SiliconLayer");  // Changed to siliconMaterial
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0.,zCursor), siliconLayerLV, "SiliconLayer", layerLV, false, 0, fCheckOverlaps);
-  siliconLayerLV->SetVisAttributes(LayerAtrrib);
+    auto siliconLayer = new G4Box("SiliconLayer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fSiliconThickness);
+    fSiliconLayerLV = new G4LogicalVolume(siliconLayer, siliconMaterial, "SiliconLayer");  // Changed to siliconMaterial
+    new G4PVPlacement(nullptr, G4ThreeVector(0., 0.,zCursor), fSiliconLayerLV, "SiliconLayer", layerLV, false, 0, fCheckOverlaps);
+    fSiliconLayerLV->SetVisAttributes(LayerAtrrib);
 
-  // Create pixel row (Y direction)
-  auto pixelRowS = new G4Box("SiliconPixelRow", 0.5 * fDetectorWidth, 0.5 * fPixelHeight, 0.5 * fSiliconThickness);
-  auto pixelRowLV = new G4LogicalVolume(pixelRowS, siliconMaterial, "SiliconPixelRow");  // Changed to siliconMaterial
-  new G4PVReplica("SiliconPixelRow", pixelRowLV, siliconLayerLV, kYAxis, nPixelsY, fPixelHeight);
-  pixelRowLV->SetVisAttributes(invisAtrrib);
+    zCursor += 0.5*fSiliconThickness;
 
-  // Create individual pixels (X direction)
-  auto pixelS = new G4Box("SiliconPixel", 0.5 * fPixelWidth, 0.5 * fPixelHeight, 0.5 * fSiliconThickness);
-  fPixelLV = new G4LogicalVolume(pixelS, siliconMaterial, "SiliconPixel");
-  new G4PVReplica("SiliconPixel", fPixelLV, pixelRowLV, kXAxis, nPixelsX, fPixelWidth);
-  fPixelLV->SetVisAttributes(invisAtrrib);
-
-  zCursor += 0.5*fSiliconThickness;
-
-  // ---------------------------------------------------------  
+// ---------------------------------------------------------  
   //Scintillator : no scint config, flag = -1 | single scint config, flag = 0 | double scint config, flag = 1
   // ---------------------------------------------------------
   // Scintillator : no scint, single, or double
@@ -319,7 +307,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 void DetectorConstruction::ConstructSDandField()
 {
-    // Create Scintillator SD
+    
+  // Create Scintillator SD
     auto scintSD = new ScintillatorSD("ScintillatorDetector", "ScintHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
 
@@ -341,71 +330,144 @@ void DetectorConstruction::ConstructSDandField()
     }
 
     // Pixel SD
-    if(fPixelLV) {
+    if(fSiliconLayerLV) {
+        G4cout << "Adding pixel SD" << G4endl;
         auto pixelSD = new PixelSD("PixelDetector", "PixelHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(pixelSD);
-        fPixelLV->SetSensitiveDetector(pixelSD);
-    }
+        fSiliconLayerLV->SetSensitiveDetector(pixelSD);
+    
+        // Make lookup tables to extract x,y,z position of pixels
+        ComputeSiliconZPositions();
+        ComputePixelCentersXY();
+      }
+  }
+
+
+
+G4double DetectorConstruction::GetSiliconOffsetInLayer() const
+{
+  // Common to all sim_flag values
+  return -0.5 * fLayerThickness
+         + fTungstenThickness
+         + fBoxThickness
+         + 0.5 * fSiliconThickness;
 }
 
 
 
+void DetectorConstruction::ComputeSiliconZPositions()
+{
+  fSiliconZPositions.clear();
+  fSiliconZPositions.reserve(fNLayers);
+
+  const G4double detectorThickness = fNLayers * fLayerThickness;
+  const G4double siliconOffsetInLayer =
+      -0.5 * fLayerThickness
+      + fTungstenThickness
+      + fBoxThickness
+      + 0.5 * fSiliconThickness;
+
+  for (G4int layerID = 0; layerID < fNLayers; ++layerID) {
+
+    // Center of replicated layer
+    const G4double zLayer = 0
+        // -0.5 * detectorThickness
+        + (layerID + 0.5) * fLayerThickness;
+
+    // Silicon center
+    const G4double zSilicon = zLayer + siliconOffsetInLayer;
+
+    fSiliconZPositions.push_back(zSilicon);
+  }
+
+  G4cout << "Computed Z positions for "
+         << fSiliconZPositions.size()
+         << " silicon planes" << G4endl;
+}
+
+
+void DetectorConstruction::ComputePixelCentersXY()
+{
+  // X (columns)
+  fPixelCenterX.clear();
+  fPixelCenterX.reserve(fNPixelsX);
+
+  const G4double xMin = -0.5 * fDetectorWidth;
+
+  for (G4int col = 0; col < fNPixelsX; ++col) {
+    G4double x =
+        xMin + (col + 0.5) * fPixelWidth;
+    fPixelCenterX.push_back(x);
+  }
+
+  // Y (rows)
+  fPixelCenterY.clear();
+  fPixelCenterY.reserve(fNPixelsY);
+
+  const G4double yMin = -0.5 * fDetectorHeight;
+
+  for (G4int row = 0; row < fNPixelsY; ++row) {
+    G4double y =
+        yMin + (row + 0.5) * fPixelHeight;
+    fPixelCenterY.push_back(y);
+  }
+
+  G4cout << "Computed pixel centers: "
+         << fPixelCenterX.size() << " x "
+         << fPixelCenterY.size() << G4endl;
+}
 
 
 
+  //Extra : Scintillator Material Propoerty Removed
+  /*
+  std::vector<G4double> refractiveIndexScint = { 1.58, 1.58 };
+    std::vector<G4double> absorptionScint = {0.1*cm, 0.1*cm};
+    //std::vector<G4double> absorptionScint = {210.0*cm, 210.0*cm};
+    std::vector<G4double> energiesSmall = { 1.907*eV, 3.542*eV };
+
+    std::vector<G4double> energyScint = { 
+        1.907 * eV, 1.926 * eV, 1.944 * eV, 1.963 * eV, 1.982 * eV, 2.002 * eV, 2.022 * eV, 2.042 * eV, 
+        2.063 * eV, 2.084 * eV, 2.106 * eV, 2.128 * eV, 2.150 * eV, 2.174 * eV, 2.197 * eV, 2.221 * eV, 
+        2.246 * eV, 2.271 * eV, 2.297 * eV, 2.323 * eV, 2.350 * eV, 2.378 * eV, 2.406 * eV, 2.435 * eV, 
+        2.465 * eV, 2.495 * eV, 2.526 * eV, 2.558 * eV, 2.591 * eV, 2.624 * eV, 2.659 * eV, 2.694 * eV, 
+        2.730 * eV, 2.768 * eV, 2.806 * eV, 2.845 * eV, 2.886 * eV, 2.928 * eV, 2.971 * eV, 3.015 * eV, 
+        3.060 * eV, 3.107 * eV, 3.156 * eV, 3.206 * eV, 3.257 * eV, 3.311 * eV, 3.366 * eV, 3.423 * eV, 
+        3.481 * eV, 3.542 * eV 
+    };
+    
+    std::vector<G4double> emissionIntensityScint = { 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.15, 0.2, 
+        0.25, 0.3, 0.35, 0.4, 0.43, 0.46, 0.6, 0.69, 
+        0.82, 0.9, 1.0, 0.97, 0.9, 0.83, 0.75, 0.41, 
+        0.21, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0 
+    };
+
+    //MPT for Scintillator
+    G4MaterialPropertiesTable *MPT = new G4MaterialPropertiesTable();  
+    MPT->AddProperty("RINDEX",energiesSmall, refractiveIndexScint);
+    MPT->AddProperty("ABSLENGTH",energiesSmall, absorptionScint);
+    MPT->AddProperty("SCINTILLATIONCOMPONENT1", energyScint, emissionIntensityScint);    									
+    MPT->AddConstProperty("SCINTILLATIONYIELD", 144.0/MeV);
+    MPT->AddConstProperty("RESOLUTIONSCALE", 1.0);  //FWHM divided by Energy, also Fano Factor
+    MPT->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.1*ns);   //was previous 2.1, chaged to 0.9 where scintillator time reaches peak
+    scintillator->SetMaterialPropertiesTable(MPT);
 
 
 
+    Scintillator Wrapping
+    scintWrap = new G4OpticalSurface("ScintWrap",glisur, ground, dielectric_metal, 1.0);
+    G4double pp[2]           = { 2.0 * eV, 3.47 * eV };
+    G4double reflectivity[2] = { 1.0, 1.0 };
+    G4double efficiency[2]   = { 0.0, 0.0 };
 
-//Extra : Scintillator Material Propoerty Removed
-/*
-std::vector<G4double> refractiveIndexScint = { 1.58, 1.58 };
-  std::vector<G4double> absorptionScint = {0.1*cm, 0.1*cm};
-  //std::vector<G4double> absorptionScint = {210.0*cm, 210.0*cm};
-  std::vector<G4double> energiesSmall = { 1.907*eV, 3.542*eV };
+    G4MaterialPropertiesTable* scintWrapProperty = new G4MaterialPropertiesTable();
 
-  std::vector<G4double> energyScint = { 
-	    1.907 * eV, 1.926 * eV, 1.944 * eV, 1.963 * eV, 1.982 * eV, 2.002 * eV, 2.022 * eV, 2.042 * eV, 
-	    2.063 * eV, 2.084 * eV, 2.106 * eV, 2.128 * eV, 2.150 * eV, 2.174 * eV, 2.197 * eV, 2.221 * eV, 
-	    2.246 * eV, 2.271 * eV, 2.297 * eV, 2.323 * eV, 2.350 * eV, 2.378 * eV, 2.406 * eV, 2.435 * eV, 
-	    2.465 * eV, 2.495 * eV, 2.526 * eV, 2.558 * eV, 2.591 * eV, 2.624 * eV, 2.659 * eV, 2.694 * eV, 
-	    2.730 * eV, 2.768 * eV, 2.806 * eV, 2.845 * eV, 2.886 * eV, 2.928 * eV, 2.971 * eV, 3.015 * eV, 
-	    3.060 * eV, 3.107 * eV, 3.156 * eV, 3.206 * eV, 3.257 * eV, 3.311 * eV, 3.366 * eV, 3.423 * eV, 
-	    3.481 * eV, 3.542 * eV 
-	};
-	
-	std::vector<G4double> emissionIntensityScint = { 
-	    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
-	    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-	    0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.15, 0.2, 
-	    0.25, 0.3, 0.35, 0.4, 0.43, 0.46, 0.6, 0.69, 
-	    0.82, 0.9, 1.0, 0.97, 0.9, 0.83, 0.75, 0.41, 
-	    0.21, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
-	    0.0, 0.0 
-	};
+    scintWrapProperty->AddProperty("REFLECTIVITY", pp, reflectivity,2);
+    scintWrapProperty->AddProperty("EFFICIENCY", pp, efficiency,2);
+    scintWrap->SetMaterialPropertiesTable(scintWrapProperty);
 
-  //MPT for Scintillator
-	G4MaterialPropertiesTable *MPT = new G4MaterialPropertiesTable();  
-	MPT->AddProperty("RINDEX",energiesSmall, refractiveIndexScint);
-	MPT->AddProperty("ABSLENGTH",energiesSmall, absorptionScint);
-	MPT->AddProperty("SCINTILLATIONCOMPONENT1", energyScint, emissionIntensityScint);    									
-	MPT->AddConstProperty("SCINTILLATIONYIELD", 144.0/MeV);
-	MPT->AddConstProperty("RESOLUTIONSCALE", 1.0);  //FWHM divided by Energy, also Fano Factor
-	MPT->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.1*ns);   //was previous 2.1, chaged to 0.9 where scintillator time reaches peak
-	scintillator->SetMaterialPropertiesTable(MPT);
-
-
-
-  Scintillator Wrapping
-  scintWrap = new G4OpticalSurface("ScintWrap",glisur, ground, dielectric_metal, 1.0);
-  G4double pp[2]           = { 2.0 * eV, 3.47 * eV };
-  G4double reflectivity[2] = { 1.0, 1.0 };
-  G4double efficiency[2]   = { 0.0, 0.0 };
-
-  G4MaterialPropertiesTable* scintWrapProperty = new G4MaterialPropertiesTable();
-
-  scintWrapProperty->AddProperty("REFLECTIVITY", pp, reflectivity,2);
-  scintWrapProperty->AddProperty("EFFICIENCY", pp, efficiency,2);
-  scintWrap->SetMaterialPropertiesTable(scintWrapProperty);
-
-  */
+    */

@@ -12,6 +12,7 @@ class PixelHit : public G4VHit
 {
 public:
   PixelHit() = default;
+  PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerId, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim);
   PixelHit(const PixelHit&) = default;
   ~PixelHit() override = default;
 
@@ -35,14 +36,15 @@ public:
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
   // void SetIsFromPrimary(G4bool fromPrimary) { fIsFromPrimary = fromPrimary; }
   void SetEnergyDeposit(G4double edep) { fEnergyDeposit = edep; }
-  void SetFromMuon(G4bool fromMuon) { fFromMuon = fromMuon; }
+  void AddEnergyDeposit(G4double edep) { fEnergyDeposit += edep; }
+  // void SetFromMuon(G4bool fromMuon) { fFromMuon = fromMuon; }
   // void AddEnergyDeposit(G4double edep) { fEnergyDeposit += edep; }
-  void SetP4(const G4LorentzVector& p4) { fP4 = p4; }
-  void SetCharge(G4int charge) { fCharge = charge; }
-  void SetFromPrimaryPizero(G4bool fromPrimaryPizero) { fFromPrimaryPizero = fromPrimaryPizero; }
-  void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
+  // void SetP4(const G4LorentzVector& p4) { fP4 = p4; }
+  // void SetCharge(G4int charge) { fCharge = charge; }
+  // void SetFromPrimaryPizero(G4bool fromPrimaryPizero) { fFromPrimaryPizero = fromPrimaryPizero; }
+  // void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
-  void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
+  // void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetRowID() const { return fRowID; }
@@ -50,36 +52,36 @@ public:
   G4int GetLayerID() const { return fLayerID; }
   G4int GetTrackID() const { return fTrackID; }
   G4int GetParentID() const { return fParentID; }
-  G4LorentzVector GetP4() const { return fP4; }
-  G4int GetCharge() const { return fCharge; }
-  G4ThreeVector GetTruthHitPos() const { return fTruthHitPos; }
+  // G4LorentzVector GetP4() const { return fP4; }
+  // G4int GetCharge() const { return fCharge; }
+  // G4ThreeVector GetTruthHitPos() const { return fTruthHitPos; }
   // G4bool GetIsFromPrimary() const { return fIsFromPrimary; }
   G4double GetEnergyDeposit() const { return fEnergyDeposit; }
-  G4bool GetFromMuon() const { return fFromMuon; }
-  G4double GetPx() const { return fP4.px(); }
-  G4double GetPy() const { return fP4.py(); }
-  G4double GetPz() const { return fP4.pz(); }
-  G4double GetEnergy() const { return fP4.e(); }
-  G4bool GetFromPrimaryPizero() const { return fFromPrimaryPizero; }
-  G4bool GetFromFSLPizero() const { return fFromFSLPizero; }
+  // G4bool GetFromMuon() const { return fFromMuon; }
+  // G4double GetPx() const { return fP4.px(); }
+  // G4double GetPy() const { return fP4.py(); }
+  // G4double GetPz() const { return fP4.pz(); }
+  // G4double GetEnergy() const { return fP4.e(); }
+  // G4bool GetFromPrimaryPizero() const { return fFromPrimaryPizero; }
+  // G4bool GetFromFSLPizero() const { return fFromFSLPizero; }
   G4bool GetFromPrimaryLepton() const { return fFromPrimaryLepton; }
 
 private:
   G4int fTrackID = -1;
   G4int fParentID = -1;
   G4int fPDGCode = 0;
-  G4LorentzVector fP4 = G4LorentzVector();
+  // G4LorentzVector fP4 = G4LorentzVector();
   G4int fRowID = -1;
   G4int fColID = -1;
   G4int fLayerID = -1;
-  G4int fCharge = 0;
+  // G4int fCharge = 0;
   G4bool fFromPrimaryLepton = false;
-  G4bool fFromPrimaryPizero = false;
-  G4bool fFromFSLPizero = false;
-  G4ThreeVector fTruthHitPos;
+  // G4bool fFromPrimaryPizero = false;
+  // G4bool fFromFSLPizero = false;
+  // G4ThreeVector fTruthHitPos;
 
   G4double fEnergyDeposit = 0.0;
-  G4bool fFromMuon = false;
+  // G4bool fFromMuon = false;
 };
 
 
@@ -99,6 +101,19 @@ inline void PixelHit::operator delete(void* hit)
 {
   PixelHitAllocator->FreeSingle((PixelHit*)hit);
 }
+
+// extern G4ThreadLocal G4Allocator<PixelHit>* PixelHitAllocator;
+
+// inline void* operator new(size_t) {
+//   if (!PixelHitAllocator)
+//     PixelHitAllocator = new G4Allocator<PixelHit>;
+//   return PixelHitAllocator->MallocSingle();
+// }
+
+// inline void operator delete(void* hit) {
+//   PixelHitAllocator->FreeSingle((PixelHit*)hit);
+// }
+
 
 
 #endif

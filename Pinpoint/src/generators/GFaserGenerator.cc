@@ -152,9 +152,32 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
     fVz = GenerateRandomZVertex(fLayerId);
   }
   G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
+
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
+    
+    //.   If you get branch address warnings you probably didn't convert your ghep file using `Pinpoint/convertGHEPPinPoint.C`
+    //.   Make sure to use that script to convert your GENIE GHEP files to GFaser format.
+    //.   If that is not possible you can ignore the warnings and uncomment the code commented out by ////   
+    //// Get the neutrino pdg and p4 (GENIE primaries have status 0)
+    //// if ((*fStatus)[i] == 0){
+
+    ////   G4int pdg = (*fPdgc)[i];
+    ////   if (abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16)
+    ////   {
+    ////     fNuPdg = pdg;
+    ////     fPxv = (*fPx)[i];
+    ////     fPyv = (*fPy)[i];
+    ////     fPzv = (*fPz)[i];
+    ////     fEv = (*fE)[i];
+    ////   }
+    ////   else{
+    ////     fTgtPdg = pdg;
+    ////   }
+    ////   continue; 
+    //// }
+
     if ((*fStatus)[i] != 1) continue;
     G4int pdg = (*fPdgc)[i];
     G4ParticleDefinition* particleDefinition;
@@ -165,6 +188,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
     vertex->SetPrimary(primaryParticle);
   }
   // Add vertex to event
+  G4cout << "Placing Vertex at " << vertex->GetX0() / mm << ", " << vertex->GetY0() / mm  << ", " << vertex->GetZ0() / mm  << G4endl;
   event->AddPrimaryVertex(vertex);
 
   GeneratorVertexMetadata metadata;
@@ -172,6 +196,8 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   metadata.processName = EncodeProcessName();
   metadata.weight = 1.0;
   metadata.pdg = fNuPdg; 
+  //// metadata.x4 = vertexPosition;
+  //// metadata.p4 = G4LorentzVector(fPxv, fPyv, fPzv, fEv);
   metadata.x4 = G4LorentzVector(fVx*m, fVy*m, fVz*m, 0.);
   metadata.p4 = G4LorentzVector(fPxv*GeV, fPyv*GeV, fPzv*GeV, fEv*GeV);
   metadata.mass = 0.; // neutrinos always massless
@@ -237,6 +263,9 @@ G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
   G4int nLayers = detector->GetNumberOfLayers();
   G4double startZ = -0.5 * nLayers * layerThickness;
   G4double z = startZ + layerIndex * layerThickness + tungstenThickness * G4UniformRand();
+
+  G4cout << "Generated random Z vertex at: " << z/m << " m in layer " << layerIndex << G4endl;
+
   return z/m; // convert to meters
 }
 

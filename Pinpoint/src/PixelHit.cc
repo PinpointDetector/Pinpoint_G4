@@ -40,3 +40,8 @@ void PixelHit::Print()
      << "  Charge: " << std::setw(7) << G4BestUnit(fEnergyDeposit,"Energy")
      << G4endl;
 }
+
+PixelHit::PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerID, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim)
+: fEnergyDeposit{edep}, fRowID{rowID}, fColID{colID}, fLayerID{layerID}, fTrackID{trackID}, fParentID{parentID}, fPDGCode{pdgc}, fFromPrimaryLepton{isPrim}
+{
+}
