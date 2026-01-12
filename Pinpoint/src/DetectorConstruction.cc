@@ -1,33 +1,33 @@
-  #include "G4SystemOfUnits.hh"
-  #include "G4NistManager.hh"
-  #include "DetectorConstruction.hh"
-  #include "PixelSD.hh"
-  #include "ScintSD.hh"
-  #include "G4LogicalVolume.hh"
-  #include "G4PVPlacement.hh"
-  #include "G4Box.hh"
-  #include "G4Cons.hh"
-  #include "G4PVReplica.hh"
-  #include "G4PVParameterised.hh"
-  #include "G4SDManager.hh"
-  #include <fstream>
-  #include "G4VisAttributes.hh"
-  #include "G4LogicalSkinSurface.hh"
-  #include "G4PhysicalVolumeStore.hh"
-  #include <algorithm>
-  #include <iomanip>
+#include "G4SystemOfUnits.hh"
+#include "G4NistManager.hh"
+#include "DetectorConstruction.hh"
+#include "PixelSD.hh"
+#include "ScintSD.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4Box.hh"
+#include "G4Cons.hh"
+#include "G4PVReplica.hh"
+#include "G4PVParameterised.hh"
+#include "G4SDManager.hh"
+#include <fstream>
+#include "G4VisAttributes.hh"
+#include "G4LogicalSkinSurface.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include <algorithm>
+#include <iomanip>
 
 
-  DetectorConstruction::DetectorConstruction()
-    : G4VUserDetectorConstruction()
-  {
-    messenger = new DetectorConstructionMessenger(this);
-  }
+DetectorConstruction::DetectorConstruction()
+  : G4VUserDetectorConstruction()
+{
+  messenger = new DetectorConstructionMessenger(this);
+}
 
-  DetectorConstruction::~DetectorConstruction()
-  {
-    delete messenger;
-  }
+DetectorConstruction::~DetectorConstruction()
+{
+  delete messenger;
+}
 
 void DetectorConstruction::DefineMaterial()
 {
@@ -185,8 +185,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     zCursor += 0.5*fTungstenThickness + fBoxThickness + 0.5*fSiliconThickness;
 
-    auto silicofNLayers = new G4Box("SiliconLayer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fSiliconThickness);
-    fSiliconLayerLV = new G4LogicalVolume(silicofNLayers, siliconMaterial, "SiliconLayer");  // Changed to siliconMaterial
+    auto siliconLayer = new G4Box("SiliconLayer", 0.5 * fDetectorWidth, 0.5 * fDetectorHeight, 0.5 * fSiliconThickness);
+    fSiliconLayerLV = new G4LogicalVolume(siliconLayer, siliconMaterial, "SiliconLayer");  // Changed to siliconMaterial
     new G4PVPlacement(nullptr, G4ThreeVector(0., 0.,zCursor), fSiliconLayerLV, "SiliconLayer", layerLV, false, 0, fCheckOverlaps);
     fSiliconLayerLV->SetVisAttributes(LayerAtrrib);
 
