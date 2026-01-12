@@ -89,25 +89,25 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("py", &fPy);
   fGfaserTree->SetBranchAddress("pz", &fPz);
   fGfaserTree->SetBranchAddress("E", &fE);
-  // fGfaserTree->SetBranchAddress("pxv", &fPxv);
-  // fGfaserTree->SetBranchAddress("pyv", &fPyv);
-  // fGfaserTree->SetBranchAddress("pzv", &fPzv);
-  // fGfaserTree->SetBranchAddress("Ev", &fEv);
-  // fGfaserTree->SetBranchAddress("Q2", &fQ2);
-  // fGfaserTree->SetBranchAddress("W", &fW);
-  // fGfaserTree->SetBranchAddress("x", &fX);
-  // fGfaserTree->SetBranchAddress("y", &fY);
-  // fGfaserTree->SetBranchAddress("xsec", &xsec);
-  // fGfaserTree->SetBranchAddress("intType", &fIntType);
-  // fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
-  // fGfaserTree->SetBranchAddress("cc", &fIsCc);
-  // fGfaserTree->SetBranchAddress("nc", &fIsNc);
-  // fGfaserTree->SetBranchAddress("Z", &fTgtZ);
-  // fGfaserTree->SetBranchAddress("A", &fTgtA);
-  // fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
-  // fGfaserTree->SetBranchAddress("neu", &fNuPdg);
-  // fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
-  // fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
+  fGfaserTree->SetBranchAddress("pxv", &fPxv);
+  fGfaserTree->SetBranchAddress("pyv", &fPyv);
+  fGfaserTree->SetBranchAddress("pzv", &fPzv);
+  fGfaserTree->SetBranchAddress("Ev", &fEv);
+  fGfaserTree->SetBranchAddress("Q2", &fQ2);
+  fGfaserTree->SetBranchAddress("W", &fW);
+  fGfaserTree->SetBranchAddress("x", &fX);
+  fGfaserTree->SetBranchAddress("y", &fY);
+  fGfaserTree->SetBranchAddress("xsec", &xsec);
+  fGfaserTree->SetBranchAddress("intType", &fIntType);
+  fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
+  fGfaserTree->SetBranchAddress("cc", &fIsCc);
+  fGfaserTree->SetBranchAddress("nc", &fIsNc);
+  fGfaserTree->SetBranchAddress("Z", &fTgtZ);
+  fGfaserTree->SetBranchAddress("A", &fTgtA);
+  fGfaserTree->SetBranchAddress("tgt", &fTgtPdg);
+  fGfaserTree->SetBranchAddress("neu", &fNuPdg);
+  fGfaserTree->SetBranchAddress("fspl", &fLeptonPdg);
+  fGfaserTree->SetBranchAddress("hitnuc", &fHitPdg);
 
   fCurrentEvent = fFirstEvent;
   fTotalEvents = fGfaserTree->GetEntries();
@@ -156,24 +156,27 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
+    
+    //.   If you get branch address warnings you probably didn't convert your ghep file using `Pinpoint/convertGHEPPinPoint.C`
+    //.   Make sure to use that script to convert your GENIE GHEP files to GFaser format.
+    //.   If that is not possible you can ignore the warnings and uncomment the code commented out by ////   
+    //// Get the neutrino pdg and p4 (GENIE primaries have status 0)
+    //// if ((*fStatus)[i] == 0){
 
-    // Get the neutrino pdg and p4 (GENIE primaries have status 0)
-    if ((*fStatus)[i] == 0){
-
-      G4int pdg = (*fPdgc)[i];
-      if (abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16)
-      {
-        fNuPdg = pdg;
-        fPxv = (*fPx)[i];
-        fPyv = (*fPy)[i];
-        fPzv = (*fPz)[i];
-        fEv = (*fE)[i];
-      }
-      else{
-        fTgtPdg = pdg;
-      }
-      continue; 
-    }
+    ////   G4int pdg = (*fPdgc)[i];
+    ////   if (abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16)
+    ////   {
+    ////     fNuPdg = pdg;
+    ////     fPxv = (*fPx)[i];
+    ////     fPyv = (*fPy)[i];
+    ////     fPzv = (*fPz)[i];
+    ////     fEv = (*fE)[i];
+    ////   }
+    ////   else{
+    ////     fTgtPdg = pdg;
+    ////   }
+    ////   continue; 
+    //// }
 
     if ((*fStatus)[i] != 1) continue;
     G4int pdg = (*fPdgc)[i];
@@ -193,8 +196,10 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   metadata.processName = EncodeProcessName();
   metadata.weight = 1.0;
   metadata.pdg = fNuPdg; 
-  metadata.x4 = vertexPosition;
-  metadata.p4 = G4LorentzVector(fPxv, fPyv, fPzv, fEv);
+  //// metadata.x4 = vertexPosition;
+  //// metadata.p4 = G4LorentzVector(fPxv, fPyv, fPzv, fEv);
+  metadata.x4 = G4LorentzVector(fVx*m, fVy*m, fVz*m, 0.);
+  metadata.p4 = G4LorentzVector(fPxv*GeV, fPyv*GeV, fPzv*GeV, fEv*GeV);
   metadata.mass = 0.; // neutrinos always massless
   metadata.charge = 0.; // neutrinos always no charge
   metadata.intType = fIntType;
