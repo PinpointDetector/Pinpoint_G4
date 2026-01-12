@@ -35,7 +35,7 @@
 #  -1: no scintillator
 #   0: one scintillator layer
 #   1: two scintillator layers
-/det/setSimFlag 0
+/det/setSimFlag -1
 
 # Scintillator geometry flag
 #  true  = bar geometry
@@ -57,7 +57,7 @@
 # ======================================================
 
 # Output ROOT file name for histograms / ntuples
-/out/fileName /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Output/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/t5p5s5_energyRange.root
+/out/fileName /eos/project/f/fasersim-bonn/public/dhruv/pinpoint_local/geant4Output/tungsten_5mm_pixel_5mm_scint_5mm_single_bar/t5p5s5_nutau_energyRange.root
 
 # Flags for extra output detail
 /out/saveTrack false
@@ -70,4 +70,4 @@
 /run/initialize
 # (optionally geometry, cuts, etc., here if you have other messengers)
 
-/run/beamOn 100   # <-- set number of events
+/run/beamOn 1000   # <-- set number of events
