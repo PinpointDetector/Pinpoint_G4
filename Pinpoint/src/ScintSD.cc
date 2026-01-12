@@ -71,10 +71,9 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     //G4LorentzVector p4 = track->GetDynamicParticle()->Get4Momentum();
     G4ThreeVector truthPos = preStep->GetPosition();
 
-    TrackInformation* trackInfo = dynamic_cast<TrackInformation*>(track->GetUserInformation());
-    G4bool fromPrimaryLepton  = trackInfo ? trackInfo->IsTrackFromPrimaryLepton() : false;
-    G4bool fromPrimaryPizero  = trackInfo ? trackInfo->IsTrackFromPrimaryPizero() : false;
-    G4bool fromFSLPizero      = trackInfo ? trackInfo->IsTrackFromFSLPizero() : false;
+    const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
+    G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
+    fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgid) == 11 || std::abs(pdgid) == 13 || std::abs(pdgid) == 15);
 
     ScintLayerHitID hitID {layerID, trackID, pdgCode, parentID, fromPrimaryLepton};
 
