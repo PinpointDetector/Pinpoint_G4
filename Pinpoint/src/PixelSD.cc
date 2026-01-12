@@ -59,7 +59,7 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   const auto& touchable = preStepPoint->GetTouchableHandle();
 
   G4double edep = step->GetTotalEnergyDeposit();
-  if (edep <= fEdepThreshold / 100.) { // Ignore deposits less than 1/100th of threshold
+  if (edep < fEdepThreshold) { // Ignore deposits less than threshold for one electron-hole pair
     return false;
   }
 
@@ -117,7 +117,7 @@ void PixelHitAccumulator::FillHitCollection(PixelHitsCollection* hitCollection) 
 {
   for (size_t i = 0; i < fPixelHits.size(); ++i) {
   
-    if (fPixelHits[i]->GetEnergyDeposit() <= fEdepThreshold) 
+    if (fPixelHits[i]->GetEnergyDeposit() < fEdepThreshold * fNElectronsThreshold) 
     {
       delete fPixelHits[i];
       continue;

@@ -41,7 +41,8 @@ class PixelHitAccumulator
     // Minimum energy deposit to register a hit
     // Based roughly on the fact that ~3.6 eV is needed to create an electron-hole pair in silicon
     // Roughly 100 electron-hole pairs to be accepted as a hit
-    G4double fEdepThreshold = 360 * eV;
+    G4double fEdepThreshold = 3.6 * eV; // energy required for one electron-hole pair
+    G4int fNElectronsThreshold = 100;   // minimum number of electron-hole pairs to register a hit
 
     // Number of hits to reserve memory for, 100,000 seems like a good starting point
     G4int fNReservedHits{100000};
