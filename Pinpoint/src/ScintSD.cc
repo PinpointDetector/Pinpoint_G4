@@ -73,7 +73,7 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
     G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
-    fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgid) == 11 || std::abs(pdgid) == 13 || std::abs(pdgid) == 15);
+    fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgCode) == 11 || std::abs(pdgCode) == 13 || std::abs(pdgCode) == 15);
 
     ScintLayerHitID hitID {layerID, trackID, pdgCode, parentID, fromPrimaryLepton};
 

@@ -169,6 +169,9 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
         fPzv = (*fPz)[i];
         fEv = (*fE)[i];
       }
+      else{
+        fTgtPdg = pdg;
+      }
       continue; 
     }
 
