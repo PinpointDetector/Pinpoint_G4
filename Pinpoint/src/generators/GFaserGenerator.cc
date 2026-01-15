@@ -97,7 +97,7 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("W", &fW);
   fGfaserTree->SetBranchAddress("x", &fX);
   fGfaserTree->SetBranchAddress("y", &fY);
-  fGfaserTree->SetBranchAddress("xsec", &xsec);
+  fGfaserTree->SetBranchAddress("XSec", &xsec);
   fGfaserTree->SetBranchAddress("intType", &fIntType);
   fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
   fGfaserTree->SetBranchAddress("cc", &fIsCc);
@@ -151,6 +151,13 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   if (fUseFixedZPosition) {
     fVz = GenerateRandomZVertex(fLayerId);
   }
+
+  auto *runManager = G4RunManager::GetRunManager();
+  auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
+  if (fVz < 0 || fVz > detector->GetNumberOfLayers() * detector->GetLayerThickness()) {
+    G4cerr << "** vertex z position out of range !! **" << G4endl;
+  }
+
   G4ThreeVector vertexPosition(fVx * m, fVy * m, fVz * m);
 
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
@@ -260,11 +267,8 @@ G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
 
   G4double layerThickness = detector->GetLayerThickness();
   G4double tungstenThickness = detector->GetTungstenThickness();
-  G4int nLayers = detector->GetNumberOfLayers();
-  G4double startZ = -0.5 * nLayers * layerThickness;
-  G4double z = startZ + layerIndex * layerThickness + tungstenThickness * G4UniformRand();
-
-  G4cout << "Generated random Z vertex at: " << z/m << " m in layer " << layerIndex << G4endl;
+  G4double z = layerIndex * layerThickness + tungstenThickness * G4UniformRand();
+  G4cout << "Generated random Z vertex at: " << z << " mm = "  << z/m << " m in layer " << layerIndex << G4endl;
 
   return z/m; // convert to meters
 }
