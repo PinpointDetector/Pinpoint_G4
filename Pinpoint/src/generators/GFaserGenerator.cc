@@ -97,7 +97,7 @@ void GFaserGenerator::LoadData()
   fGfaserTree->SetBranchAddress("W", &fW);
   fGfaserTree->SetBranchAddress("x", &fX);
   fGfaserTree->SetBranchAddress("y", &fY);
-  fGfaserTree->SetBranchAddress("xsec", &xsec);
+  fGfaserTree->SetBranchAddress("XSec", &xsec);
   fGfaserTree->SetBranchAddress("intType", &fIntType);
   fGfaserTree->SetBranchAddress("scatteringType", &fScatType);
   fGfaserTree->SetBranchAddress("cc", &fIsCc);
