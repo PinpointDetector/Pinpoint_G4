@@ -31,3 +31,5 @@ old
 analysis/
 condor_photons/
 build/
+.ssh
+data/
