@@ -35,8 +35,8 @@ class GFaserGenerator : public GeneratorBase
 
     TFile *fGfaserFile = nullptr;
     TTree *fGfaserTree = nullptr;
-    G4long fCurrentEvent;
-    G4long fTotalEvents;
+    G4long fCurrentEvent{0};
+    G4long fTotalEvents{0};
     
     int fN{0};
     double fVx{0.}, fVy{0.}, fVz{0.};

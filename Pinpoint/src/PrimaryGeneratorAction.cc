@@ -22,6 +22,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   // start with default generator
   fGenerator = new GPSGenerator();
   fInitialized = false;
+  fFirstEvent = 0;
 
 }
 
