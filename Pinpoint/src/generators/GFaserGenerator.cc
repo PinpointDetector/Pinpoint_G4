@@ -154,7 +154,7 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
 
   auto *runManager = G4RunManager::GetRunManager();
   auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
-  if (fVz < 0 || fVZ > detector->GetDetectorThickness()) {
+  if (fVz < 0 || fVz > detector->GetNumberOfLayers() * detector->GetLayerThickness()) {
     G4cerr << "** vertex z position out of range !! **" << G4endl;
   }
 
