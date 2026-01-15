@@ -33,6 +33,7 @@ GFaserGenerator::GFaserGenerator()
 
   fGfaserFile = nullptr;
   fGfaserTree = nullptr;
+  fCurrentEvent = 0;
 }
 
 
@@ -261,7 +262,7 @@ G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
   G4double layerThickness = detector->GetLayerThickness();
   G4double tungstenThickness = detector->GetTungstenThickness();
   G4int nLayers = detector->GetNumberOfLayers();
-  G4double startZ = -0.5 * nLayers * layerThickness;
+  G4double startZ = 0; //-0.5 * nLayers * layerThickness;
   G4double z = startZ + layerIndex * layerThickness + tungstenThickness * G4UniformRand();
 
   G4cout << "Generated random Z vertex at: " << z/m << " m in layer " << layerIndex << G4endl;
