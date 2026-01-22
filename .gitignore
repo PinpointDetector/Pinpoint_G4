@@ -31,3 +31,10 @@ old
 analysis/
 condor_photons/
 build/
+data
+.sshbuild/
+analysis/
+condor_photons/
+build/
+analysis/
+condor_photons/

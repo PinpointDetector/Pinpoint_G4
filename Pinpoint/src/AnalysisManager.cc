@@ -218,6 +218,8 @@ void AnalysisManager::bookScintTrees()
 
     fScintTree->Branch("event_id", &fScintEventID, "event_id/i");
     fScintTree->Branch("layerID", &fScintLayerID);
+    fScintTree->Branch("colID", &fScintColID);
+    fScintTree->Branch("rowID", &fScintRowID);
     fScintTree->Branch("trackID", &fScintTrackID);
     fScintTree->Branch("parentID", &fScintParentID);
     fScintTree->Branch("pdg", &fScintPDG);
@@ -315,6 +317,8 @@ void AnalysisManager::BeginOfEvent()
   //clean scintillator hits
   //// --- NEW FOR SCINTILLATORS ---
   fScintLayerID.clear();
+  fScintColID.clear();
+  fScintRowID.clear();
   fScintTrackID.clear();
   fScintParentID.clear();
   fScintPDG.clear();
@@ -620,6 +624,8 @@ void AnalysisManager::FillScintOutput()
             auto* hit = (*scintHC)[h];
 
             fScintLayerID.push_back(hit->GetLayerID());
+            fScintColID.push_back(hit->GetColID());
+            fScintRowID.push_back(hit->GetRowID());
             fScintTrackID.push_back(hit->GetTrackID());
             fScintParentID.push_back(hit->GetParentID());
             fScintPDG.push_back(hit->GetPDGCode());
