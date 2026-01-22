@@ -32,4 +32,9 @@ analysis/
 condor_photons/
 build/
 data
-.ssh
+.sshbuild/
+analysis/
+condor_photons/
+build/
+analysis/
+condor_photons/

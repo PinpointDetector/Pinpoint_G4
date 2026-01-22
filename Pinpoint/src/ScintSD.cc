@@ -19,6 +19,8 @@ std::set<std::pair<G4int,G4int>> ScintillatorSD::sScintHitParticles;
 
 struct ScintLayerHitID {
     G4int layerID;
+    G4int scintColID;
+    G4int scintRowID;
     G4int trackID;
     G4int pdgCode;
     G4int parentID;
@@ -63,8 +65,40 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4StepPoint* preStep = step->GetPreStepPoint();
     G4TouchableHandle touchable = preStep->GetTouchableHandle();
 
+    G4int layerID = -1;        // detector layer (replica number)
+    G4int scintRowID = -1;   // 1 or 2
+    G4int scintColID = -1;          // scintillator bar index (if segmented)
+
+    const G4int depth = touchable->GetHistoryDepth();
+
+    for(G4int i = 0; i < depth; ++i) {
+        const G4String& volName = touchable->GetVolume(i)->GetName();
+        const G4int copyNum = touchable->GetCopyNumber(i);
+        //G4cout << "Depth [" << i << "]: " << volName << " (copy=" << copyNum << ")" << G4endl;
+
+        if(volName == "Layer") {
+            layerID = copyNum;
+        }
+        if(volName == "ScintRow"){
+            scintRowID = copyNum;
+        }
+        if(volName == "ScintColumn"){
+            scintColID = copyNum;
+        }
+    }
+    // G4cout << "Extracted IDs: layerID=" << layerID 
+    //        << ", scintRowID=" << scintRowID 
+    //        << ", scintColID=" << scintColID << G4endl;
+    // G4cout << "========================" << G4endl;
+
+    if(layerID < 0) {
+        G4Exception("ScintillatorSD", "Hit001", JustWarning,
+                    "Could not find Layer replica in touchable hierarchy!");
+        return false;
+    }
+
     // Layer ID is assumed to be copy number 0
-    G4int layerID = touchable->GetCopyNumber(0);
+    //G4int layerID = touchable->GetCopyNumber(1);
     G4int trackID = track->GetTrackID();
     G4int parentID = track->GetParentID();
     G4int pdgCode = track->GetParticleDefinition()->GetPDGEncoding();
@@ -75,8 +109,8 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
     fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgCode) == 11 || std::abs(pdgCode) == 13 || std::abs(pdgCode) == 15);
 
-    ScintLayerHitID hitID {layerID, trackID, pdgCode, parentID, fromPrimaryLepton};
-
+    ScintLayerHitID hitID {layerID, scintColID, scintRowID, trackID, pdgCode, parentID, fromPrimaryLepton};
+    
     layerEnergyMap[hitID] += edep;
 
     if(IsFromMuon(trackID))
@@ -94,6 +128,8 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
 
         auto hit = new ScintHit();
         hit->SetLayerID(hitID.layerID);
+        hit->SetColID(hitID.scintColID);
+        hit->SetRowID(hitID.scintRowID);
         hit->SetTrackID(hitID.trackID);
         hit->SetParentID(hitID.parentID);
         hit->SetPDGCode(hitID.pdgCode);

@@ -199,6 +199,8 @@ class AnalysisManager {
     //OUTPUT VARIABLES FOR SCINTILLATOR
     UInt_t fScintEventID;
     std::vector<int> fScintLayerID;
+    std::vector<int> fScintColID;
+    std::vector<int> fScintRowID;
     std::vector<int> fScintTrackID;
     std::vector<int> fScintParentID;
     std::vector<int> fScintPDG;

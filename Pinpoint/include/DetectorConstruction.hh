@@ -150,6 +150,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fLayerThickness = 0.0 * mm;
     G4int sim_flag = 0;
     G4bool scint_bar_flag = true;
+    G4int scintContainer_CopyNumber = 0;
 
     G4bool fCheckOverlaps = true;
 
