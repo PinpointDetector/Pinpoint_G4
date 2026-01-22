@@ -63,6 +63,9 @@ There are a number of user defined macro commands which can be used to control t
 |/out/saveTrack    | if `true` save all tracks, `false` by default, requires `\tracking\storeTrajectory 1`|
 <!-- |/out/saveTruthHits| if `true` save truth hit x, y, z position, `false` by default| Do we need this?-->
 
+### Submission
+Use the `Pinpoint/submission/submit.py` script to submit jobs to HTCondor. The script uses the Pinpoint version build in `/eos/project/f/fasersim-bonn/public/pinpoint/Pinpoint_G4/Pinpoint/build` and expects a macro file in `/eos/project/f/fasersim-bonn/public/pinpoint/data/run` with the details. You can specify the run number, total number of events and number of events per jobs as command line arguments. The CERN HTCondor supports only submissions from a `afs` space, so you have to copy the submission script to your personal `afs` directory, but the samples will be produced in the common `eos` space.
+
 ### Next steps
 - [ ] Geometry (Dhruv)
   - [ ] Add scintillator layers
