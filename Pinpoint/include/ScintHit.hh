@@ -26,10 +26,12 @@ public:
 
   // void SetTrackID(G4int track) { fTrackID = track; }
   // void SetPDGCode(G4int pdg) { fPDGCode = pdg; }
-  void SetRowID(G4int row) { fRowID = row; }
+  //void SetRowID(G4int row) { fRowID = row; }
+  // void SetColID(G4int column) { fColID = column; }
   void SetPDGCode(G4int pdg) { fPDGCode = pdg; }
-  void SetColID(G4int column) { fColID = column; }
   void SetLayerID(G4int layer) { fLayerID = layer; }
+  void SetColID(G4int colID) { fColID = colID; }
+  void SetRowID(G4int rowID) { fRowID = rowID; }
   void SetTrackID(G4int trackID) { fTrackID = trackID; }
   void SetParentID(G4int parentID) { fParentID = parentID; }
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
@@ -45,9 +47,9 @@ public:
   void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
 
   G4int GetPDGCode() const { return fPDGCode; }
-  G4int GetRowID() const { return fRowID; }
-  G4int GetColID() const { return fColID; }
   G4int GetLayerID() const { return fLayerID; }
+  G4int GetColID() const { return fColID; }
+  G4int GetRowID() const { return fRowID; }
   G4int GetTrackID() const { return fTrackID; }
   G4int GetParentID() const { return fParentID; }
   G4LorentzVector GetP4() const { return fP4; }
@@ -69,9 +71,9 @@ private:
   G4int fParentID = -1;
   G4int fPDGCode = 0;
   G4LorentzVector fP4 = G4LorentzVector();
-  G4int fRowID = -1;
-  G4int fColID = -1;
-  G4int fLayerID = -1;
+  G4int fRowID = -999;
+  G4int fColID = -999;
+  G4int fLayerID = -999;
   G4int fCharge = 0;
   G4bool fFromPrimaryLepton = false;
   G4bool fFromPrimaryPizero = false;

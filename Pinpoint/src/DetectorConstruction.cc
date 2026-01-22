@@ -113,7 +113,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   auto maxLayers = static_cast<int>(150.0*cm / fLayerThickness); // maximum layers allowed
   if(fNLayers > maxLayers) {
       G4cout << "Warning: Reducing number of layers from " << fNLayers 
-            << " to " << maxLayers << " to keep detector thickness <= 100 cm." << G4endl;
+            << " to " << maxLayers << " to keep detector thickness <= " << maxLayers* fLayerThickness/cm << " cm." << G4endl;
       fNLayers = maxLayers;
     }
   auto detectorThickness = fNLayers * fLayerThickness;
@@ -214,7 +214,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       // --- Create container for FIRST scintillator layer ---
       auto scintContainerS = new G4Box("ScintContainer1",0.5 * fDetectorWidth,0.5 * fDetectorHeight,0.5 * fScintThickness);
       auto scintContainerLV = new G4LogicalVolume(scintContainerS, scintillator, "ScintContainer1");
-      auto scintContainerPV = new G4PVPlacement(0, G4ThreeVector(0.,0.,zCursor),scintContainerLV, "ScintContainer1",layerLV, false, 100, fCheckOverlaps);
+      auto scintContainerPV = new G4PVPlacement(nullptr, G4ThreeVector(0.,0.,zCursor),scintContainerLV, "ScintContainer1",layerLV, false, scintContainer_CopyNumber++, fCheckOverlaps);
       scintContainerLV->SetVisAttributes(ScintLayerAtrrib);
 
       if(scint_bar_flag == false)
@@ -229,11 +229,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       else
       {
         // Vertical bars inside the container
-        auto scintColS = new G4Box("ScintColumn2",0.5 * fScintBarWidth, 0.5 * fDetectorHeight, 0.5 * fScintThickness);
-        auto scintColLV =new G4LogicalVolume(scintColS, scintillator, "ScintColumn2");
-        new G4PVReplica("ScintColumn2", scintColLV, scintContainerLV, kXAxis, nScintBarsX, fScintBarWidth);
-        scintLVs.push_back(scintColLV);
-        //new G4LogicalSkinSurface("Wrap1_BarX", scintColLV, scintWrap);
+        G4double xpos = -0.5 * fDetectorWidth + 0.5 * fScintBarWidth;
+        for(G4int iBar = 0; iBar < nScintBarsX; ++iBar)
+        {
+            G4cout << "Bar " << iBar << " xpos: " << xpos/mm << " mm" << G4endl;
+            auto scintColS = new G4Box("ScintColumn",0.5 * fScintBarWidth, 0.5 * fDetectorHeight, 0.5 * fScintThickness);
+            auto scintColLV =new G4LogicalVolume(scintColS, scintillator, "ScintColumn");
+            new G4PVPlacement(0, G4ThreeVector(xpos, 0., 0.), scintColLV, "ScintColumn", scintContainerLV, false, iBar, fCheckOverlaps);
+            scintLVs.push_back(scintColLV);
+            xpos += fScintBarWidth;
+        }
+  
+      //new G4LogicalSkinSurface("Wrap1_BarX", scintColLV, scintWrap);
+      
       }
 
       zCursor += 0.5 * fScintThickness;
@@ -261,7 +269,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       // --- Container for second scintillator layer ---
       auto scintContainer2S = new G4Box("ScintContainer2", 0.5 * fDetectorWidth,0.5 * fDetectorHeight,0.5 * fScintThickness);
       auto scintContainer2LV = new G4LogicalVolume(scintContainer2S, scintillator, "ScintContainer2");
-      auto scintContainer2PV = new G4PVPlacement(0, G4ThreeVector(0.,0.,zCursor),scintContainer2LV, "ScintContainer2",layerLV, false, 101, fCheckOverlaps);
+      auto scintContainer2PV = new G4PVPlacement(0, G4ThreeVector(0.,0.,zCursor),scintContainer2LV, "ScintContainer2",layerLV, false, 0, fCheckOverlaps);
       scintContainer2LV->SetVisAttributes(ScintLayerAtrrib);
 
       if(scint_bar_flag == false)
@@ -275,10 +283,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       else
       {
           // Horizontal bars inside container
-          auto scintRowS = new G4Box("ScintRow1",0.5 * fDetectorWidth,0.5 * fScintBarHeight,0.5 * fScintThickness);
-          auto scintRowLV = new G4LogicalVolume(scintRowS, scintillator, "ScintRow1");
-          auto scintRowPV = new G4PVReplica("ScintRow1", scintRowLV, scintContainer2LV, kYAxis, nScintBarsY, fScintBarHeight);
-          scintLVs.push_back(scintRowLV);
+          G4double ypos = -0.5 * fDetectorHeight + 0.5 * fScintBarHeight;
+          for(G4int jBar = 0; jBar < nScintBarsY; ++jBar)
+          {
+              G4cout << "Bar " << jBar << " ypos: " << ypos/mm << " mm" << G4endl;
+              auto scintRowS = new G4Box("ScintRow",0.5 * fDetectorWidth,0.5 * fScintBarHeight,0.5 * fScintThickness);
+              auto scintRowLV = new G4LogicalVolume(scintRowS, scintillator, "ScintRow");
+              new G4PVPlacement(0, G4ThreeVector(0., ypos, 0.), scintRowLV, "ScintRow", scintContainer2LV, false, jBar, fCheckOverlaps);
+              scintLVs.push_back(scintRowLV);
+              ypos += fScintBarHeight;
+          }
           //new G4LogicalSkinSurface("Wrap2_BarY", scintRowLV, scintWrap);
       }
 
