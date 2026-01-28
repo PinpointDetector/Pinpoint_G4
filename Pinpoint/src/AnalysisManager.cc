@@ -165,7 +165,7 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("pixel_Xpos", &pixelsXPos);
   fGeom->Branch("pixel_Ypos", &pixelsYPos);
   fGeom->Branch("pixel_Zpos", &pixelsZPos);
-  fGeom->Branch("sim_flag", &simFlag, "simFlag/F");
+  fGeom->Branch("sim_flag", &simFlag, "simFlag/I");
   fGeom->Branch("scint_bar_flag", &scintBarFlag, "scintBarFlag/F");
 }
 

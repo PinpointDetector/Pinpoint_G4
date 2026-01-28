@@ -177,7 +177,7 @@ class AnalysisManager {
     std::vector<UInt_t> fPixelRowIDs;
     std::vector<UInt_t> fPixelColIDs;
     std::vector<UInt_t> fPixelLayerIDs;
-    std::vector<UInt_t> fPixelPDGCs;
+    std::vector<Int_t> fPixelPDGCs;
     std::vector<UInt_t> fPixelTrackIDs;
     std::vector<UInt_t> fPixelParentIDs;
     std::vector<Float_t> fPixelPxs;
