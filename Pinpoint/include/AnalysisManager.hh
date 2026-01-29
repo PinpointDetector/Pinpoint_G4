@@ -189,6 +189,7 @@ class AnalysisManager {
     // std::vector<G4bool> fPixelFromPrimaryPizero;
     // std::vector<G4bool> fPixelFromFSLPizero;
     std::vector<G4bool> fPixelFromPrimaryLepton;
+    std::vector<G4bool> fPixelFromPrimaryEMShower;
 
     // Truth position of hit in x, y, z
     std::vector<Float_t> fPixelTruthX;
