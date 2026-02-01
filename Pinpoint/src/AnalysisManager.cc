@@ -146,9 +146,10 @@ void AnalysisManager::bookTrkTree()
   fTrk->Branch("trackPDG", &trackPDG, "trackPDG/I");
   fTrk->Branch("trackKinE", &trackKinE, "trackKinE/D");
   fTrk->Branch("trackNPoints", &trackNPoints, "trackNPoints/I");
-  fTrk->Branch("trackPointX", &trackPointX);
-  fTrk->Branch("trackPointY", &trackPointY);
-  fTrk->Branch("trackPointZ", &trackPointZ);
+  fTrk->Branch("trackTheta", &trackTheta, "trackTheta/D");
+  // fTrk->Branch("trackPointX", &trackPointX);
+  // fTrk->Branch("trackPointY", &trackPointY);
+  // fTrk->Branch("trackPointZ", &trackPointZ);
 }
 
 
@@ -292,9 +293,9 @@ void AnalysisManager::BeginOfEvent()
   // track ID to primary ancestor association
   trackToPrimaryAncestor.clear();
 
-  trackPointX.clear();
-  trackPointY.clear();
-  trackPointZ.clear();
+  // trackPointX.clear();
+  // trackPointY.clear();
+  // trackPointZ.clear();
 
   fPixelRowIDs.clear();
   fPixelColIDs.clear();
@@ -497,23 +498,25 @@ void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
   for (size_t i = 0; i < trajectoryContainer->entries(); ++i) 
   { 
     auto trajectory = static_cast<G4Trajectory*>((*trajectoryContainer)[i]); 
+    trackKinE = trajectory->GetInitialKineticEnergy(); 
+    if (trackKinE < 10*GeV) continue;
     trackTID = trajectory->GetTrackID();
     trackPID = trajectory->GetParentID();
     trackPDG = trajectory->GetPDGEncoding(); 
-    trackKinE = trajectory->GetInitialKineticEnergy(); 
     trackNPoints = trajectory->GetPointEntries(); 
+    trackTheta = trajectory->GetInitialMomentum().theta();
     count_tracks++; 
-    for (size_t j = 0; j < trackNPoints; ++j) 
-    { 
-      G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
-      trackPointX.push_back( pos.x() );
-      trackPointY.push_back( pos.y() );
-      trackPointZ.push_back( pos.z() );
-    }
+    // for (size_t j = 0; j < trackNPoints; ++j) 
+    // { 
+    //   G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
+    //   trackPointX.push_back( pos.x() );
+    //   trackPointY.push_back( pos.y() );
+    //   trackPointZ.push_back( pos.z() );
+    // }
     fTrk->Fill();
-    trackPointX.clear(); 
-    trackPointY.clear();
-    trackPointZ.clear();
+    // trackPointX.clear(); 
+    // trackPointY.clear();
+    // trackPointZ.clear();
   }
   G4cout << "Total number of recorded track: " << count_tracks << std::endl;
 }

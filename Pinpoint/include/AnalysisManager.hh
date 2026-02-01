@@ -130,9 +130,10 @@ class AnalysisManager {
     int trackPDG;
     double trackKinE;
     int trackNPoints;
-    std::vector<double> trackPointX;
-    std::vector<double> trackPointY;
-    std::vector<double> trackPointZ;
+    double trackTheta;
+    // std::vector<double> trackPointX;
+    // std::vector<double> trackPointY;
+    // std::vector<double> trackPointZ;
 
     //---------------------------------------------------
     // Output variables for PRIMARIES tree
