@@ -4,6 +4,7 @@
 #include "PixelSD.hh"
 #include "ScintSD.hh"
 #include "FaserSD.hh"
+#include "MagneticField.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4Box.hh"
@@ -12,9 +13,8 @@
 #include "G4PVReplica.hh"
 #include "G4PVParameterised.hh"
 #include "G4SDManager.hh"
-#include "G4UniformMagField.hh"
 #include "G4FieldManager.hh"
-#include "G4TransportationManager.hh"
+#include "G4UserLimits.hh"
 #include "G4Mag_UsualEqRhs.hh"
 #include "G4ClassicalRK4.hh"
 #include "G4ChordFinder.hh"
@@ -26,11 +26,15 @@
 #include <algorithm>
 #include <iomanip>
 
+G4ThreadLocal MagneticField* DetectorConstruction::fMagneticField = nullptr;
+G4ThreadLocal G4FieldManager* DetectorConstruction::fFieldMgr = nullptr;
 
 DetectorConstruction::DetectorConstruction()
   : G4VUserDetectorConstruction()
 {
   messenger = new DetectorConstructionMessenger(this);
+  
+  fMagneticField = new MagneticField();
 }
 
 DetectorConstruction::~DetectorConstruction()
@@ -327,33 +331,53 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //        << siliconMaterial->GetName() <<  " + " << fBoxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
 
 
-  // FASER spectrometer magnets
+  // FASER spectrometer magnets:
+  // solid cylinders (0 to outerRadius) and air-filled bore (0 to innerRadius)
   G4Material* sm2co17 = G4Material::GetMaterial("Sm2Co17");
   
-  auto longMangetS = new G4Tubs("Magnet0", fInnerRadius, fOuterRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
-  auto shortMagnetS = new G4Tubs("Magnet12", fInnerRadius, fOuterRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
+  auto longMagnetS = new G4Tubs("Magnet0", 0., fOuterRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
+  auto shortMagnetS = new G4Tubs("Magnet12", 0., fOuterRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
+
+  G4double fieldRadius = fInnerRadius;
+  auto longFieldS = new G4Tubs("FieldRegion0", 0., fieldRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
+  auto shortFieldS = new G4Tubs("FieldRegion12", 0., fieldRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
 
   // Magnet 0
-  auto magnet0LV = new G4LogicalVolume(longMangetS, sm2co17, "Magnet0");
+  auto magnet0LV = new G4LogicalVolume(longMagnetS, sm2co17, "Magnet0");
   new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet0Position), magnet0LV, "Magnet0", worldLV, false, 0, fCheckOverlaps);
   magnet0LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  auto fieldRegion0LV = new G4LogicalVolume(longFieldS, worldMaterial, "FieldRegion0");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion0LV, "FieldRegion0", magnet0LV, false, 0, fCheckOverlaps);
+  fieldRegion0LV->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // Magnet 1
   auto magnet1LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet1");
   new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet1Position), magnet1LV, "Magnet1", worldLV, false, 1, fCheckOverlaps);
   magnet1LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  auto fieldRegion1LV = new G4LogicalVolume(shortFieldS, worldMaterial, "FieldRegion1");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion1LV, "FieldRegion1", magnet1LV, false, 1, fCheckOverlaps);
+  fieldRegion1LV->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // Magnet 2
   auto magnet2LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet2");
   new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet2Position), magnet2LV, "Magnet2", worldLV, false, 2, fCheckOverlaps);
   magnet2LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  auto fieldRegion2LV = new G4LogicalVolume(shortFieldS, worldMaterial, "FieldRegion2");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion2LV, "FieldRegion2", magnet2LV, false, 2, fCheckOverlaps);
+  fieldRegion2LV->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-  G4cout << "Created cylindrical magnet regions:" << G4endl;
-  G4cout << "  Inner radius: " << fInnerRadius/mm << " mm, Outer radius: " << fOuterRadius/mm << " mm" << G4endl;
+  G4cout << "Created solid cylindrical magnets:" << G4endl;
+  G4cout << "  Outer radius: " << fOuterRadius/mm << " mm (solid Sm2Co17)" << G4endl;
   G4cout << "  Magnet 0: z = " << fMagnet0Position/mm << " mm, length = " << fLongMagnetLength/mm << " mm" << G4endl;
   G4cout << "  Magnet 1: z = " << fMagnet1Position/mm << " mm, length = " << fShortMagnetLength/mm << " mm" << G4endl;
   G4cout << "  Magnet 2: z = " << fMagnet2Position/mm << " mm, length = " << fShortMagnetLength/mm << " mm" << G4endl;
   G4cout << "  Material: Sm2Co17" << G4endl;
+
+  // Set step limits in magnetic field regions for accurate tracking
+  auto userLimits = new G4UserLimits(1 * mm);  // Max step size 1mm
+  fieldRegion0LV->SetUserLimits(userLimits);
+  fieldRegion1LV->SetUserLimits(userLimits);
+  fieldRegion2LV->SetUserLimits(userLimits);
 
   // FASER spectrometer tracking layers (use single layer per station)
   auto trackerS = new G4Box("Tracker", 0.5 * fTrackerSize, 0.5 * fTrackerSize, 0.5 * fSiliconThickness);
@@ -428,7 +452,7 @@ void DetectorConstruction::ConstructSDandField()
         ComputePixelCentersXY();
       }
 
-    // Tracker SD
+    // FASER Tracking spectrometer SD
     G4cout << "Adding tracker SD" << G4endl;
     auto faserSD = new FaserSD("FaserSpectrometer", "FaserHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(faserSD);
@@ -441,27 +465,34 @@ void DetectorConstruction::ConstructSDandField()
     if(tracker2LV) tracker2LV->SetSensitiveDetector(faserSD);
     if(tracker3LV) tracker3LV->SetSensitiveDetector(faserSD);
 
-    // Create uniform magnetic field (pointing in X direction)
-    G4ThreeVector fieldVector(fMagneticField, 0., 0.);
-    auto magField = new G4UniformMagField(fieldVector);
+    // Setup magnetic field manager
+    fFieldMgr = new G4FieldManager();
+    fFieldMgr->SetDetectorField(fMagneticField);
+    fFieldMgr->CreateChordFinder(fMagneticField);
 
-    // Create field manager and chord finder
-    auto fieldMgr = new G4FieldManager();
-    fieldMgr->SetDetectorField(magField);
-    fieldMgr->CreateChordFinder(magField);
+    // Get the air-filled field region logical volumes and assign field manager
+    G4LogicalVolume* fieldRegion0LV = G4LogicalVolumeStore::GetInstance()->GetVolume("FieldRegion0");
+    G4LogicalVolume* fieldRegion1LV = G4LogicalVolumeStore::GetInstance()->GetVolume("FieldRegion1");
+    G4LogicalVolume* fieldRegion2LV = G4LogicalVolumeStore::GetInstance()->GetVolume("FieldRegion2");
 
-    // Get the magnet logical volumes and assign field manager
-    G4LogicalVolume* magnet0LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet0");
-    G4LogicalVolume* magnet1LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet1");
-    G4LogicalVolume* magnet2LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet2");
+    G4bool forceToAllDaughters = true;
+    if(fieldRegion0LV) {
+        fieldRegion0LV->SetFieldManager(fFieldMgr, forceToAllDaughters);
+        G4cout << "Assigned magnetic field to FieldRegion0" << G4endl;
+    }
+    if(fieldRegion1LV) {
+        fieldRegion1LV->SetFieldManager(fFieldMgr, forceToAllDaughters);
+        G4cout << "Assigned magnetic field to FieldRegion1" << G4endl;
+    }
+    if(fieldRegion2LV) {
+        fieldRegion2LV->SetFieldManager(fFieldMgr, forceToAllDaughters);
+        G4cout << "Assigned magnetic field to FieldRegion2" << G4endl;
+    }
 
-    if(magnet0LV) magnet0LV->SetFieldManager(fieldMgr, true);
-    if(magnet1LV) magnet1LV->SetFieldManager(fieldMgr, true);
-    if(magnet2LV) magnet2LV->SetFieldManager(fieldMgr, true);
+    G4cout << "Configured magnetic field using custom MagneticField class:" << G4endl;
+    G4cout << "  Field strength: " << fMagneticField->GetField()/tesla << " T (X-direction)" << G4endl;
+    G4cout << "  Applied to air-filled field regions inside magnets (r < " << fInnerRadius/mm << " mm)" << G4endl;
 
-    G4cout << "Configured magnetic field:" << G4endl;
-    G4cout << "  Field strength: " << fMagneticField/tesla << " T (X-direction)" << G4endl;
-    G4cout << "  Applied to Magnet0, Magnet1, and Magnet2" << G4endl;
   }
 
 

@@ -9,6 +9,8 @@
 #include "G4OpticalSurface.hh"
 
 class G4VPhysicalVolume;
+class G4FieldManager;
+class MagneticField;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -151,7 +153,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4int sim_flag = 0;
     G4bool scint_bar_flag = true;
     G4int scintContainer_CopyNumber = 0;
-    G4double fMagneticField = 0.57 * tesla;
     G4double fLongMagnetLength = 1500.0 * mm;
     G4double fShortMagnetLength = 1000.0 * mm;
     G4double fInnerRadius = 100.0 * mm;
@@ -179,6 +180,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4OpticalSurface* scintWrap;
 
     G4Material* scintillator = nullptr;
+
+    static G4ThreadLocal MagneticField* fMagneticField;
+    static G4ThreadLocal G4FieldManager* fFieldMgr;
 };
 
 
