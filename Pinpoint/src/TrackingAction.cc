@@ -71,6 +71,42 @@ void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     }
   }
 
+  if (aTrack->GetTrackID()==1 && abs(aTrack->GetParticleDefinition()->GetPDGEncoding())==11)
+  {
+    const auto* info =static_cast<const TrackInformation*>(aTrack->GetUserInformation());
+    TrackInformation* newInfo =  new TrackInformation();
+    if (info) {
+      newInfo->SetTrackIsFromPrimaryPizero(info->IsTrackFromPrimaryPizero());
+      newInfo->SetTrackIsFromFSLPizero(info->IsTrackFromFSLPizero());
+      newInfo->SetTrackIsFromPrimaryLepton(info->IsTrackFromPrimaryLepton());
+    }
+    newInfo->SetTrackIsFromPrimaryEMShower(1);
+    aTrack->SetUserInformation(newInfo);
+  }
+
+  const auto* info =static_cast<const TrackInformation*>(aTrack->GetUserInformation());
+  G4bool fromPrimaryEMShower = info && info->IsTrackFromPrimaryEMShower();
+
+  if (fromPrimaryEMShower &&
+      (abs(aTrack->GetParticleDefinition()->GetPDGEncoding())==11 ||
+       abs(aTrack->GetParticleDefinition()->GetPDGEncoding())==22))
+  {
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries)
+    {
+      size_t nSeco = secondaries->size();
+      if (nSeco>0)
+      {
+        for (size_t i=0; i<nSeco; ++i)
+        {
+          TrackInformation* info =  new TrackInformation();
+          info->SetTrackIsFromPrimaryEMShower(1);
+          (*secondaries)[i]->SetUserInformation(info);
+        }
+      }
+    }
+  }
+
   if (aTrack->GetParentID()==1 && aTrack->GetCreatorProcess()->GetProcessName()=="Decay") 
   {
     // in case of tau decay pizero

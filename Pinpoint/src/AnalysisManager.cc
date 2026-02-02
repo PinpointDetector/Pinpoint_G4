@@ -198,6 +198,7 @@ void AnalysisManager::bookHitsTrees()
   // fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
   fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
+  fPixelHitsTree->Branch("hit_fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
 
   // if (fSaveTruthHits)
   // {
@@ -310,6 +311,7 @@ void AnalysisManager::BeginOfEvent()
   // fPixelFromPrimaryPizero.clear();
   // fPixelFromFSLPizero.clear();
   fPixelFromPrimaryLepton.clear();
+  fPixelFromPrimaryEMShower.clear();
   // fPixelTruthX.clear();
   // fPixelTruthY.clear();
   // fPixelTruthZ.clear();
@@ -581,6 +583,7 @@ void AnalysisManager::FillHitsOutput()
           // fPixelFromPrimaryPizero.push_back(hit->GetFromPrimaryPizero());
           // fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
           fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
+          fPixelFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower());
 
           // if (fSaveTruthHits)
           // {
