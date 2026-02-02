@@ -3,17 +3,26 @@
 #include "DetectorConstruction.hh"
 #include "PixelSD.hh"
 #include "ScintSD.hh"
+#include "FaserSD.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4Box.hh"
+#include "G4Tubs.hh"
 #include "G4Cons.hh"
 #include "G4PVReplica.hh"
 #include "G4PVParameterised.hh"
 #include "G4SDManager.hh"
+#include "G4UniformMagField.hh"
+#include "G4FieldManager.hh"
+#include "G4TransportationManager.hh"
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4ClassicalRK4.hh"
+#include "G4ChordFinder.hh"
 #include <fstream>
 #include "G4VisAttributes.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4PhysicalVolumeStore.hh"
+#include "G4LogicalVolumeStore.hh"
 #include <algorithm>
 #include <iomanip>
 
@@ -34,7 +43,17 @@ void DetectorConstruction::DefineMaterial()
   //Scintillator Material and Properties
   G4NistManager* nist = G4NistManager::Instance();
   scintillator = nist->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
-	scintillator->GetIonisation()->SetBirksConstant(0.126 * mm / MeV);  
+	scintillator->GetIonisation()->SetBirksConstant(0.126 * mm / MeV);
+
+  // Define Samarium Cobalt (Sm2Co17) material
+  // Density: 8.4 g/cm³
+  G4double density = 8.4 * g/cm3;
+  G4int nComponents = 2;
+  G4Material* sm2co17 = new G4Material("Sm2Co17", density, nComponents);
+  G4Element* Sm = nist->FindOrBuildElement("Sm");
+  G4Element* Co = nist->FindOrBuildElement("Co");
+  sm2co17->AddElement(Sm, 2);
+  sm2co17->AddElement(Co, 17);  
 
   // std::vector<G4double> refractiveIndexScint = { 1.58, 1.58 };
   // std::vector<G4double> absorptionScint = {0.1*cm, 0.1*cm};
@@ -119,7 +138,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   auto detectorThickness = fNLayers * fLayerThickness;
   auto worldSizeX = 1.2 * fDetectorWidth;
   auto worldSizeY = 1.2 * fDetectorHeight;
-  auto worldSizeZ = 1.2 * detectorThickness;
+  auto worldSizeZ = 1.2 * (detectorThickness + fTracker3Position);
 
     // Get materials
     G4NistManager* nist = G4NistManager::Instance();
@@ -307,6 +326,60 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // G4cout << "Detector consists of " << fNLayers << " layers of: [ " << fTungstenThickness / mm << "mm of " << tungstenMaterial->GetName() << " + " << fSiliconThickness / mm << "mm of "
   //        << siliconMaterial->GetName() <<  " + " << fBoxThickness / mm << "mm of " << worldMaterial->GetName() << " ] " << G4endl;
 
+
+  // FASER spectrometer magnets
+  G4Material* sm2co17 = G4Material::GetMaterial("Sm2Co17");
+  
+  auto longMangetS = new G4Tubs("Magnet0", fInnerRadius, fOuterRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
+  auto shortMagnetS = new G4Tubs("Magnet12", fInnerRadius, fOuterRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
+
+  // Magnet 0
+  auto magnet0LV = new G4LogicalVolume(longMangetS, sm2co17, "Magnet0");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet0Position), magnet0LV, "Magnet0", worldLV, false, 0, fCheckOverlaps);
+  magnet0LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  
+  // Magnet 1
+  auto magnet1LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet1");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet1Position), magnet1LV, "Magnet1", worldLV, false, 1, fCheckOverlaps);
+  magnet1LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  
+  // Magnet 2
+  auto magnet2LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet2");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet2Position), magnet2LV, "Magnet2", worldLV, false, 2, fCheckOverlaps);
+  magnet2LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+
+  G4cout << "Created cylindrical magnet regions:" << G4endl;
+  G4cout << "  Inner radius: " << fInnerRadius/mm << " mm, Outer radius: " << fOuterRadius/mm << " mm" << G4endl;
+  G4cout << "  Magnet 0: z = " << fMagnet0Position/mm << " mm, length = " << fLongMagnetLength/mm << " mm" << G4endl;
+  G4cout << "  Magnet 1: z = " << fMagnet1Position/mm << " mm, length = " << fShortMagnetLength/mm << " mm" << G4endl;
+  G4cout << "  Magnet 2: z = " << fMagnet2Position/mm << " mm, length = " << fShortMagnetLength/mm << " mm" << G4endl;
+  G4cout << "  Material: Sm2Co17" << G4endl;
+
+  // FASER spectrometer tracking layers (use single layer per station)
+  auto trackerS = new G4Box("Tracker", 0.5 * fTrackerSize, 0.5 * fTrackerSize, 0.5 * fSiliconThickness);
+  
+  // Tracker 1
+  auto tracker1LV = new G4LogicalVolume(trackerS, siliconMaterial, "Tracker1");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fTracker1Position), tracker1LV, "Tracker1", worldLV, false, 0, fCheckOverlaps);
+  tracker1LV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 1.0, 0.0, 0.7))); // Green, semi-transparent
+  
+  // Tracker 2
+  auto tracker2LV = new G4LogicalVolume(trackerS, siliconMaterial, "Tracker2");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fTracker2Position), tracker2LV, "Tracker2", worldLV, false, 1, fCheckOverlaps);
+  tracker2LV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 1.0, 0.0, 0.7))); // Green, semi-transparent
+  
+  // Tracker 3
+  auto tracker3LV = new G4LogicalVolume(trackerS, siliconMaterial, "Tracker3");
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fTracker3Position), tracker3LV, "Tracker3", worldLV, false, 2, fCheckOverlaps);
+  tracker3LV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 1.0, 0.0, 0.7))); // Green, semi-transparent
+
+  G4cout << "Created tracking layers:" << G4endl;
+  G4cout << "  Size: " << fTrackerSize/mm << " x " << fTrackerSize/mm << " mm, Thickness: " << fSiliconThickness/um << " um" << G4endl;
+  G4cout << "  Tracker 1: z = " << fTracker1Position/mm << " mm" << G4endl;
+  G4cout << "  Tracker 2: z = " << fTracker2Position/mm << " mm" << G4endl;
+  G4cout << "  Tracker 3: z = " << fTracker3Position/mm << " mm" << G4endl;
+  G4cout << "  Material: " << siliconMaterial->GetName() << G4endl;
+
   // Write GDML file if it doesn't exist
   std::ifstream file(fWriteFile);
   if (!file.good()) {
@@ -354,6 +427,41 @@ void DetectorConstruction::ConstructSDandField()
         ComputeSiliconZPositions();
         ComputePixelCentersXY();
       }
+
+    // Tracker SD
+    G4cout << "Adding tracker SD" << G4endl;
+    auto faserSD = new FaserSD("FaserSpectrometer", "FaserHitsCollection");
+    G4SDManager::GetSDMpointer()->AddNewDetector(faserSD);
+    
+    G4LogicalVolume* tracker1LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Tracker1");
+    G4LogicalVolume* tracker2LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Tracker2");
+    G4LogicalVolume* tracker3LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Tracker3");
+    
+    if(tracker1LV) tracker1LV->SetSensitiveDetector(faserSD);
+    if(tracker2LV) tracker2LV->SetSensitiveDetector(faserSD);
+    if(tracker3LV) tracker3LV->SetSensitiveDetector(faserSD);
+
+    // Create uniform magnetic field (pointing in X direction)
+    G4ThreeVector fieldVector(fMagneticField, 0., 0.);
+    auto magField = new G4UniformMagField(fieldVector);
+
+    // Create field manager and chord finder
+    auto fieldMgr = new G4FieldManager();
+    fieldMgr->SetDetectorField(magField);
+    fieldMgr->CreateChordFinder(magField);
+
+    // Get the magnet logical volumes and assign field manager
+    G4LogicalVolume* magnet0LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet0");
+    G4LogicalVolume* magnet1LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet1");
+    G4LogicalVolume* magnet2LV = G4LogicalVolumeStore::GetInstance()->GetVolume("Magnet2");
+
+    if(magnet0LV) magnet0LV->SetFieldManager(fieldMgr, true);
+    if(magnet1LV) magnet1LV->SetFieldManager(fieldMgr, true);
+    if(magnet2LV) magnet2LV->SetFieldManager(fieldMgr, true);
+
+    G4cout << "Configured magnetic field:" << G4endl;
+    G4cout << "  Field strength: " << fMagneticField/tesla << " T (X-direction)" << G4endl;
+    G4cout << "  Applied to Magnet0, Magnet1, and Magnet2" << G4endl;
   }
 
 
