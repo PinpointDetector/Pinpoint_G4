@@ -151,6 +151,13 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   if (fUseFixedZPosition) {
     fVz = GenerateRandomZVertex(fLayerId);
   }
+  else {
+    auto *rm = G4RunManager::GetRunManager();
+    auto det = (DetectorConstruction*) (rm->GetUserDetectorConstruction());
+    G4int maxLayerIndex = det->GetNumberOfLayers();
+    G4int randomLayer = (G4int)(G4UniformRand() * (maxLayerIndex));
+    fVz = GenerateRandomZVertex(randomLayer);
+  }
 
   auto *runManager = G4RunManager::GetRunManager();
   auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
@@ -268,6 +275,19 @@ G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
   G4double layerThickness = detector->GetLayerThickness();
   G4double tungstenThickness = detector->GetTungstenThickness();
   G4double z = layerIndex * layerThickness + tungstenThickness * G4UniformRand();
+
+  if (detector->GetSimFlag() >= 0 && G4UniformRand() > 0.5) {
+    G4double boxThickness = detector->GetBoxThickness();
+    G4double siliconThickness = detector->GetSiliconThickness();
+    // If `GetSimFlag() >= 0` there are two tungsten blocks per layer: [Tungsten | Box | Silicon | Tungsten | Scintillator]
+    // Randomly chose in which tungsten block the neutrino interaction happens and adjust the z vertex accordingly.
+    z += tungstenThickness + boxThickness + siliconThickness;
+  }
+  G4cout << "LayerIndex: " << layerIndex << ", LayerThickness: " << layerThickness/mm << " mm, TungstenThickness: " << tungstenThickness/mm << " mm, " 
+         << " SimFlag: " << detector->GetSimFlag() << ", boxThickness: " << detector->GetBoxThickness()/mm << " mm, " 
+         << "siliconThickness: " << detector->GetSiliconThickness()/mm << " mm"
+         << G4endl;
+
   G4cout << "Generated random Z vertex at: " << z << " mm = "  << z/m << " m in layer " << layerIndex << G4endl;
 
   return z/m; // convert to meters
