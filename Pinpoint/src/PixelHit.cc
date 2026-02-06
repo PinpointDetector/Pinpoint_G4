@@ -41,7 +41,7 @@ void PixelHit::Print()
      << G4endl;
 }
 
-PixelHit::PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerID, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim, G4bool isEMShower)
-: fEnergyDeposit{edep}, fRowID{rowID}, fColID{colID}, fLayerID{layerID}, fTrackID{trackID}, fParentID{parentID}, fPDGCode{pdgc}, fFromPrimaryLepton{isPrim}, fFromPrimaryEMShower{isEMShower}
+PixelHit::PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerID, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim, G4bool isEMShower, G4bool isFromCharmed)
+: fEnergyDeposit{edep}, fRowID{rowID}, fColID{colID}, fLayerID{layerID}, fTrackID{trackID}, fParentID{parentID}, fPDGCode{pdgc}, fFromPrimaryLepton{isPrim}, fFromPrimaryEMShower{isEMShower}, fFromCharmedHadron{isFromCharmed}
 {
 }

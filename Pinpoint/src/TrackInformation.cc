@@ -10,6 +10,7 @@ TrackInformation::TrackInformation()
   fFromFSLPizero = 0;
   fFromPrimaryLepton = 0;
   fFromPrimaryEMShower = 0;
+  fFromCharmedHadron = 0;
   fHitIndices = std::make_shared<std::vector<G4long>>();
 }
 
@@ -20,6 +21,7 @@ TrackInformation::TrackInformation(const G4Track* aTrack)
   fFromFSLPizero = 0;
   fFromPrimaryLepton = 0;
   fFromPrimaryEMShower = 0;
+  fFromCharmedHadron = 0;
   fHitIndices = std::make_shared<std::vector<G4long>>();
 }
 
@@ -33,6 +35,7 @@ TrackInformation& TrackInformation
   fFromFSLPizero = aTrackInfo.fFromFSLPizero;
   fFromPrimaryLepton = aTrackInfo.fFromPrimaryLepton;
   fFromPrimaryEMShower = aTrackInfo.fFromPrimaryEMShower;
+  fFromCharmedHadron = aTrackInfo.fFromCharmedHadron;
   return *this;
 }
 
@@ -42,5 +45,6 @@ void TrackInformation::Print() const
     G4cout << "Is from final state lepton decay pizero " << fFromFSLPizero << G4endl;
     G4cout << "Is from primary lepton (tau or muon)    " << fFromPrimaryLepton << G4endl;
     G4cout << "Is from primary EM shower    " << fFromPrimaryEMShower << G4endl;
+    G4cout << "Is from charmed hadron    " << fFromCharmedHadron << G4endl;
 }
 
