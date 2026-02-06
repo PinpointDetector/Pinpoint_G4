@@ -11,7 +11,7 @@
 GFaserGeneratorMessenger::GFaserGeneratorMessenger(GFaserGenerator* action) 
   : fGFaserAction(action) 
 {
-  fGFaserGeneratorDir = new G4UIdirectory("/gen/gfaser");
+  fGFaserGeneratorDir = new G4UIdirectory("/gen/gfaser/");
   fGFaserGeneratorDir->SetGuidance("gfaser generator control");
 
   fInputFileCmd = new G4UIcmdWithAString("/gen/gfaser/inputFile", this);
