@@ -53,6 +53,7 @@ class AnalysisManager {
     void bookGeomTree();
     void bookHitsTrees();
     void bookScintTrees();
+    void bookFaserTree();
 
     void FillEventTree(const G4Event* event);
     void FillPrimariesTree(const G4Event* event);
@@ -60,6 +61,7 @@ class AnalysisManager {
     void FillGeomTree();
     void FillHitsOutput();
     void FillScintOutput();
+    void FillFaserOutput();
     
     float_t GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m);
 
@@ -90,6 +92,7 @@ class AnalysisManager {
     TTree*   fPixelHitsTree;
 
     TTree* fScintTree = nullptr;
+    TTree* fFaserHitsTree = nullptr;
 
     // track to primary ancestor
     std::map<G4int, G4int> trackToPrimaryAncestor;
@@ -130,9 +133,10 @@ class AnalysisManager {
     int trackPDG;
     double trackKinE;
     int trackNPoints;
-    std::vector<double> trackPointX;
-    std::vector<double> trackPointY;
-    std::vector<double> trackPointZ;
+    double trackTheta;
+    // std::vector<double> trackPointX;
+    // std::vector<double> trackPointY;
+    // std::vector<double> trackPointZ;
 
     //---------------------------------------------------
     // Output variables for PRIMARIES tree
@@ -208,7 +212,22 @@ class AnalysisManager {
     std::vector<float> fScintEdep;
     std::vector<int> fScintFromMuon;
     std::vector<int> fScintFromPrimaryLepton;
-    
+
+    //----------------------------------------------------
+    //OUTPUT VARIABLES FOR FASER SPECTROMETER (fFaserHitsTree)
+    UInt_t fFaserEventID;
+    std::vector<int> fFaserTrackerID;     // Tracker layer: 1, 2, or 3
+    std::vector<int> fFaserTrackID;
+    std::vector<int> fFaserPDG;
+    std::vector<float> fFaserX;           // Hit x position
+    std::vector<float> fFaserY;           // Hit y position
+    std::vector<float> fFaserZ;           // Hit z position
+    std::vector<float> fFaserPx;          // Momentum x
+    std::vector<float> fFaserPy;          // Momentum y
+    std::vector<float> fFaserPz;          // Momentum z
+    std::vector<float> fFaserE;           // Energy
+    std::vector<float> fFaserEdep;        // Energy deposit
+    std::vector<float> fFaserCharge;      // Particle charge
   };
 
 #endif

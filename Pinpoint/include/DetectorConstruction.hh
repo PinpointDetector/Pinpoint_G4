@@ -9,6 +9,8 @@
 #include "G4OpticalSurface.hh"
 
 class G4VPhysicalVolume;
+class G4FieldManager;
+class MagneticField;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -151,6 +153,20 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4int sim_flag = 0;
     G4bool scint_bar_flag = true;
     G4int scintContainer_CopyNumber = 0;
+    G4double fLongMagnetLength = 1500.0 * mm;
+    G4double fShortMagnetLength = 1000.0 * mm;
+    G4double fInnerRadius = 100.0 * mm;
+    G4double fOuterRadius = 215.0 * mm;
+    // Position of FASER magnets and tracking stations relative to VetoNu scintillator
+    G4double fVetoNuPosition = -3112 * mm;
+    G4double fMagnet0Position = -815.3 * mm - fVetoNuPosition;
+    G4double fMagnet1Position = 637.4 * mm - fVetoNuPosition;
+    G4double fMagnet2Position = 1837.4 * mm - fVetoNuPosition;
+
+    G4double fTrackerSize = 250.0 * mm;
+    G4double fTracker1Position = 47.4 * mm - fVetoNuPosition;
+    G4double fTracker2Position = 1237.4 * mm - fVetoNuPosition;
+    G4double fTracker3Position = 2427.4 * mm - fVetoNuPosition;
 
     G4bool fCheckOverlaps = true;
 
@@ -164,6 +180,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4OpticalSurface* scintWrap;
 
     G4Material* scintillator = nullptr;
+
+    static G4ThreadLocal MagneticField* fMagneticField;
+    static G4ThreadLocal G4FieldManager* fFieldMgr;
 };
 
 

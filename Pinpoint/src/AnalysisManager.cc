@@ -34,6 +34,7 @@
 #include "FPFParticle.hh"
 #include "PixelHit.hh"
 #include "ScintHit.hh"
+#include "FaserHit.hh"
 
 
 //---------------------------------------------------------------------
@@ -146,9 +147,10 @@ void AnalysisManager::bookTrkTree()
   fTrk->Branch("trackPDG", &trackPDG, "trackPDG/I");
   fTrk->Branch("trackKinE", &trackKinE, "trackKinE/D");
   fTrk->Branch("trackNPoints", &trackNPoints, "trackNPoints/I");
-  fTrk->Branch("trackPointX", &trackPointX);
-  fTrk->Branch("trackPointY", &trackPointY);
-  fTrk->Branch("trackPointZ", &trackPointZ);
+  fTrk->Branch("trackTheta", &trackTheta, "trackTheta/D");
+  // fTrk->Branch("trackPointX", &trackPointX);
+  // fTrk->Branch("trackPointY", &trackPointY);
+  // fTrk->Branch("trackPointZ", &trackPointZ);
 }
 
 
@@ -229,6 +231,27 @@ void AnalysisManager::bookScintTrees()
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
 }
 
+
+void AnalysisManager::bookFaserTree()
+{
+    fFile->cd(fHits->GetName());
+
+    fFaserHitsTree = new TTree("faserHits", "FASER spectrometer hits");
+    fFaserHitsTree->Branch("event_id", &fFaserEventID, "event_id/i");
+    fFaserHitsTree->Branch("trackerID", &fFaserTrackerID);
+    fFaserHitsTree->Branch("trackID", &fFaserTrackID);
+    fFaserHitsTree->Branch("pdg", &fFaserPDG);
+    fFaserHitsTree->Branch("x", &fFaserX);
+    fFaserHitsTree->Branch("y", &fFaserY);
+    fFaserHitsTree->Branch("z", &fFaserZ);
+    fFaserHitsTree->Branch("px", &fFaserPx);
+    fFaserHitsTree->Branch("py", &fFaserPy);
+    fFaserHitsTree->Branch("pz", &fFaserPz);
+    fFaserHitsTree->Branch("energy", &fFaserE);
+    fFaserHitsTree->Branch("edep", &fFaserEdep);
+    fFaserHitsTree->Branch("charge", &fFaserCharge);
+}
+
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 
@@ -250,6 +273,7 @@ void AnalysisManager::BeginOfRun()
 
   bookHitsTrees();
   bookScintTrees();
+  bookFaserTree();
 
 }
 
@@ -270,6 +294,7 @@ void AnalysisManager::EndOfRun()
   fFile->cd(fHits->GetName());
   fPixelHitsTree->Write();
   fScintTree->Write();
+  fFaserHitsTree->Write();
 
   // fActsParticlesTree->Write();
   fFile->cd(); // go back to top
@@ -292,9 +317,9 @@ void AnalysisManager::BeginOfEvent()
   // track ID to primary ancestor association
   trackToPrimaryAncestor.clear();
 
-  trackPointX.clear();
-  trackPointY.clear();
-  trackPointZ.clear();
+  // trackPointX.clear();
+  // trackPointY.clear();
+  // trackPointZ.clear();
 
   fPixelRowIDs.clear();
   fPixelColIDs.clear();
@@ -360,6 +385,7 @@ void AnalysisManager::EndOfEvent(const G4Event *event)
 
   FillHitsOutput();
   FillScintOutput();
+  FillFaserOutput();
 }
 
 //---------------------------------------------------------------------
@@ -497,23 +523,25 @@ void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
   for (size_t i = 0; i < trajectoryContainer->entries(); ++i) 
   { 
     auto trajectory = static_cast<G4Trajectory*>((*trajectoryContainer)[i]); 
+    trackKinE = trajectory->GetInitialKineticEnergy(); 
+    if (trackKinE < 10*GeV) continue;
     trackTID = trajectory->GetTrackID();
     trackPID = trajectory->GetParentID();
     trackPDG = trajectory->GetPDGEncoding(); 
-    trackKinE = trajectory->GetInitialKineticEnergy(); 
     trackNPoints = trajectory->GetPointEntries(); 
+    trackTheta = trajectory->GetInitialMomentum().theta();
     count_tracks++; 
-    for (size_t j = 0; j < trackNPoints; ++j) 
-    { 
-      G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
-      trackPointX.push_back( pos.x() );
-      trackPointY.push_back( pos.y() );
-      trackPointZ.push_back( pos.z() );
-    }
+    // for (size_t j = 0; j < trackNPoints; ++j) 
+    // { 
+    //   G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
+    //   trackPointX.push_back( pos.x() );
+    //   trackPointY.push_back( pos.y() );
+    //   trackPointZ.push_back( pos.z() );
+    // }
     fTrk->Fill();
-    trackPointX.clear(); 
-    trackPointY.clear();
-    trackPointZ.clear();
+    // trackPointX.clear(); 
+    // trackPointY.clear();
+    // trackPointZ.clear();
   }
   G4cout << "Total number of recorded track: " << count_tracks << std::endl;
 }
@@ -639,6 +667,58 @@ void AnalysisManager::FillScintOutput()
     }
 
     fScintTree->Fill();
+}
+
+//// FASER SPECTROMETER HITS ---
+void AnalysisManager::FillFaserOutput()
+{
+    fFaserEventID = evtID;
+
+    // Clear vectors
+    fFaserTrackerID.clear();
+    fFaserTrackID.clear();
+    fFaserPDG.clear();
+    fFaserX.clear();
+    fFaserY.clear();
+    fFaserZ.clear();
+    fFaserPx.clear();
+    fFaserPy.clear();
+    fFaserPz.clear();
+    fFaserE.clear();
+    fFaserEdep.clear();
+    fFaserCharge.clear();
+
+    G4int nHC = fHCofEvent->GetNumberOfCollections();
+
+    for(G4int i = 0; i < nHC; ++i)
+    {
+        auto* hc = fHCofEvent->GetHC(i);
+        auto* faserHC = dynamic_cast<FaserHitsCollection*>(hc);
+        if(!faserHC) continue;
+        if(faserHC->GetName() != "FaserHitsCollection") continue;
+
+        G4cout << "Found FASER tracker hit collection with " << faserHC->GetSize() << " hits" << G4endl;
+
+        for(size_t h = 0; h < faserHC->entries(); ++h)
+        {
+            auto* hit = (*faserHC)[h];
+
+            fFaserTrackerID.push_back(hit->GetTrackerID());
+            fFaserTrackID.push_back(hit->GetTrackID());
+            fFaserPDG.push_back(hit->GetPDGCode());
+            fFaserX.push_back(hit->GetX());
+            fFaserY.push_back(hit->GetY());
+            fFaserZ.push_back(hit->GetZ());
+            fFaserPx.push_back(hit->GetPx());
+            fFaserPy.push_back(hit->GetPy());
+            fFaserPz.push_back(hit->GetPz());
+            fFaserE.push_back(hit->GetEnergy());
+            fFaserEdep.push_back(hit->GetEnergyDeposit());
+            fFaserCharge.push_back(hit->GetCharge());
+        }
+    }
+
+    fFaserHitsTree->Fill();
 }
 
 float_t AnalysisManager::GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m)
