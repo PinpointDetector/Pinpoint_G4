@@ -94,7 +94,14 @@ void Py8DecayerPhysics::ConstructProcess()
     if (std::abs(particle->GetPDGEncoding()) == 15 || 
         std::abs(particle->GetPDGEncoding()) == 521 ||
         std::abs(particle->GetPDGEncoding()) == 411 ||
-        std::abs(particle->GetPDGEncoding() == 421)) 
+        std::abs(particle->GetPDGEncoding()) == 421 ||
+        std::abs(particle->GetPDGEncoding()) == 431 ||
+        std::abs(particle->GetPDGEncoding()) == 4122 ||
+        std::abs(particle->GetPDGEncoding()) == 4112 ||
+        std::abs(particle->GetPDGEncoding()) == 4212 ||
+        std::abs(particle->GetPDGEncoding()) == 4222 ||
+        std::abs(particle->GetPDGEncoding()) == 4132 ||
+        std::abs(particle->GetPDGEncoding()) == 4232)
         {
           if (particle->GetDecayTable()) {
             delete particle->GetDecayTable();
