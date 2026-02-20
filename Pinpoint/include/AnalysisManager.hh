@@ -14,6 +14,8 @@
 #include "AnalysisManagerMessenger.hh"
 #include "FPFParticle.hh"
 
+class G4Track;
+
 class AnalysisManager {
   public:
 
@@ -54,6 +56,8 @@ class AnalysisManager {
     void bookHitsTrees();
     void bookScintTrees();
     void bookFaserTree();
+    void bookTauTree();
+    void bookCharmTree();
 
     void FillEventTree(const G4Event* event);
     void FillPrimariesTree(const G4Event* event);
@@ -62,6 +66,7 @@ class AnalysisManager {
     void FillHitsOutput();
     void FillScintOutput();
     void FillFaserOutput();
+    void FillPythiaTree(const G4Event* event, TTree* tree, std::vector<int> pdg_ids);
     
     float_t GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m);
 
@@ -87,6 +92,8 @@ class AnalysisManager {
     TTree*   fTrk;
     TTree*   fPrim;
     TTree*   fGeom;
+    TTree*   fTauTree;
+    TTree*   fCharmTree;
 
     TDirectory* fHits;
     TTree*   fPixelHitsTree;
@@ -134,6 +141,12 @@ class AnalysisManager {
     double trackKinE;
     int trackNPoints;
     double trackTheta;
+    double trackProdX;
+    double trackProdY;
+    double trackProdZ;
+    double trackDecayX;
+    double trackDecayY;
+    double trackDecayZ;
     // std::vector<double> trackPointX;
     // std::vector<double> trackPointY;
     // std::vector<double> trackPointZ;
@@ -229,6 +242,24 @@ class AnalysisManager {
     std::vector<float> fFaserE;           // Energy
     std::vector<float> fFaserEdep;        // Energy deposit
     std::vector<float> fFaserCharge;      // Particle charge
+
+    //
+    //----------------------------------------------------
+    // Output variables for tau and charm trees
+    UInt_t fPythiaEventID; 
+    int fPythiaTPDG;
+    int fPythiaPPDG;
+    int fPythiaTID;
+    int fPythiaPID;
+    double fPythiaProdX;
+    double fPythiaProdY;
+    double fPythiaProdZ;
+    double fPythiaDecayX;
+    double fPythiaDecayY;
+    double fPythiaDecayZ;
+    double fPythiaPx;
+    double fPythiaPy;
+    double fPythiaPz;
   };
 
 #endif
