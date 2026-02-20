@@ -1,4 +1,3 @@
-#include <vector>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -67,6 +66,8 @@ AnalysisManager::AnalysisManager()
   fTrk = nullptr;
   fPrim = nullptr;
   fPixelHitsTree = nullptr;
+  fTauTree = nullptr;
+  fCharmTree = nullptr;
   // fActsParticlesTree = nullptr;
   
   fSaveTrack = false;
@@ -148,9 +149,12 @@ void AnalysisManager::bookTrkTree()
   fTrk->Branch("trackKinE", &trackKinE, "trackKinE/D");
   fTrk->Branch("trackNPoints", &trackNPoints, "trackNPoints/I");
   fTrk->Branch("trackTheta", &trackTheta, "trackTheta/D");
-  // fTrk->Branch("trackPointX", &trackPointX);
-  // fTrk->Branch("trackPointY", &trackPointY);
-  // fTrk->Branch("trackPointZ", &trackPointZ);
+  fTrk->Branch("trackProdX", &trackProdX, "trackProdX/D");
+  fTrk->Branch("trackProdY", &trackProdY, "trackProdY/D");
+  fTrk->Branch("trackProdZ", &trackProdZ, "trackProdZ/D");
+  fTrk->Branch("trackDecayX", &trackDecayX, "trackDecayX/D");
+  fTrk->Branch("trackDecayY", &trackDecayY, "trackDecayY/D");
+  fTrk->Branch("trackDecayZ", &trackDecayZ, "trackDecayZ/D");
 }
 
 
@@ -231,7 +235,7 @@ void AnalysisManager::bookScintTrees()
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
 }
 
-
+//// --- FASER tracking spectrometer hits ---
 void AnalysisManager::bookFaserTree()
 {
     fFile->cd(fHits->GetName());
@@ -252,6 +256,46 @@ void AnalysisManager::bookFaserTree()
     fFaserHitsTree->Branch("charge", &fFaserCharge);
 }
 
+//// --- Children of primary tau decay ---
+void AnalysisManager::bookTauTree()
+{
+  fTauTree = new TTree("tau", "Children of tau decay");
+  fTauTree->Branch("evtID", &fPythiaEventID, "evtID/i");
+  fTauTree->Branch("PID", &fPythiaPID, "PID/I");
+  fTauTree->Branch("TID", &fPythiaTID, "TID/I");
+  fTauTree->Branch("PDG", &fPythiaTPDG, "PDG/I");
+  fTauTree->Branch("ParentPDG", &fPythiaPPDG, "ParentPDG/I");
+  fTauTree->Branch("ProdX", &fPythiaProdX, "ProdX/D");
+  fTauTree->Branch("ProdY", &fPythiaProdY, "ProdY/D");
+  fTauTree->Branch("ProdZ", &fPythiaProdZ, "ProdZ/D");
+  fTauTree->Branch("DecayX", &fPythiaDecayX, "DecayX/D");
+  fTauTree->Branch("DecayY", &fPythiaDecayY, "DecayY/D");
+  fTauTree->Branch("DecayZ", &fPythiaDecayZ, "DecayZ/D");
+  fTauTree->Branch("Px", &fPythiaPx, "Px/D");
+  fTauTree->Branch("Py", &fPythiaPy, "Py/D");
+  fTauTree->Branch("Pz", &fPythiaPz, "Pz/D");
+}
+
+//// --- Children of primary tau decay ---
+void AnalysisManager::bookCharmTree()
+{
+  fCharmTree = new TTree("charm", "Children of tau decay");
+  fCharmTree->Branch("evtID", &fPythiaEventID, "evtID/i");
+  fCharmTree->Branch("PID", &fPythiaPID, "PID/I");
+  fCharmTree->Branch("TID", &fPythiaTID, "TID/I");
+  fCharmTree->Branch("PDG", &fPythiaTPDG, "PDG/I");
+  fCharmTree->Branch("ParentPDG", &fPythiaPPDG, "ParentPDG/I");
+  fCharmTree->Branch("ProdX", &fPythiaProdX, "ProdX/D");
+  fCharmTree->Branch("ProdY", &fPythiaProdY, "ProdY/D");
+  fCharmTree->Branch("ProdZ", &fPythiaProdZ, "ProdZ/D");
+  fCharmTree->Branch("DecayX", &fPythiaDecayX, "DecayX/D");
+  fCharmTree->Branch("DecayY", &fPythiaDecayY, "DecayY/D");
+  fCharmTree->Branch("DecayZ", &fPythiaDecayZ, "DecayZ/D");
+  fCharmTree->Branch("Px", &fPythiaPx, "Px/D");
+  fCharmTree->Branch("Py", &fPythiaPy, "Py/D");
+  fCharmTree->Branch("Pz", &fPythiaPz, "Pz/D");
+}
+
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 
@@ -270,6 +314,8 @@ void AnalysisManager::BeginOfRun()
   bookPrimTree();
   bookGeomTree();
   if (fSaveTrack) bookTrkTree();
+  bookTauTree();
+  bookCharmTree();
 
   bookHitsTrees();
   bookScintTrees();
@@ -287,6 +333,8 @@ void AnalysisManager::EndOfRun()
   fFile->cd();
   fEvt->Write();
   fPrim->Write();
+  fTauTree->Write();
+  fCharmTree->Write();
   FillGeomTree();
   fGeom->Write();
   if (fSaveTrack) fTrk->Write();
@@ -370,6 +418,8 @@ void AnalysisManager::EndOfEvent(const G4Event *event)
 
   // FILL PRIMARIES/TRAJECTORIES TREE
   FillPrimariesTree(event);
+  FillPythiaTree(event, fTauTree, {15});
+  FillPythiaTree(event, fCharmTree, {411, 421, 431, 4122, 4112, 4212, 4222, 4132, 4232});
   if(fSaveTrack) FillTrajectoriesTree(event);
 
   //-----------------------------------------------------------
@@ -490,11 +540,11 @@ void AnalysisManager::FillPrimariesTree(const G4Event *event)
                             primVx, primVy, primVz, primVt,
                             primPx, primPy, primPz,energy));
 
-        G4cout << G4endl;
-        G4cout << "PrimaryParticleInfo: PDG code " << primPDG << G4endl
-          << "Particle unique ID : " << primTrackID << G4endl
-          << "Momentum : (" << primPx << ", " << primPy << ", " << primPz << ") MeV" << G4endl
-          << "Vertex : (" << primVx << ", " << primVy << ", " << primVz << ") mm" << G4endl;
+        // G4cout << G4endl;
+        // G4cout << "PrimaryParticleInfo: PDG code " << primPDG << G4endl
+        //   << "Particle unique ID : " << primTrackID << G4endl
+        //   << "Momentum : (" << primPx << ", " << primPy << ", " << primPz << ") MeV" << G4endl
+        //   << "Vertex : (" << primVx << ", " << primVy << ", " << primVz << ") mm" << G4endl;
 
         fPrim->Fill();
       }
@@ -531,17 +581,34 @@ void AnalysisManager::FillTrajectoriesTree(const G4Event* event)
     trackNPoints = trajectory->GetPointEntries(); 
     trackTheta = trajectory->GetInitialMomentum().theta();
     count_tracks++; 
-    // for (size_t j = 0; j < trackNPoints; ++j) 
-    // { 
-    //   G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
-    //   trackPointX.push_back( pos.x() );
-    //   trackPointY.push_back( pos.y() );
-    //   trackPointZ.push_back( pos.z() );
-    // }
+    
+    // Find start and decay points based on z values
+    if (trackNPoints > 0) {
+      G4double minZ = std::numeric_limits<G4double>::max();
+      G4double maxZ = std::numeric_limits<G4double>::lowest();
+      G4ThreeVector prodPos, decayPos;
+      
+      for (size_t j = 0; j < trackNPoints; ++j) 
+      { 
+        G4ThreeVector pos = trajectory->GetPoint(j)->GetPosition(); 
+        if (pos.z() < minZ) {
+          minZ = pos.z();
+          prodPos = pos;
+        }
+        if (pos.z() > maxZ) {
+          maxZ = pos.z();
+          decayPos = pos;
+        }
+      }
+      
+      trackProdX = prodPos.x();
+      trackProdY = prodPos.y();
+      trackProdZ = prodPos.z();
+      trackDecayX = decayPos.x();
+      trackDecayY = decayPos.y();
+      trackDecayZ = decayPos.z();
+    }
     fTrk->Fill();
-    // trackPointX.clear(); 
-    // trackPointY.clear();
-    // trackPointZ.clear();
   }
   G4cout << "Total number of recorded track: " << count_tracks << std::endl;
 }
@@ -719,6 +786,68 @@ void AnalysisManager::FillFaserOutput()
     }
 
     fFaserHitsTree->Fill();
+}
+
+
+void AnalysisManager::FillPythiaTree(const G4Event* event, TTree *tree, std::vector<int> pdg_ids)
+{
+    auto trajectoryContainer = event->GetTrajectoryContainer(); 
+    if (!trajectoryContainer)
+    {
+        G4cout << "No tracks found: did you enable their storage with '/tracking/storeTrajectory 1'?" << G4endl;
+        return;
+    }
+    for (size_t parentIdx = 0; parentIdx < trajectoryContainer->entries(); ++parentIdx) 
+    { 
+        // Check for primary tau /charm
+        G4Trajectory *parent = static_cast<G4Trajectory*>((*trajectoryContainer)[parentIdx]); 
+        int parentPDG = std::abs(parent->GetPDGEncoding());
+        if ((parent->GetParentID() == 0) && (std::find(pdg_ids.begin(), pdg_ids.end(), std::abs(parentPDG)) != pdg_ids.end())) {
+            G4int parentID = parent->GetTrackID();
+            fPythiaPPDG = parent->GetPDGEncoding();
+            // std::cout << "Found primary tau/charm with pdg " << parentPDG << ", track id " << parentID << std::endl;
+            // Check for children of this primary tauy lepton
+            for (size_t trajIdx = 0; trajIdx < trajectoryContainer->entries(); ++trajIdx) {
+                G4Trajectory *traj = static_cast<G4Trajectory*>((*trajectoryContainer)[trajIdx]); 
+                if (traj->GetParentID() == parentID) {
+                    int trajPDG = traj->GetParticleDefinition()->GetPDGEncoding();
+                    // std::cout << "Found child of primary tau/charm with PDG ID " << trajPDG << std::endl;
+                    // Write out trajecotry information
+                    fPythiaTPDG = traj->GetParticleDefinition()->GetPDGEncoding();
+                    fPythiaTID = traj->GetTrackID();
+                    fPythiaPID = traj->GetParentID();
+                    G4int trackNPoints = traj->GetPointEntries(); 
+                    // Get production and decay vertex
+                    G4double minZ = std::numeric_limits<G4double>::max();
+                    G4double maxZ = std::numeric_limits<G4double>::lowest();
+                    G4ThreeVector prodPos, decayPos;
+                    for (size_t j = 0; j < trackNPoints; ++j) 
+                    { 
+                        G4ThreeVector pos = traj->GetPoint(j)->GetPosition(); 
+                        if (pos.z() < minZ) {
+                        minZ = pos.z();
+                        prodPos = pos;
+                        }
+                        if (pos.z() > maxZ) {
+                        maxZ = pos.z();
+                        decayPos = pos;
+                        }
+                    }
+                    fPythiaProdX = prodPos.x();
+                    fPythiaProdY = prodPos.y();
+                    fPythiaProdZ = prodPos.z();
+                    fPythiaDecayX = decayPos.x();
+                    fPythiaDecayY = decayPos.y();
+                    fPythiaDecayZ = decayPos.z();
+                    G4ThreeVector momentum = traj->GetInitialMomentum();
+                    fPythiaPx = momentum.x();
+                    fPythiaPy = momentum.y();
+                    fPythiaPz = momentum.z();
+                    tree->Fill();
+                }
+            }
+        }
+    }
 }
 
 float_t AnalysisManager::GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m)
