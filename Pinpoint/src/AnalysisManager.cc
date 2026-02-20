@@ -418,6 +418,8 @@ void AnalysisManager::EndOfEvent(const G4Event *event)
 
   // FILL PRIMARIES/TRAJECTORIES TREE
   FillPrimariesTree(event);
+
+  fPythiaEventID = evtID;
   FillPythiaTree(event, fTauTree, {15});
   FillPythiaTree(event, fCharmTree, {411, 421, 431, 4122, 4112, 4212, 4222, 4132, 4232});
   if(fSaveTrack) FillTrajectoriesTree(event);
