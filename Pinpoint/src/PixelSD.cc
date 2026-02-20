@@ -87,6 +87,7 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
   fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgid) == 11 || std::abs(pdgid) == 13 || std::abs(pdgid) == 15);
   G4bool fromPrimaryEMShower = info && info->IsTrackFromPrimaryEMShower();
+  G4bool fromCharmedHadron = info && info->IsTrackFromCharmedHadron();
 
   assert(rowID < fNPixelsY);
   assert(colID < fNPixelsX);
@@ -107,7 +108,7 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   } else {
     fPixelHits.push_back(
       new PixelHit(edep, rowID, colID, layerID,
-                  trackID, parentID, pdgid, fromPrimaryLepton, fromPrimaryEMShower)
+                  trackID, parentID, pdgid, fromPrimaryLepton, fromPrimaryEMShower, fromCharmedHadron)
     );
   }
 

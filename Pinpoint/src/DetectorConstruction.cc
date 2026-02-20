@@ -140,8 +140,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       fNLayers = maxLayers;
     }
   auto detectorThickness = fNLayers * fLayerThickness;
-  auto worldSizeX = 1.2 * fDetectorWidth;
-  auto worldSizeY = 1.2 * fDetectorHeight;
+  auto worldSizeX = std::max(1.2 * fDetectorWidth, 2.4 * fOuterRadius);
+  auto worldSizeY = std::max(1.2 * fDetectorHeight, 2.4 * fOuterRadius);
   auto worldSizeZ = 1.2 * (detectorThickness + fTracker3Position);
 
     // Get materials
@@ -335,35 +335,36 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // solid cylinders (0 to outerRadius) and air-filled bore (0 to innerRadius)
   G4Material* sm2co17 = G4Material::GetMaterial("Sm2Co17");
   
-  auto longMagnetS = new G4Tubs("Magnet0", 0., fOuterRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
-  auto shortMagnetS = new G4Tubs("Magnet12", 0., fOuterRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
+  // Magnets as hollow tubes — field regions placed as siblings in worldLV
+  // to avoid mother-daughter shared-surface navigation issues
+  auto longMagnetS = new G4Tubs("Magnet0", fInnerRadius, fOuterRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
+  auto shortMagnetS = new G4Tubs("Magnet12", fInnerRadius, fOuterRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
 
-  G4double fieldRadius = fInnerRadius;
-  auto longFieldS = new G4Tubs("FieldRegion0", 0., fieldRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
-  auto shortFieldS = new G4Tubs("FieldRegion12", 0., fieldRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
+  auto longFieldS = new G4Tubs("FieldRegion0", 0., fInnerRadius, 0.5 * fLongMagnetLength, 0., 2*M_PI);
+  auto shortFieldS = new G4Tubs("FieldRegion12", 0., fInnerRadius, 0.5 * fShortMagnetLength, 0., 2*M_PI);
 
   // Magnet 0
-  auto magnet0LV = new G4LogicalVolume(longMagnetS, sm2co17, "Magnet0");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet0Position), magnet0LV, "Magnet0", worldLV, false, 0, fCheckOverlaps);
-  magnet0LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  // auto magnet0LV = new G4LogicalVolume(longMagnetS, sm2co17, "Magnet0");
+  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet0Position), magnet0LV, "Magnet0", worldLV, false, 0, fCheckOverlaps);
+  // magnet0LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
   auto fieldRegion0LV = new G4LogicalVolume(longFieldS, worldMaterial, "FieldRegion0");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion0LV, "FieldRegion0", magnet0LV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet0Position), fieldRegion0LV, "FieldRegion0", worldLV, false, 0, fCheckOverlaps);
   fieldRegion0LV->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // Magnet 1
-  auto magnet1LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet1");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet1Position), magnet1LV, "Magnet1", worldLV, false, 1, fCheckOverlaps);
-  magnet1LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  // auto magnet1LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet1");
+  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet1Position), magnet1LV, "Magnet1", worldLV, false, 1, fCheckOverlaps);
+  // magnet1LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
   auto fieldRegion1LV = new G4LogicalVolume(shortFieldS, worldMaterial, "FieldRegion1");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion1LV, "FieldRegion1", magnet1LV, false, 1, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet1Position), fieldRegion1LV, "FieldRegion1", worldLV, false, 1, fCheckOverlaps);
   fieldRegion1LV->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // Magnet 2
-  auto magnet2LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet2");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet2Position), magnet2LV, "Magnet2", worldLV, false, 2, fCheckOverlaps);
-  magnet2LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
+  // auto magnet2LV = new G4LogicalVolume(shortMagnetS, sm2co17, "Magnet2");
+  // new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet2Position), magnet2LV, "Magnet2", worldLV, false, 2, fCheckOverlaps);
+  // magnet2LV->SetVisAttributes(G4VisAttributes(G4Colour(1.0, 0.0, 1.0, 0.5))); // Magenta, semi-transparent
   auto fieldRegion2LV = new G4LogicalVolume(shortFieldS, worldMaterial, "FieldRegion2");
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), fieldRegion2LV, "FieldRegion2", magnet2LV, false, 2, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., fMagnet2Position), fieldRegion2LV, "FieldRegion2", worldLV, false, 2, fCheckOverlaps);
   fieldRegion2LV->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   G4cout << "Created solid cylindrical magnets:" << G4endl;
@@ -373,11 +374,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "  Magnet 2: z = " << fMagnet2Position/mm << " mm, length = " << fShortMagnetLength/mm << " mm" << G4endl;
   G4cout << "  Material: Sm2Co17" << G4endl;
 
-  // Set step limits in magnetic field regions for accurate tracking
-  auto userLimits = new G4UserLimits(1 * mm);  // Max step size 1mm
-  fieldRegion0LV->SetUserLimits(userLimits);
-  fieldRegion1LV->SetUserLimits(userLimits);
-  fieldRegion2LV->SetUserLimits(userLimits);
+  // Set step limits and minimum energy in magnetic field regions
+  auto fieldRegionUserLimits = new G4UserLimits();
+  fieldRegionUserLimits->SetMaxAllowedStep(0.5 * mm);
+  fieldRegionUserLimits->SetUserMinEkine(10.0 * MeV);
+  fieldRegion0LV->SetUserLimits(fieldRegionUserLimits);
+  fieldRegion1LV->SetUserLimits(fieldRegionUserLimits);
+  fieldRegion2LV->SetUserLimits(fieldRegionUserLimits);
 
   // FASER spectrometer tracking layers (use single layer per station)
   auto trackerS = new G4Box("Tracker", 0.5 * fTrackerSize, 0.5 * fTrackerSize, 0.5 * fSiliconThickness);

@@ -107,6 +107,56 @@ void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     }
   }
 
+  // Track charmed hadrons and their decay products (including through neutral particles)
+  // Charmed hadron PDG codes: 411 (D+), 421 (D0), 431 (Ds+), 4122 (Lambda_c+), 4112 (Sigma_c0), 4212 (Sigma_c+), 4222 (Sigma_c++), 4132 (Xi_c0), 4232 (Xi_c+)
+  G4int absPDG = std::abs(aTrack->GetParticleDefinition()->GetPDGEncoding());
+  G4bool isCharmedHadron = (absPDG == 411 || absPDG == 421 || absPDG == 431 || 
+                             absPDG == 4122 || absPDG == 4112 || absPDG == 4212 || 
+                             absPDG == 4222 || absPDG == 4132 || absPDG == 4232);
+  
+  G4bool fromCharmedHadron = info && info->IsTrackFromCharmedHadron();
+  
+  // If this is a primary charmed hadron, its decay products are counted as primary particles
+  if (isCharmedHadron && (aTrack->GetParentID() == 0 || aTrack->GetParentID() == 1))
+  {
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries)
+    {
+      size_t nSeco = secondaries->size();
+      if (nSeco>0)
+      {
+        for (size_t i=0; i<nSeco; ++i)
+        {
+          if ((*secondaries)[i]->GetCreatorProcess()->GetProcessName()=="Decay")
+          {
+            TrackInformation* newInfo = new TrackInformation();
+            newInfo->SetTrackIsFromCharmedHadron(1);
+            (*secondaries)[i]->SetUserInformation(newInfo);
+            AnalysisManager::GetInstance()->AddOnePrimaryTrack();
+          }
+        }
+      }
+    }
+  }
+  // If this track comes from a charmed hadron, tag all its decay products
+  else if (isCharmedHadron || fromCharmedHadron)
+  {
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries)
+    {
+      size_t nSeco = secondaries->size();
+      if (nSeco>0)
+      {
+        for (size_t i=0; i<nSeco; ++i)
+        {
+          TrackInformation* newInfo = new TrackInformation();
+          newInfo->SetTrackIsFromCharmedHadron(1);
+          (*secondaries)[i]->SetUserInformation(newInfo);
+        }
+      }
+    }
+  }
+
   if (aTrack->GetParentID()==1 && aTrack->GetCreatorProcess()->GetProcessName()=="Decay") 
   {
     // in case of tau decay pizero
