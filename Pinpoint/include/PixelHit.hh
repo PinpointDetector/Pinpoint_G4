@@ -12,7 +12,7 @@ class PixelHit : public G4VHit
 {
 public:
   PixelHit() = default;
-  PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerId, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim, G4bool isEMShower, G4bool isFromCharmed);
+  PixelHit(G4double edep, G4int rowID, G4int colID, G4int layerId, G4int trackID, G4int parentID, G4int pdgc, G4bool isPrim, G4bool isEMShower, G4bool isFromCharmed, G4bool isFromTau);
   PixelHit(const PixelHit&) = default;
   ~PixelHit() override = default;
 
@@ -46,6 +46,7 @@ public:
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
   void SetFromPrimaryEMShower(G4bool fromPrimaryEMShower) { fFromPrimaryEMShower = fromPrimaryEMShower; }
   void SetFromCharmedHadron(G4bool fromCharmedHadron) { fFromCharmedHadron = fromCharmedHadron; }
+  void SetFromTau(G4bool fromTau) { fFromTau = fromTau; }
   // void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
 
   G4int GetPDGCode() const { return fPDGCode; }
@@ -69,6 +70,7 @@ public:
   G4bool GetFromPrimaryLepton() const { return fFromPrimaryLepton; }
   G4bool GetFromPrimaryEMShower() const { return fFromPrimaryEMShower; }
   G4bool GetFromCharmedHadron() const { return fFromCharmedHadron; }
+  G4bool GetFromTau() const { return fFromTau; }
 
 private:
   G4int fTrackID = -1;
@@ -82,6 +84,7 @@ private:
   G4bool fFromPrimaryLepton = false;
   G4bool fFromPrimaryEMShower = false;
   G4bool fFromCharmedHadron = false;
+  G4bool fFromTau = false;
   // G4bool fFromPrimaryPizero = false;
   // G4bool fFromFSLPizero = false;
   // G4ThreeVector fTruthHitPos;

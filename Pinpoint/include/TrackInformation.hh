@@ -26,11 +26,13 @@ class TrackInformation : public G4VUserTrackInformation
     inline void SetTrackIsFromPrimaryLepton(G4int i) {fFromPrimaryLepton = i;}
     inline void SetTrackIsFromPrimaryEMShower(G4int i) {fFromPrimaryEMShower = i;}
     inline void SetTrackIsFromCharmedHadron(G4int i) {fFromCharmedHadron = i;}
+    inline void SetTrackIsFromTau(G4int i) {fFromTau = i;}
     inline G4int IsTrackFromPrimaryPizero() const {return fFromPrimaryPizero;}
     inline G4int IsTrackFromFSLPizero() const {return fFromFSLPizero;}
     inline G4int IsTrackFromPrimaryLepton() const {return fFromPrimaryLepton;}
     inline G4int IsTrackFromPrimaryEMShower() const {return fFromPrimaryEMShower;}
     inline G4int IsTrackFromCharmedHadron() const {return fFromCharmedHadron;}
+    inline G4int IsTrackFromTau() const {return fFromTau;}
 
     inline void InsertHit(G4long hitIndex) { 
       if (!fHitIndices) {
@@ -46,6 +48,7 @@ class TrackInformation : public G4VUserTrackInformation
     G4int fFromPrimaryLepton;
     G4int fFromPrimaryEMShower;
     G4int fFromCharmedHadron;
+    G4int fFromTau;
     std::shared_ptr<std::vector<G4long>> fHitIndices;
 
     // std::vector<G4long>* fHitIndices; //TODO: Make this a smart pointer?
