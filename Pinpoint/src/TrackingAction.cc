@@ -157,6 +157,50 @@ void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     }
   }
 
+  absPDG = std::abs(aTrack->GetParticleDefinition()->GetPDGEncoding());
+  G4bool isTau = absPDG == 15;
+  G4bool fromTau = info && info->IsTrackFromTau();
+  // If this is a primary tau lepton, its decay products are counted as primary particles
+  if ((isTau) && (aTrack->GetParentID() == 0 || aTrack->GetParentID() == 1))
+  {
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries)
+    {
+      size_t nSeco = secondaries->size();
+      if (nSeco>0)
+      {
+        for (size_t i=0; i<nSeco; ++i)
+        {
+          if ((*secondaries)[i]->GetCreatorProcess()->GetProcessName()=="Decay")
+          {
+            TrackInformation* newInfo = new TrackInformation();
+            newInfo->SetTrackIsFromTau(1);
+            (*secondaries)[i]->SetUserInformation(newInfo);
+            AnalysisManager::GetInstance()->AddOnePrimaryTrack();
+          }
+        }
+      }
+    }
+  }
+  // If this track comes from a charmed hadron, tag all its decay products
+  else if (isTau || fromTau)
+  {
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries)
+    {
+      size_t nSeco = secondaries->size();
+      if (nSeco>0)
+      {
+        for (size_t i=0; i<nSeco; ++i)
+        {
+          TrackInformation* newInfo = new TrackInformation();
+          newInfo->SetTrackIsFromTau(1);
+          (*secondaries)[i]->SetUserInformation(newInfo);
+        }
+      }
+    }
+  }
+
   if (aTrack->GetParentID()==1 && aTrack->GetCreatorProcess()->GetProcessName()=="Decay") 
   {
     // in case of tau decay pizero
