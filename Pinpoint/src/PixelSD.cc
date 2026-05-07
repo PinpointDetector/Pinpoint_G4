@@ -37,11 +37,11 @@ PixelHitAccumulator::PixelHitAccumulator()
 
   fNPixelsX = det->GetNPixelsX();
   fNPixelsY = det->GetNPixelsY();
-  fNLayers = det->GetNlayers();
+  fNLayers = det->GetNLayers();
   fPixelWidth = det->GetPixelWidth();
   fPixelHeight = det->GetPixelHeight();
-  fDetWidth = det->GetDetectorWidth();
-  fDetHeight = det->GetDetectorHeight();
+  fDetWidth = det->GetPixelDetectorWidth();
+  fDetHeight = det->GetPixelDetectorHeight();
   fTotalPixelsPerLayer = fNPixelsX * fNPixelsY;
   Init();
 }

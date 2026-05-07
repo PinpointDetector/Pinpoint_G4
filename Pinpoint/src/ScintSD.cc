@@ -76,7 +76,7 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
         const G4int copyNum = touchable->GetCopyNumber(i);
         //G4cout << "Depth [" << i << "]: " << volName << " (copy=" << copyNum << ")" << G4endl;
 
-        if(volName == "Layer") {
+        if(volName == "ScintLayer") {
             layerID = copyNum;
         }
         if(volName == "ScintRow"){
@@ -93,7 +93,7 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     if(layerID < 0) {
         G4Exception("ScintillatorSD", "Hit001", JustWarning,
-                    "Could not find Layer replica in touchable hierarchy!");
+                    "Could not find ScintLayer volume in touchable hierarchy!");
         return false;
     }
 

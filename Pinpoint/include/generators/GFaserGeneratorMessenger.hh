@@ -24,7 +24,7 @@ class GFaserGeneratorMessenger: public G4UImessenger
     G4UIdirectory* fGFaserGeneratorDir;
     G4UIcmdWithAString* fInputFileCmd;
     // G4UIcmdWithAnInteger* fFirstEventCmd;
-    G4UIcmdWithABool* fUseFixedZPositionCmd;
+    G4UIcmdWithABool* fHitPixelAreaCmd;
 };
 
 #endif

@@ -30,58 +30,26 @@ class DetectorConstructionMessenger: public G4UImessenger {
 
     DetectorConstruction* fDetector; 
     
-    G4UIcmdWithADoubleAndUnit* tungstenThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* fortuneTungstenThicknessCmd;
     G4UIcmdWithADoubleAndUnit* siliconThicknessCmd;
     G4UIcmdWithADoubleAndUnit* boxThicknessCmd;
-    G4UIcmdWithAnInteger* nLayersCmd;
     G4UIcmdWithADoubleAndUnit* pixelHeightCmd;
     G4UIcmdWithADoubleAndUnit* pixelWidthCmd;
-    G4UIcmdWithADoubleAndUnit* detectorWidthCmd;
-    G4UIcmdWithADoubleAndUnit* detectorHeightCmd;
+    G4UIcmdWithADoubleAndUnit* pixelDetectorWidthCmd;
+    G4UIcmdWithADoubleAndUnit* pixelDetectorHeightCmd;
     G4UIcmdWithAString* detGdmlCmd;
-    G4UIcmdWithAnInteger* simFlagCmd;
+    G4UIcmdWithAnInteger* numScintPanelsPerLayerCmd;
     G4UIcmdWithABool* scintBarFlagCmd;
-
-    // G4UIcmdWithABool* detCheckOverlapCmd;
-
-    // // FLArE
-    // G4UIcmdWithABool* detAddFLArECmd;
-    // G4UIcmdWith3VectorAndUnit* detFLArEPosCmd;
-    // G4UIcmdWithAString* detMatCmd;
-    // G4UIcmdWithAString* detGeomCmd;
-    // G4UIcmdWithADoubleAndUnit* detFieldCmd;
-    // // FORMOSA
-    // G4UIcmdWithABool* detAddFORMOSACmd;
-    // G4UIcmdWith3VectorAndUnit* detFORMOSAPosCmd;
-    // // FASERnu2
-    // G4UIcmdWithABool* detAddFASERnu2Cmd;
-    // G4UIcmdWith3VectorAndUnit* detFASERnu2PosCmd;
-    // //  SPECTROMETER MAGNET
-    // G4UIcmdWithABool* detAddCmd;
-    // G4UIcmdWith3VectorAndUnit* detPosCmd;
-    // // SAMURAI
-    // G4UIcmdWithAString* magnetGeomCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetFieldCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetWinXCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetWinYCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetWinZCmd;
-    // G4UIcmdWithADoubleAndUnit* yokeThickXCmd;
-    // G4UIcmdWithADoubleAndUnit* yokeThickYCmd;
-    // // CrystalPulling
-    // G4UIcmdWithADoubleAndUnit* magnetInnerRCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetOuterRCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetLengthZCmd;
-    // G4UIcmdWithADoubleAndUnit* magnetGapCmd;
-    // G4UIcmdWithAnInteger* magnetNumberCmd;
-    // // Tracking stations
-    // G4UIcmdWithAnInteger* trackingNumberCmd;
-    // G4UIcmdWithAnInteger* trackingNBarsYCmd;
-    // G4UIcmdWithAnInteger* trackingNBarsXCmd;
-    // G4UIcmdWithADoubleAndUnit* trackingScinThickCmd;
-    // G4UIcmdWithADoubleAndUnit* trackingGapCmd;
-    // // Sampling Calorimeter (A NuTeV-like detector)
-    // G4UIcmdWithABool* detAddSamplingCaloCmd;
-    // G4UIcmdWith3VectorAndUnit* detSamplingCaloPosCmd;
+    G4UIcmdWithADoubleAndUnit* scintDetectorHeightCmd;
+    G4UIcmdWithADoubleAndUnit* scintDetectorWidthCmd;
+    G4UIcmdWithADoubleAndUnit* scintBarWidthCmd;
+    G4UIcmdWithADoubleAndUnit* scintBarHeightCmd;
+    G4UIcmdWithADoubleAndUnit* scintThicknessCmd;
+    G4UIcmdWithAnInteger* numScintLayersCmd;
+    G4UIcmdWithADoubleAndUnit* maxDetectorThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* pinpointThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* pinpointTungstenThicknessCmd;
+    G4UIcmdWithABool* enableFaserSpectrometerCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

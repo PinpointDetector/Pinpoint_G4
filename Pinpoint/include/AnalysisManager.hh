@@ -14,8 +14,6 @@
 #include "AnalysisManagerMessenger.hh"
 #include "FPFParticle.hh"
 
-class G4Track;
-
 class AnalysisManager {
   public:
 
@@ -56,8 +54,6 @@ class AnalysisManager {
     void bookHitsTrees();
     void bookScintTrees();
     void bookFaserTree();
-    void bookTauTree();
-    void bookCharmTree();
 
     void FillEventTree(const G4Event* event);
     void FillPrimariesTree(const G4Event* event);
@@ -66,7 +62,6 @@ class AnalysisManager {
     void FillHitsOutput();
     void FillScintOutput();
     void FillFaserOutput();
-    void FillPythiaTree(const G4Event* event, TTree* tree, std::vector<int> pdg_ids);
     
     float_t GetTotalEnergy(float_t px, float_t py, float_t pz, float_t m);
 
@@ -92,8 +87,6 @@ class AnalysisManager {
     TTree*   fTrk;
     TTree*   fPrim;
     TTree*   fGeom;
-    TTree*   fTauTree;
-    TTree*   fCharmTree;
 
     TDirectory* fHits;
     TTree*   fPixelHitsTree;
@@ -141,12 +134,6 @@ class AnalysisManager {
     double trackKinE;
     int trackNPoints;
     double trackTheta;
-    double trackProdX;
-    double trackProdY;
-    double trackProdZ;
-    double trackDecayX;
-    double trackDecayY;
-    double trackDecayZ;
     // std::vector<double> trackPointX;
     // std::vector<double> trackPointY;
     // std::vector<double> trackPointZ;
@@ -175,16 +162,40 @@ class AnalysisManager {
 
     //---------------------------------------------------
     // Output variables for GEOMETRY tree
+    // Pixel detector
     float_t detectorWidth;
     float_t detectorHeight;
-    float_t tungstenThickness;
     float_t siliconThickness;
-    Int_t nLayers;
-    Int_t simFlag;
-    Int_t scintBarFlag;
+    // Fortune section
+    float_t tungstenThickness;          // Fortune tungsten thickness
+    Int_t   nFortuneBlocks;
+    Int_t   numScintLayers;             // scint groups per Fortune block
+    Int_t   numScintPanelsPerLayer;
+    // Pinpoint section
+    float_t pinpointTungstenThickness;
+    Int_t   nPinpointBlocks;
+    // Scintillator geometry
+    float_t scintDetectorWidth;
+    float_t scintDetectorHeight;
+    float_t scintThickness;
+    float_t scintBarWidth;
+    float_t scintBarHeight;
+    Int_t   scintBarFlag;
+    // Total layer count
+    Int_t   nLayers;
+    Int_t   simFlag;
+    // Layer sequence flag
+    std::vector<Int_t> layerIsPixel;    // 1 = pixel layer, 0 = scint layer
+    // Pixel positions
     std::vector<double_t> pixelsXPos;
     std::vector<double_t> pixelsYPos;
     std::vector<double_t> pixelsZPos;
+    // Tungsten and scint z positions
+    std::vector<double_t> tungstenZPos;
+    std::vector<double_t> scintZPos;
+    // Scint bar centres
+    std::vector<double_t> scintBarCenterX;
+    std::vector<double_t> scintBarCenterY;
 
     //---------------------------------------------------
     // OUTPUT VARIABLES FOR Hits TREES
@@ -207,8 +218,6 @@ class AnalysisManager {
     // std::vector<G4bool> fPixelFromFSLPizero;
     std::vector<G4bool> fPixelFromPrimaryLepton;
     std::vector<G4bool> fPixelFromPrimaryEMShower;
-    std::vector<G4bool> fPixelFromCharmedHadron;
-    std::vector<G4bool> fPixelFromTau;
 
     // Truth position of hit in x, y, z
     std::vector<Float_t> fPixelTruthX;
@@ -243,24 +252,6 @@ class AnalysisManager {
     std::vector<float> fFaserE;           // Energy
     std::vector<float> fFaserEdep;        // Energy deposit
     std::vector<float> fFaserCharge;      // Particle charge
-
-    //
-    //----------------------------------------------------
-    // Output variables for tau and charm trees
-    UInt_t fPythiaEventID; 
-    int fPythiaTPDG;
-    int fPythiaPPDG;
-    int fPythiaTID;
-    int fPythiaPID;
-    double fPythiaProdX;
-    double fPythiaProdY;
-    double fPythiaProdZ;
-    double fPythiaDecayX;
-    double fPythiaDecayY;
-    double fPythiaDecayZ;
-    double fPythiaPx;
-    double fPythiaPy;
-    double fPythiaPz;
   };
 
 #endif
