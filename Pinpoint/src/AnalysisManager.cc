@@ -253,12 +253,27 @@ void AnalysisManager::bookScintTrees()
     fScintTree->Branch("layerID", &fScintLayerID);
     fScintTree->Branch("colID", &fScintColID);
     fScintTree->Branch("rowID", &fScintRowID);
+    fScintTree->Branch("isHorizontal", &fScintIsHorizontal);
     fScintTree->Branch("trackID", &fScintTrackID);
     fScintTree->Branch("parentID", &fScintParentID);
     fScintTree->Branch("pdg", &fScintPDG);
     fScintTree->Branch("edep", &fScintEdep);
     fScintTree->Branch("fromMuon", &fScintFromMuon);
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
+
+    fScintPixelTree = new TTree("scintillatorPixelHits", "scintillator pixel hits");
+
+    fScintPixelTree->Branch("event_id", &fScintPixelEventID, "event_id/i");
+    fScintPixelTree->Branch("layerID", &fScintPixelLayerID);
+    fScintPixelTree->Branch("colID", &fScintPixelColID);
+    fScintPixelTree->Branch("rowID", &fScintPixelRowID);
+    fScintPixelTree->Branch("isHorizontal", &fScintPixelIsHorizontal);
+    fScintPixelTree->Branch("trackID", &fScintPixelTrackID);
+    fScintPixelTree->Branch("parentID", &fScintPixelParentID);
+    fScintPixelTree->Branch("pdg", &fScintPixelPDG);
+    fScintPixelTree->Branch("edep", &fScintPixelEdep);
+    fScintPixelTree->Branch("fromMuon", &fScintPixelFromMuon);
+    fScintPixelTree->Branch("fromPrimaryLepton", &fScintPixelFromPrimaryLepton);
 }
 
 
@@ -324,6 +339,7 @@ void AnalysisManager::EndOfRun()
   fFile->cd(fHits->GetName());
   fPixelHitsTree->Write();
   fScintTree->Write();
+  fScintPixelTree->Write();
   fFaserHitsTree->Write();
 
   // fActsParticlesTree->Write();
@@ -376,12 +392,24 @@ void AnalysisManager::BeginOfEvent()
   fScintLayerID.clear();
   fScintColID.clear();
   fScintRowID.clear();
+  fScintIsHorizontal.clear();
   fScintTrackID.clear();
   fScintParentID.clear();
   fScintPDG.clear();
   fScintEdep.clear();
   fScintFromMuon.clear();
   fScintFromPrimaryLepton.clear();
+
+  fScintPixelLayerID.clear();
+  fScintPixelColID.clear();
+  fScintPixelRowID.clear();
+  fScintPixelIsHorizontal.clear();
+  fScintPixelTrackID.clear();
+  fScintPixelParentID.clear();
+  fScintPixelPDG.clear();
+  fScintPixelEdep.clear();
+  fScintPixelFromMuon.clear();
+  fScintPixelFromPrimaryLepton.clear();
 }
 
 //---------------------------------------------------------------------
@@ -698,6 +726,7 @@ void AnalysisManager::FillHitsOutput()
 void AnalysisManager::FillScintOutput()
 {
     fScintEventID = evtID;
+    fScintPixelEventID = evtID;
 
     G4int nHC = fHCofEvent->GetNumberOfCollections();
 
@@ -706,25 +735,46 @@ void AnalysisManager::FillScintOutput()
         auto* hc = fHCofEvent->GetHC(i);
         auto* scintHC = dynamic_cast<ScintHitsCollection*>(hc);
         if(!scintHC) continue;
-        if(scintHC->GetName() != "ScintHitsCollection") continue;
 
-        for(size_t h = 0; h < scintHC->entries(); ++h)
-        {
-            auto* hit = (*scintHC)[h];
+        // Bar-level (sum per row/column per track)
+        if(scintHC->GetName() == "ScintHitsCollection") {
+            for(size_t h = 0; h < scintHC->entries(); ++h)
+            {
+                auto* hit = (*scintHC)[h];
+                fScintLayerID.push_back(hit->GetLayerID());
+                fScintColID.push_back(hit->GetColID());
+                fScintRowID.push_back(hit->GetRowID());
+                fScintIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
+                fScintTrackID.push_back(hit->GetTrackID());
+                fScintParentID.push_back(hit->GetParentID());
+                fScintPDG.push_back(hit->GetPDGCode());
+                fScintEdep.push_back(hit->GetEnergyDeposit());
+                fScintFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
+                fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+            }
+        }
 
-            fScintLayerID.push_back(hit->GetLayerID());
-            fScintColID.push_back(hit->GetColID());
-            fScintRowID.push_back(hit->GetRowID());
-            fScintTrackID.push_back(hit->GetTrackID());
-            fScintParentID.push_back(hit->GetParentID());
-            fScintPDG.push_back(hit->GetPDGCode());
-            fScintEdep.push_back(hit->GetEnergyDeposit());
-            fScintFromMuon.push_back(hit->GetFromMuon());
-            fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
+        // Pixel-level (individual pixel energy per track)
+        if(scintHC->GetName() == "ScintPixelHitsCollection") {
+            for(size_t h = 0; h < scintHC->entries(); ++h)
+            {
+                auto* hit = (*scintHC)[h];
+                fScintPixelLayerID.push_back(hit->GetLayerID());
+                fScintPixelColID.push_back(hit->GetColID());
+                fScintPixelRowID.push_back(hit->GetRowID());
+                fScintPixelIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
+                fScintPixelTrackID.push_back(hit->GetTrackID());
+                fScintPixelParentID.push_back(hit->GetParentID());
+                fScintPixelPDG.push_back(hit->GetPDGCode());
+                fScintPixelEdep.push_back(hit->GetEnergyDeposit());
+                fScintPixelFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
+                fScintPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+            }
         }
     }
 
     fScintTree->Fill();
+    fScintPixelTree->Fill();
 }
 
 //// FASER SPECTROMETER HITS ---

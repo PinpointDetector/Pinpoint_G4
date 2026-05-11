@@ -92,6 +92,7 @@ class AnalysisManager {
     TTree*   fPixelHitsTree;
 
     TTree* fScintTree = nullptr;
+    TTree* fScintPixelTree = nullptr;
     TTree* fFaserHitsTree = nullptr;
 
     // track to primary ancestor
@@ -230,12 +231,27 @@ class AnalysisManager {
     std::vector<int> fScintLayerID;
     std::vector<int> fScintColID;
     std::vector<int> fScintRowID;
+    std::vector<int> fScintIsHorizontal;
     std::vector<int> fScintTrackID;
     std::vector<int> fScintParentID;
     std::vector<int> fScintPDG;
     std::vector<float> fScintEdep;
     std::vector<int> fScintFromMuon;
     std::vector<int> fScintFromPrimaryLepton;
+
+    //----------------------------------------------------
+    //OUTPUT VARIABLES FOR SCINTILLATOR PIXELS
+    UInt_t fScintPixelEventID;
+    std::vector<int> fScintPixelLayerID;
+    std::vector<int> fScintPixelColID;
+    std::vector<int> fScintPixelRowID;
+    std::vector<int> fScintPixelIsHorizontal;
+    std::vector<int> fScintPixelTrackID;
+    std::vector<int> fScintPixelParentID;
+    std::vector<int> fScintPixelPDG;
+    std::vector<float> fScintPixelEdep;
+    std::vector<int> fScintPixelFromMuon;
+    std::vector<int> fScintPixelFromPrimaryLepton;
 
     //----------------------------------------------------
     //OUTPUT VARIABLES FOR FASER SPECTROMETER (fFaserHitsTree)

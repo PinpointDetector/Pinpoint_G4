@@ -12,7 +12,8 @@ class G4HCofThisEvent;
 class ScintillatorSD : public G4VSensitiveDetector
 {
 public:
-    ScintillatorSD(const G4String& name, const G4String& hitsCollectionName);
+    ScintillatorSD(const G4String& name, const G4String& hitsCollectionName,
+                   const G4String& pixelHitsCollectionName);
     ~ScintillatorSD() override = default;
 
     void Initialize(G4HCofThisEvent* hitCollection) override;
@@ -26,6 +27,7 @@ public:
 
 private:
     ScintHitsCollection* fHitsCollection = nullptr;
+    ScintHitsCollection* fPixelHitsCollection = nullptr;
 
     // Static set to track all descendants of the primary lepton (trackId 1)
     static std::set<G4int> sScintPrimaryDescendants;

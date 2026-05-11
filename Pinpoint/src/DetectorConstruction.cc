@@ -190,6 +190,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   ScintLayerAtrrib->SetForceSolid(true);
 
   // ---------------------------------------------------------------
+  // Shared scintillator pixel LV (used by all bar panels when scint_bar_flag is true).
+  // Pixel size = fScintBarWidth × fScintBarHeight (bar width × bar height).
+  // Bar containers (ScintColumn / ScintRow) are air-filled; pixels are the active material.
+  // ---------------------------------------------------------------
+  G4LogicalVolume* scintPixelLV = nullptr;
+  if (scint_bar_flag) {
+    auto scintPixelS = new G4Box("ScintPixel", 0.5*fScintBarWidth, 0.5*fScintBarHeight, 0.5*fScintThickness);
+    scintPixelLV = new G4LogicalVolume(scintPixelS, scintillator, "ScintPixel");
+    scintPixelLV->SetVisAttributes(ScintLayerAtrrib);
+    scintLVs.push_back(scintPixelLV);
+  }
+
+  // ---------------------------------------------------------------
   // PINPOINT scintillator layer LVs: T_pp + S
   // ---------------------------------------------------------------
   G4LogicalVolume* pinpointHorizontalScintBlockLV = nullptr;
@@ -198,7 +211,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double z_T_ppsc = -0.5*fPinpointScintBlockThickness + 0.5*fPinpointTungstenThickness;
     G4double z_ppsc   = -0.5*fPinpointScintBlockThickness + fPinpointTungstenThickness + 0.5*fScintThickness;
 
-    // --- Horizontal block ---
+    // --- Horizontal block (vertical bars: columns segmented in X, each filled with pixels in Y) ---
     auto pinpointHorizontalScintBlockS = new G4Box("PinpointHorizontalScintLayer", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fPinpointScintBlockThickness);
     pinpointHorizontalScintBlockLV = new G4LogicalVolume(pinpointHorizontalScintBlockS, worldMaterial, "PinpointHorizontalScintLayer");
     pinpointHorizontalScintBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -210,18 +223,23 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       new G4PVPlacement(0, G4ThreeVector(0., 0., z_ppsc), ppHScintLV, "PinpointHorizontalScintBlock", pinpointHorizontalScintBlockLV, false, 0, fCheckOverlaps);
       scintLVs.push_back(ppHScintLV);
     } else {
-      auto ppHScintColS = new G4Box("PinpointScintColumn", 0.5*fScintBarWidth, 0.5*fScintDetectorHeight, 0.5*fScintThickness);
-      auto ppHScintColLV = new G4LogicalVolume(ppHScintColS, scintillator, "PinpointScintColumn");
-      ppHScintColLV->SetVisAttributes(ScintLayerAtrrib);
+      // Air-filled column container; pixels stacked in Y inside each column
+      auto ppHScintColS = new G4Box("ScintColumn", 0.5*fScintBarWidth, 0.5*fScintDetectorHeight, 0.5*fScintThickness);
+      auto ppHScintColLV = new G4LogicalVolume(ppHScintColS, worldMaterial, "ScintColumn");
+      ppHScintColLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+      G4double yFirst_ppH = -0.5*fScintDetectorHeight + 0.5*fScintBarHeight;
+      for (G4int jBar = 0; jBar < nScintBarsY; ++jBar) {
+        G4double yPixel = yFirst_ppH + jBar * fScintBarHeight;
+        new G4PVPlacement(0, G4ThreeVector(0., yPixel, 0.), scintPixelLV, "ScintPixel", ppHScintColLV, false, jBar, fCheckOverlaps);
+      }
       G4double xpos = -0.5*fScintDetectorWidth + 0.5*fScintBarWidth;
       for (G4int iBar = 0; iBar < nScintBarsX; ++iBar) {
-        new G4PVPlacement(0, G4ThreeVector(xpos, 0., z_ppsc), ppHScintColLV, "PinpointScintColumn", pinpointHorizontalScintBlockLV, false, iBar, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(xpos, 0., z_ppsc), ppHScintColLV, "ScintColumn", pinpointHorizontalScintBlockLV, false, iBar, fCheckOverlaps);
         xpos += fScintBarWidth;
       }
-      scintLVs.push_back(ppHScintColLV);
     }
 
-    // --- Vertical block ---
+    // --- Vertical block (horizontal bars: rows segmented in Y, each filled with pixels in X) ---
     auto pinpointVerticalScintBlockS = new G4Box("PinpointVerticalScintLayer", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fPinpointScintBlockThickness);
     pinpointVerticalScintBlockLV = new G4LogicalVolume(pinpointVerticalScintBlockS, worldMaterial, "PinpointVerticalScintLayer");
     pinpointVerticalScintBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -233,15 +251,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       new G4PVPlacement(0, G4ThreeVector(0., 0., z_ppsc), ppVScintLV, "PinpointVerticalScintBlock", pinpointVerticalScintBlockLV, false, 0, fCheckOverlaps);
       scintLVs.push_back(ppVScintLV);
     } else {
-      auto ppVScintRowS = new G4Box("PinpointScintRow", 0.5*fScintDetectorWidth, 0.5*fScintBarHeight, 0.5*fScintThickness);
-      auto ppVScintRowLV = new G4LogicalVolume(ppVScintRowS, scintillator, "PinpointScintRow");
-      ppVScintRowLV->SetVisAttributes(ScintLayerAtrrib);
+      // Air-filled row container; pixels stacked in X inside each row
+      auto ppVScintRowS = new G4Box("ScintRow", 0.5*fScintDetectorWidth, 0.5*fScintBarHeight, 0.5*fScintThickness);
+      auto ppVScintRowLV = new G4LogicalVolume(ppVScintRowS, worldMaterial, "ScintRow");
+      ppVScintRowLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+      G4double xFirst_ppV = -0.5*fScintDetectorWidth + 0.5*fScintBarWidth;
+      for (G4int iBar = 0; iBar < nScintBarsX; ++iBar) {
+        G4double xPixel = xFirst_ppV + iBar * fScintBarWidth;
+        new G4PVPlacement(0, G4ThreeVector(xPixel, 0., 0.), scintPixelLV, "ScintPixel", ppVScintRowLV, false, iBar, fCheckOverlaps);
+      }
       G4double yFirst = -0.5*fScintDetectorHeight + 0.5*fScintBarHeight;
       for (G4int jBar = 0; jBar < nScintBarsY; ++jBar) {
         G4double yBar = yFirst + jBar * fScintBarHeight;
-        new G4PVPlacement(0, G4ThreeVector(0., yBar, z_ppsc), ppVScintRowLV, "PinpointScintRow", pinpointVerticalScintBlockLV, false, jBar, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0., yBar, z_ppsc), ppVScintRowLV, "ScintRow", pinpointVerticalScintBlockLV, false, jBar, fCheckOverlaps);
       }
-      scintLVs.push_back(ppVScintRowLV);
     }
   }
 
@@ -273,31 +296,41 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                           scintBlockLV, blockName, fortuneScintBlockLV, false, iPanel, fCheckOverlaps);
         scintLVs.push_back(scintBlockLV);
       } else if (verticalBars) {
-        // Vertical bars segmented in X
+        // Vertical bars: air-filled columns with pixels stacked in Y
         blockName = "verticalBars";
         auto scintColS  = new G4Box("ScintColumn", 0.5*fScintBarWidth, 0.5*fScintDetectorHeight, 0.5*fScintThickness);
-        auto scintColLV = new G4LogicalVolume(scintColS, scintillator, "ScintColumn");
-        scintColLV->SetVisAttributes(ScintLayerAtrrib);
+        auto scintColLV = new G4LogicalVolume(scintColS, worldMaterial, "ScintColumn");
+        scintColLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+        G4double yFirst_fort = -0.5*fScintDetectorHeight + 0.5*fScintBarHeight;
+        for (G4int jBar = 0; jBar < nScintBarsY; ++jBar) {
+          G4double yPixel = yFirst_fort + jBar * fScintBarHeight;
+          new G4PVPlacement(0, G4ThreeVector(0., yPixel, 0.),
+                            scintPixelLV, "ScintPixel", scintColLV, false, jBar, fCheckOverlaps);
+        }
         G4double xpos = -0.5*fScintDetectorWidth + 0.5*fScintBarWidth;
         for (G4int iBar = 0; iBar < nScintBarsX; ++iBar) {
           new G4PVPlacement(0, G4ThreeVector(xpos, 0., z_panel),
                             scintColLV, "ScintColumn", fortuneScintBlockLV, false, iBar, fCheckOverlaps);
           xpos += fScintBarWidth;
         }
-        scintLVs.push_back(scintColLV);
       } else {
-        // Horizontal bars segmented in Y
+        // Horizontal bars: air-filled rows with pixels stacked in X
         blockName = "horizontalBars";
         auto scintRowS  = new G4Box("ScintRow", 0.5*fScintDetectorWidth, 0.5*fScintBarHeight, 0.5*fScintThickness);
-        auto scintRowLV = new G4LogicalVolume(scintRowS, scintillator, "ScintRow");
-        scintRowLV->SetVisAttributes(ScintLayerAtrrib);
+        auto scintRowLV = new G4LogicalVolume(scintRowS, worldMaterial, "ScintRow");
+        scintRowLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+        G4double xFirst_fort = -0.5*fScintDetectorWidth + 0.5*fScintBarWidth;
+        for (G4int iBar = 0; iBar < nScintBarsX; ++iBar) {
+          G4double xPixel = xFirst_fort + iBar * fScintBarWidth;
+          new G4PVPlacement(0, G4ThreeVector(xPixel, 0., 0.),
+                            scintPixelLV, "ScintPixel", scintRowLV, false, iBar, fCheckOverlaps);
+        }
         G4double yFirst = -0.5*fScintDetectorHeight + 0.5*fScintBarHeight;
         for (G4int jBar = 0; jBar < nScintBarsY; ++jBar) {
           G4double yBar = yFirst + jBar * fScintBarHeight;
           new G4PVPlacement(0, G4ThreeVector(0., yBar, z_panel),
                             scintRowLV, "ScintRow", fortuneScintBlockLV, false, jBar, fCheckOverlaps);
         }
-        scintLVs.push_back(scintRowLV);
       }
     }
   }
@@ -513,7 +546,7 @@ void DetectorConstruction::ConstructSDandField()
 {
     
   // Create Scintillator SD
-  auto scintSD = new ScintillatorSD("ScintillatorDetector", "ScintHitsCollection");
+  auto scintSD = new ScintillatorSD("ScintillatorDetector", "ScintHitsCollection", "ScintPixelHitsCollection");
   G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
 
   // Assign SD to all scintillator LVs

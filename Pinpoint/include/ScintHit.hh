@@ -45,6 +45,7 @@ public:
   void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
   void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
+  void SetIsHorizontal(G4bool isHorizontal) { fIsHorizontal = isHorizontal; }
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetLayerID() const { return fLayerID; }
@@ -65,6 +66,7 @@ public:
   G4bool GetFromPrimaryPizero() const { return fFromPrimaryPizero; }
   G4bool GetFromFSLPizero() const { return fFromFSLPizero; }
   G4bool GetFromPrimaryLepton() const { return fFromPrimaryLepton; }
+  G4bool GetIsHorizontal() const { return fIsHorizontal; }
 
 private:
   G4int fTrackID = -1;
@@ -82,6 +84,7 @@ private:
 
   G4double fEnergyDeposit = 0.0;
   G4bool fFromMuon = false;
+  G4bool fIsHorizontal = false;
 };
 
 

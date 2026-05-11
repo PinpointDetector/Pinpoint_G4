@@ -17,29 +17,57 @@
 std::set<G4int> ScintillatorSD::sScintMuonDescendants;
 std::set<std::pair<G4int,G4int>> ScintillatorSD::sScintHitParticles;
 
-struct ScintLayerHitID {
+// Key for bar-level grouping: one entry per (layer, isHorizontal, bar, track)
+struct ScintBarHitID {
     G4int layerID;
-    G4int scintColID;
-    G4int scintRowID;
+    G4int barID;        // colID for vertical panels, rowID for horizontal panels
+    G4bool isHorizontal;
     G4int trackID;
     G4int pdgCode;
     G4int parentID;
     G4bool fromPrimaryLepton;
 
-    bool operator<(const ScintLayerHitID& other) const {
+    bool operator<(const ScintBarHitID& other) const {
         if(layerID != other.layerID) return layerID < other.layerID;
+        if((int)isHorizontal != (int)other.isHorizontal) return (int)isHorizontal < (int)other.isHorizontal;
+        if(barID != other.barID) return barID < other.barID;
         return trackID < other.trackID;
     }
 };
 
-// Energy and muon flags per layer hit
-static std::map<ScintLayerHitID, G4double> layerEnergyMap;
-static std::map<ScintLayerHitID, G4bool> layerFromMuonMap;
+// Key for pixel-level grouping: one entry per (layer, isHorizontal, col, row, track)
+struct ScintPixelHitID {
+    G4int layerID;
+    G4int colID;
+    G4int rowID;
+    G4bool isHorizontal;
+    G4int trackID;
+    G4int pdgCode;
+    G4int parentID;
+    G4bool fromPrimaryLepton;
 
-ScintillatorSD::ScintillatorSD(const G4String& name, const G4String& hitsCollectionName)
+    bool operator<(const ScintPixelHitID& other) const {
+        if(layerID != other.layerID) return layerID < other.layerID;
+        if((int)isHorizontal != (int)other.isHorizontal) return (int)isHorizontal < (int)other.isHorizontal;
+        if(colID != other.colID) return colID < other.colID;
+        if(rowID != other.rowID) return rowID < other.rowID;
+        return trackID < other.trackID;
+    }
+};
+
+// Bar-level energy accumulation (sum over all pixels in a row/column per track)
+static std::map<ScintBarHitID, G4double> barEnergyMap;
+static std::map<ScintBarHitID, G4bool> barFromMuonMap;
+// Pixel-level energy accumulation
+static std::map<ScintPixelHitID, G4double> pixelEnergyMap;
+static std::map<ScintPixelHitID, G4bool> pixelFromMuonMap;
+
+ScintillatorSD::ScintillatorSD(const G4String& name, const G4String& hitsCollectionName,
+                               const G4String& pixelHitsCollectionName)
     : G4VSensitiveDetector(name)
 {
     collectionName.insert(hitsCollectionName);
+    collectionName.insert(pixelHitsCollectionName);
 }
 
 void ScintillatorSD::Initialize(G4HCofThisEvent* hce)
@@ -48,9 +76,15 @@ void ScintillatorSD::Initialize(G4HCofThisEvent* hce)
     G4int hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
     hce->AddHitsCollection(hcID, fHitsCollection);
 
+    fPixelHitsCollection = new ScintHitsCollection(SensitiveDetectorName, collectionName[1]);
+    G4int pixelHcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[1]);
+    hce->AddHitsCollection(pixelHcID, fPixelHitsCollection);
+
     fScintCurrentHitId = 0;
-    layerEnergyMap.clear();
-    layerFromMuonMap.clear();
+    barEnergyMap.clear();
+    barFromMuonMap.clear();
+    pixelEnergyMap.clear();
+    pixelFromMuonMap.clear();
     sScintHitParticles.clear();
 }
 
@@ -65,31 +99,33 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4StepPoint* preStep = step->GetPreStepPoint();
     G4TouchableHandle touchable = preStep->GetTouchableHandle();
 
-    G4int layerID = -1;        // detector layer (replica number)
-    G4int scintRowID = -1;   // 1 or 2
-    G4int scintColID = -1;          // scintillator bar index (if segmented)
+    G4int layerID    = -1;
+    G4int scintRowID = -1;
+    G4int scintColID = -1;
+    G4int scintPixelID = -1;   // copy number of the ScintPixel volume
+    G4bool isHorizontal = false;
 
     const G4int depth = touchable->GetHistoryDepth();
 
     for(G4int i = 0; i < depth; ++i) {
         const G4String& volName = touchable->GetVolume(i)->GetName();
         const G4int copyNum = touchable->GetCopyNumber(i);
-        //G4cout << "Depth [" << i << "]: " << volName << " (copy=" << copyNum << ")" << G4endl;
 
-        if(volName == "ScintLayer") {
-            layerID = copyNum;
-        }
-        if(volName == "ScintRow"){
-            scintRowID = copyNum;
-        }
-        if(volName == "ScintColumn"){
-            scintColID = copyNum;
+        if(volName == "ScintLayer")  layerID      = copyNum;
+        if(volName == "ScintRow")  { scintRowID    = copyNum; isHorizontal = true; }
+        if(volName == "ScintColumn") scintColID    = copyNum;
+        if(volName == "ScintPixel")  scintPixelID  = copyNum;
+    }
+
+    // ScintPixel is inside ScintColumn (vertical panel) or ScintRow (horizontal panel).
+    // Its copy number encodes rowID within a column, or colID within a row.
+    if(scintPixelID >= 0) {
+        if(isHorizontal) {
+            scintColID = scintPixelID; // pixel copy = colID within the row
+        } else {
+            scintRowID = scintPixelID; // pixel copy = rowID within the column
         }
     }
-    // G4cout << "Extracted IDs: layerID=" << layerID 
-    //        << ", scintRowID=" << scintRowID 
-    //        << ", scintColID=" << scintColID << G4endl;
-    // G4cout << "========================" << G4endl;
 
     if(layerID < 0) {
         G4Exception("ScintillatorSD", "Hit001", JustWarning,
@@ -97,24 +133,25 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
         return false;
     }
 
-    // Layer ID is assumed to be copy number 0
-    //G4int layerID = touchable->GetCopyNumber(1);
-    G4int trackID = track->GetTrackID();
+    G4int trackID  = track->GetTrackID();
     G4int parentID = track->GetParentID();
-    G4int pdgCode = track->GetParticleDefinition()->GetPDGEncoding();
-    //G4LorentzVector p4 = track->GetDynamicParticle()->Get4Momentum();
-    G4ThreeVector truthPos = preStep->GetPosition();
+    G4int pdgCode  = track->GetParticleDefinition()->GetPDGEncoding();
 
-    const auto* info =static_cast<const TrackInformation*>(track->GetUserInformation());
-    G4bool fromPrimaryLepton = info && info->IsTrackFromPrimaryLepton() || parentID ==0;
-    fromPrimaryLepton = fromPrimaryLepton && (std::abs(pdgCode) == 11 || std::abs(pdgCode) == 13 || std::abs(pdgCode) == 15);
+    const auto* info = static_cast<const TrackInformation*>(track->GetUserInformation());
+    G4bool fromPrimaryLepton = (info && info->IsTrackFromPrimaryLepton()) || parentID == 0;
+    fromPrimaryLepton = fromPrimaryLepton &&
+                        (std::abs(pdgCode) == 11 || std::abs(pdgCode) == 13 || std::abs(pdgCode) == 15);
 
-    ScintLayerHitID hitID {layerID, scintColID, scintRowID, trackID, pdgCode, parentID, fromPrimaryLepton};
-    
-    layerEnergyMap[hitID] += edep;
+    // Bar-level: accumulate energy per (layer, isHorizontal, bar, track)
+    G4int barID = isHorizontal ? scintRowID : scintColID;
+    ScintBarHitID barID_key {layerID, barID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton};
+    barEnergyMap[barID_key] += edep;
+    if(IsFromMuon(trackID)) barFromMuonMap[barID_key] = true;
 
-    if(IsFromMuon(trackID))
-        layerFromMuonMap[hitID] = true;
+    // Pixel-level: accumulate energy per (layer, isHorizontal, col, row, track)
+    ScintPixelHitID pixelID_key {layerID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton};
+    pixelEnergyMap[pixelID_key] += edep;
+    if(IsFromMuon(trackID)) pixelFromMuonMap[pixelID_key] = true;
 
     fScintCurrentHitId++;
     return true;
@@ -122,26 +159,46 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
 void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
 {
-    for(const auto& [hitID, edep] : layerEnergyMap)
+    // Bar-level hits: sum of all pixel energy in the same row/column per track
+    for(const auto& [hitID, edep] : barEnergyMap)
     {
         if(edep <= 0.) continue;
-
         auto hit = new ScintHit();
         hit->SetLayerID(hitID.layerID);
-        hit->SetColID(hitID.scintColID);
-        hit->SetRowID(hitID.scintRowID);
+        hit->SetColID(hitID.isHorizontal ? -1 : hitID.barID);
+        hit->SetRowID(hitID.isHorizontal ? hitID.barID : -1);
+        hit->SetIsHorizontal(hitID.isHorizontal);
         hit->SetTrackID(hitID.trackID);
         hit->SetParentID(hitID.parentID);
         hit->SetPDGCode(hitID.pdgCode);
         hit->SetEnergyDeposit(edep);
-        hit->SetFromMuon(layerFromMuonMap[hitID]);
+        hit->SetFromMuon(barFromMuonMap.count(hitID) ? barFromMuonMap[hitID] : false);
         hit->SetFromPrimaryLepton(hitID.fromPrimaryLepton);
-
         fHitsCollection->insert(hit);
     }
 
-    layerEnergyMap.clear();
-    layerFromMuonMap.clear();
+    // Pixel-level hits: individual scintillator pixel energy per track
+    for(const auto& [hitID, edep] : pixelEnergyMap)
+    {
+        if(edep <= 0.) continue;
+        auto hit = new ScintHit();
+        hit->SetLayerID(hitID.layerID);
+        hit->SetColID(hitID.colID);
+        hit->SetRowID(hitID.rowID);
+        hit->SetIsHorizontal(hitID.isHorizontal);
+        hit->SetTrackID(hitID.trackID);
+        hit->SetParentID(hitID.parentID);
+        hit->SetPDGCode(hitID.pdgCode);
+        hit->SetEnergyDeposit(edep);
+        hit->SetFromMuon(pixelFromMuonMap.count(hitID) ? pixelFromMuonMap[hitID] : false);
+        hit->SetFromPrimaryLepton(hitID.fromPrimaryLepton);
+        fPixelHitsCollection->insert(hit);
+    }
+
+    barEnergyMap.clear();
+    barFromMuonMap.clear();
+    pixelEnergyMap.clear();
+    pixelFromMuonMap.clear();
 
     if(verboseLevel > 1) {
         std::size_t nofHits = fHitsCollection->entries();
