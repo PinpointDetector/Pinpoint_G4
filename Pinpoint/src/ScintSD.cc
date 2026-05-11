@@ -26,6 +26,8 @@ struct ScintBarHitID {
     G4int pdgCode;
     G4int parentID;
     G4bool fromPrimaryLepton;
+    G4bool fromPrimaryEMShower;
+    G4bool fromTau;
 
     bool operator<(const ScintBarHitID& other) const {
         if(layerID != other.layerID) return layerID < other.layerID;
@@ -45,6 +47,8 @@ struct ScintPixelHitID {
     G4int pdgCode;
     G4int parentID;
     G4bool fromPrimaryLepton;
+    G4bool fromPrimaryEMShower;
+    G4bool fromTau;
 
     bool operator<(const ScintPixelHitID& other) const {
         if(layerID != other.layerID) return layerID < other.layerID;
@@ -141,15 +145,17 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4bool fromPrimaryLepton = (info && info->IsTrackFromPrimaryLepton()) || parentID == 0;
     fromPrimaryLepton = fromPrimaryLepton &&
                         (std::abs(pdgCode) == 11 || std::abs(pdgCode) == 13 || std::abs(pdgCode) == 15);
+    G4bool fromPrimaryEMShower = info && info->IsTrackFromPrimaryEMShower();
+    G4bool fromTau = info && info->IsTrackFromTau();
 
     // Bar-level: accumulate energy per (layer, isHorizontal, bar, track)
     G4int barID = isHorizontal ? scintRowID : scintColID;
-    ScintBarHitID barID_key {layerID, barID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton};
+    ScintBarHitID barID_key {layerID, barID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
     barEnergyMap[barID_key] += edep;
     if(IsFromMuon(trackID)) barFromMuonMap[barID_key] = true;
 
     // Pixel-level: accumulate energy per (layer, isHorizontal, col, row, track)
-    ScintPixelHitID pixelID_key {layerID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton};
+    ScintPixelHitID pixelID_key {layerID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
     pixelEnergyMap[pixelID_key] += edep;
     if(IsFromMuon(trackID)) pixelFromMuonMap[pixelID_key] = true;
 
@@ -174,6 +180,8 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
         hit->SetEnergyDeposit(edep);
         hit->SetFromMuon(barFromMuonMap.count(hitID) ? barFromMuonMap[hitID] : false);
         hit->SetFromPrimaryLepton(hitID.fromPrimaryLepton);
+        hit->SetFromPrimaryEMShower(hitID.fromPrimaryEMShower);
+        hit->SetFromTau(hitID.fromTau);
         fHitsCollection->insert(hit);
     }
 
@@ -192,6 +200,8 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
         hit->SetEnergyDeposit(edep);
         hit->SetFromMuon(pixelFromMuonMap.count(hitID) ? pixelFromMuonMap[hitID] : false);
         hit->SetFromPrimaryLepton(hitID.fromPrimaryLepton);
+        hit->SetFromPrimaryEMShower(hitID.fromPrimaryEMShower);
+        hit->SetFromTau(hitID.fromTau);
         fPixelHitsCollection->insert(hit);
     }
 

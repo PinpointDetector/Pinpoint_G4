@@ -44,6 +44,8 @@ public:
   void SetFromPrimaryPizero(G4bool fromPrimaryPizero) { fFromPrimaryPizero = fromPrimaryPizero; }
   void SetFromFSLPizero(G4bool fromFSLPizero) { fFromFSLPizero = fromFSLPizero; }
   void SetFromPrimaryLepton(G4bool fromPrimaryLepton) { fFromPrimaryLepton = fromPrimaryLepton; }
+  void SetFromPrimaryEMShower(G4bool fromPrimaryEMShower) { fFromPrimaryEMShower = fromPrimaryEMShower; }
+  void SetFromTau(G4bool fromTau) { fFromTau = fromTau; }
   void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
   void SetIsHorizontal(G4bool isHorizontal) { fIsHorizontal = isHorizontal; }
 
@@ -66,6 +68,8 @@ public:
   G4bool GetFromPrimaryPizero() const { return fFromPrimaryPizero; }
   G4bool GetFromFSLPizero() const { return fFromFSLPizero; }
   G4bool GetFromPrimaryLepton() const { return fFromPrimaryLepton; }
+  G4bool GetFromPrimaryEMShower() const { return fFromPrimaryEMShower; }
+  G4bool GetFromTau() const { return fFromTau; }
   G4bool GetIsHorizontal() const { return fIsHorizontal; }
 
 private:
@@ -84,6 +88,8 @@ private:
 
   G4double fEnergyDeposit = 0.0;
   G4bool fFromMuon = false;
+  G4bool fFromPrimaryEMShower = false;
+  G4bool fFromTau = false;
   G4bool fIsHorizontal = false;
 };
 

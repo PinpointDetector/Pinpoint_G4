@@ -260,6 +260,8 @@ void AnalysisManager::bookScintTrees()
     fScintTree->Branch("edep", &fScintEdep);
     fScintTree->Branch("fromMuon", &fScintFromMuon);
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
+    fScintTree->Branch("fromPrimaryEMShower", &fScintFromPrimaryEMShower);
+    fScintTree->Branch("fromTau", &fScintFromTau);
 
     fScintPixelTree = new TTree("scintillatorPixelHits", "scintillator pixel hits");
 
@@ -274,6 +276,8 @@ void AnalysisManager::bookScintTrees()
     fScintPixelTree->Branch("edep", &fScintPixelEdep);
     fScintPixelTree->Branch("fromMuon", &fScintPixelFromMuon);
     fScintPixelTree->Branch("fromPrimaryLepton", &fScintPixelFromPrimaryLepton);
+    fScintPixelTree->Branch("fromPrimaryEMShower", &fScintPixelFromPrimaryEMShower);
+    fScintPixelTree->Branch("fromTau", &fScintPixelFromTau);
 }
 
 
@@ -399,6 +403,8 @@ void AnalysisManager::BeginOfEvent()
   fScintEdep.clear();
   fScintFromMuon.clear();
   fScintFromPrimaryLepton.clear();
+  fScintFromPrimaryEMShower.clear();
+  fScintFromTau.clear();
 
   fScintPixelLayerID.clear();
   fScintPixelColID.clear();
@@ -410,6 +416,8 @@ void AnalysisManager::BeginOfEvent()
   fScintPixelEdep.clear();
   fScintPixelFromMuon.clear();
   fScintPixelFromPrimaryLepton.clear();
+  fScintPixelFromPrimaryEMShower.clear();
+  fScintPixelFromTau.clear();
 }
 
 //---------------------------------------------------------------------
@@ -751,6 +759,8 @@ void AnalysisManager::FillScintOutput()
                 fScintEdep.push_back(hit->GetEnergyDeposit());
                 fScintFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
                 fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+                fScintFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower() ? 1 : 0);
+                fScintFromTau.push_back(hit->GetFromTau() ? 1 : 0);
             }
         }
 
@@ -769,6 +779,8 @@ void AnalysisManager::FillScintOutput()
                 fScintPixelEdep.push_back(hit->GetEnergyDeposit());
                 fScintPixelFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
                 fScintPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+                fScintPixelFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower() ? 1 : 0);
+                fScintPixelFromTau.push_back(hit->GetFromTau() ? 1 : 0);
             }
         }
     }

@@ -238,6 +238,8 @@ class AnalysisManager {
     std::vector<float> fScintEdep;
     std::vector<int> fScintFromMuon;
     std::vector<int> fScintFromPrimaryLepton;
+    std::vector<int> fScintFromPrimaryEMShower;
+    std::vector<int> fScintFromTau;
 
     //----------------------------------------------------
     //OUTPUT VARIABLES FOR SCINTILLATOR PIXELS
@@ -252,6 +254,8 @@ class AnalysisManager {
     std::vector<float> fScintPixelEdep;
     std::vector<int> fScintPixelFromMuon;
     std::vector<int> fScintPixelFromPrimaryLepton;
+    std::vector<int> fScintPixelFromPrimaryEMShower;
+    std::vector<int> fScintPixelFromTau;
 
     //----------------------------------------------------
     //OUTPUT VARIABLES FOR FASER SPECTROMETER (fFaserHitsTree)
