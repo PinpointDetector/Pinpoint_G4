@@ -231,6 +231,8 @@ void AnalysisManager::bookHitsTrees()
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
   fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
   fPixelHitsTree->Branch("hit_fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
+  fPixelHitsTree->Branch("hit_fromCharmedHadron", &fPixelFromCharmedHadron);
+  fPixelHitsTree->Branch("hit_fromTau", &fPixelFromTau);
 
   // if (fSaveTruthHits)
   // {
@@ -387,6 +389,8 @@ void AnalysisManager::BeginOfEvent()
   // fPixelFromFSLPizero.clear();
   fPixelFromPrimaryLepton.clear();
   fPixelFromPrimaryEMShower.clear();
+  fPixelFromCharmedHadron.clear();
+  fPixelFromTau.clear();
   // fPixelTruthX.clear();
   // fPixelTruthY.clear();
   // fPixelTruthZ.clear();
@@ -706,6 +710,8 @@ void AnalysisManager::FillHitsOutput()
           // fPixelFromFSLPizero.push_back(hit->GetFromFSLPizero());
           fPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
           fPixelFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower());
+          fPixelFromCharmedHadron.push_back(hit->GetFromCharmedHadron());
+          fPixelFromTau.push_back(hit->GetFromTau());
 
           // if (fSaveTruthHits)
           // {
