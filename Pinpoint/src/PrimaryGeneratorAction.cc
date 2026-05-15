@@ -11,8 +11,10 @@
 
 #include "G4Event.hh"
 #include "G4Exception.hh"
+#include "G4RunManager.hh"
 
 G4long PrimaryGeneratorAction::fFirstEvent = -1;
+G4long PrimaryGeneratorAction::fLastEvent = -1;
 
 PrimaryGeneratorAction::PrimaryGeneratorAction()
 {
@@ -41,6 +43,9 @@ void PrimaryGeneratorAction::SetGenerator(G4String name)
     GFaserGenerator* gfaserGen = new GFaserGenerator();
     if (fFirstEvent >= 0) {
       gfaserGen->SetFirstEvent(fFirstEvent);
+    }
+    if (fLastEvent >= 0) {
+      gfaserGen->SetLastEvent(fLastEvent);
     }
     fGenerator = gfaserGen;
   }

@@ -24,12 +24,14 @@ class GFaserGenerator : public GeneratorBase
 
     void SetInputFileName(const G4String& filename) { fInputFileName = filename; }
     void SetFirstEvent(G4long event) { fFirstEvent = event; }
+    void SetLastEvent(G4long event) { fLastEvent = event; }
     void SetHitPixelArea(G4bool hitPixelArea) { fHitPixelArea = hitPixelArea; }
 
 
   private:
     G4String fInputFileName;
     G4long fFirstEvent{0};
+    G4long fLastEvent{-1};
     G4bool fHitPixelArea{false};
 
     TFile *fGfaserFile = nullptr;

@@ -147,6 +147,13 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
     return;
   }
 
+  if (fLastEvent >= 0 && fCurrentEvent > fLastEvent) {
+    G4cout << "fCurrentEvent " << fCurrentEvent
+           << " exceeds lastEvent " << fLastEvent << ". Aborting run." << G4endl;
+    G4RunManager::GetRunManager()->AbortRun(true);
+    return;
+  }
+
   const DetectorConstruction* detector =
     static_cast<const DetectorConstruction*>(
         G4RunManager::GetRunManager()->GetUserDetectorConstruction()
