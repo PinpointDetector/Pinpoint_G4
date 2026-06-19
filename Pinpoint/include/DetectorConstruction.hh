@@ -66,6 +66,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetPinpointThickness(G4double w) { fPinpointThickness = w; }
     void SetPinpointTungstenThickness(G4double t) { fPinpointTungstenThickness = t; }
     void SetEnableFaserSpectrometer(G4bool enable) { fEnableFaserSpectrometer = enable; }
+    void SetNIPTLayers(G4int n) { fNIPTLayers = n; }
+    G4int GetNIPTLayers() const { return fNIPTLayers; }
 
 
     std::vector<G4double> GetPixelXPositions() const {
@@ -230,6 +232,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fTracker1Position = 47.4 * mm - fVetoNuPosition;
     G4double fTracker2Position = 1237.4 * mm - fVetoNuPosition;
     G4double fTracker3Position = 2427.4 * mm - fVetoNuPosition;
+    G4int fNIPTLayers = 3;
 
     G4bool fCheckOverlaps = true;
 

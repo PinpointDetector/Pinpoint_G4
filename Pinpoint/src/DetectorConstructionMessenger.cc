@@ -169,6 +169,12 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     enableFaserSpectrometerCmd->SetDefaultValue(true);
     enableFaserSpectrometerCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
+    numIPTLayersCmd = new G4UIcmdWithAnInteger("/det/setNumIPTLayers", this);
+    numIPTLayersCmd->SetGuidance("Number of Interface Pixel Tracker (IPT) layers at the end of the detector.");
+    numIPTLayersCmd->SetParameterName("NumIPTLayers", false);
+    numIPTLayersCmd->SetRange("NumIPTLayers>=0");
+    numIPTLayersCmd->SetDefaultValue(3);
+
     // magnetFieldCmd = new G4UIcmdWithADoubleAndUnit("/det/magnetField", this);
     // magnetFieldCmd->SetUnitCategory("Magnetic flux density");
     // magnetFieldCmd->SetDefaultUnit("tesla");
@@ -202,6 +208,7 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
   delete pinpointThicknessCmd;
   delete pinpointTungstenThicknessCmd;
   delete enableFaserSpectrometerCmd;
+  delete numIPTLayersCmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -275,6 +282,9 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
   }
   if (command == enableFaserSpectrometerCmd) {
     det->SetEnableFaserSpectrometer(enableFaserSpectrometerCmd->GetNewBoolValue(newValues));
+  }
+  if (command == numIPTLayersCmd) {
+    det->SetNIPTLayers(numIPTLayersCmd->GetNewIntValue(newValues));
   }
 
 

@@ -77,7 +77,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   fNFortuneBlocks = static_cast<int>((fMaxDetectorThickness - fPinpointThickness) / fortuneBlockThickness);
   G4double fortuneThickness = fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
-  auto detectorThickness = fPinpointThickness + fortuneThickness;
+  G4double airPixelBlockThickness = fPinpointPixelBlockThickness;
+  G4double trailingAirLayersThickness = fNIPTLayers * airPixelBlockThickness;
+  auto detectorThickness = fPinpointThickness + fortuneThickness + trailingAirLayersThickness;
   G4double detEnvelopeSizeY = std::max(fPixelDetectorHeight, fScintDetectorHeight);
   G4double detEnvelopeSizeX = std::max(fPixelDetectorWidth, fScintDetectorWidth);
   // detectorYCenter > 0: the detector envelope is shifted upward so its bottom aligns with
@@ -183,6 +185,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Pixel
   G4double z_Si_pp = -0.5*fPinpointPixelBlockThickness + fPinpointTungstenThickness + 0.5 * fBoxThickness + 0.5*fSiliconThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_pp), fPixelLayerLV, "PixelLayer", pinpointPixelBlockLV, false, 0, fCheckOverlaps);
+
+  // ---------------------------------------------------------------
+  // Interface Pixel Tracker (IPT)
+  // ---------------------------------------------------------------
+  auto airPixelBlockS  = new G4Box("AirPixelBlock", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*airPixelBlockThickness);
+  auto airPixelBlockLV = new G4LogicalVolume(airPixelBlockS, worldMaterial, "AirPixelBlock");
+  airPixelBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+  G4double z_Si_air = -0.5*airPixelBlockThickness + fPinpointTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_air), fPixelLayerLV, "PixelLayer", airPixelBlockLV, false, 0, fCheckOverlaps);
 
   // Scintillator visual attributes (shared by Pinpoint and Fortune)
   G4VisAttributes* ScintLayerAtrrib = new G4VisAttributes(G4Colour::Blue());
@@ -392,6 +403,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     fLayerIsPixel.push_back(true);
   }
 
+  // Interface Pixel Tracker
+  {
+    G4double zAirLayerStart = -0.5*detectorThickness + fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
+    for (G4int i = 0; i < fNIPTLayers; ++i) {
+      G4double zCenter = zAirLayerStart + (i + 0.5) * airPixelBlockThickness;
+      fLayerPV = new G4PVPlacement(0, G4ThreeVector(0., pixelLayerYInDet, zCenter),
+                                    airPixelBlockLV, "AirPixelLayer", detectorLV, false, fNPinpointBlocks + fNFortuneBlocks + 1 + i, fCheckOverlaps);
+      fLayerIsPixel.push_back(true);
+    }
+  }
+
   if (fEnableFaserSpectrometer) {
     // FASER spectrometer magnets:
     // solid cylinders (0 to outerRadius) and air-filled bore (0 to innerRadius)
@@ -509,7 +531,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "--- Total Layer Count ---" << G4endl;
   G4cout << "  Pinpoint pixel layers:  " << fNPinpointBlocks << G4endl;
   G4cout << "  Fortune pixel layers:   " << fNFortuneBlocks + 1 << "  (incl. trailing)" << G4endl;
-  G4cout << "  Total pixel layers:     " << fNPinpointBlocks + fNFortuneBlocks + 1 << G4endl;
+  G4cout << "  Trailing air pixel layers: " << fNIPTLayers << G4endl;
+  G4cout << "  Total pixel layers:     " << fNPinpointBlocks + fNFortuneBlocks + 1 + fNIPTLayers << G4endl;
   G4cout << "  Fortune scint layers:   " << fNFortuneBlocks * fNumScintLayers << G4endl;
   G4cout << "  Pinpoint scint layers:  " << fNPinpointBlocks << G4endl;
 
@@ -683,6 +706,16 @@ void DetectorConstruction::ComputeSiliconZPositions()
     fTungstenZPositions.push_back(blockFront + ftTungstenOffset);
     fTungstenThicknesses.push_back(fFortuneTungstenThickness);
     fSiliconZPositions.push_back( blockFront + ftSiliconOffset);
+  }
+
+  // ---- Interface pixel tracker (fNIPTLayers layers, no tungsten) ----
+  {
+    const G4double airLayersStart = fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
+    const G4double airPixelBlockThickness = fPinpointPixelBlockThickness;
+    for (G4int i = 0; i < fNIPTLayers; ++i) {
+      const G4double blockFront = airLayersStart + i * airPixelBlockThickness;
+      fSiliconZPositions.push_back(blockFront + fPinpointTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness);
+    }
   }
 
   G4cout << "Computed Z positions: "

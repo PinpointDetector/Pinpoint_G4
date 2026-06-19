@@ -50,6 +50,7 @@ class DetectorConstructionMessenger: public G4UImessenger {
     G4UIcmdWithADoubleAndUnit* pinpointThicknessCmd;
     G4UIcmdWithADoubleAndUnit* pinpointTungstenThicknessCmd;
     G4UIcmdWithABool* enableFaserSpectrometerCmd;
+    G4UIcmdWithAnInteger* numIPTLayersCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
