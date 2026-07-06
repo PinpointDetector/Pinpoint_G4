@@ -30,6 +30,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume* GetLayerPhysVol() const { return fLayerPV; }
 
     G4int GetNFortuneBlocks() const { return fNFortuneBlocks; }
+    void SetNumFortuneBlocks(G4int n) { fNFortuneBlocks = n; }
     G4int GetNPinpointBlocks() const { return fNPinpointBlocks; }
     G4int GetNLayers() const { return fNPinpointBlocks * 2 + fNFortuneBlocks * (fNumScintLayers + 1) + 1; }
     // G4int GetNumberOfLayers() const { return fNLayers; }
@@ -62,12 +63,28 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetScintBarHeight(G4double h) { fScintBarHeight = h; }
     void SetScintThickness(G4double t) { fScintThickness = t; }
     void SetNumScintLayers(G4int n) { fNumScintLayers = n; }
-    void SetMaxDetectorThickness(G4double t) { fMaxDetectorThickness = t; }
+    // void SetMaxDetectorThickness(G4double t) { fMaxDetectorThickness = t; }
     void SetPinpointThickness(G4double w) { fPinpointThickness = w; }
     void SetPinpointTungstenThickness(G4double t) { fPinpointTungstenThickness = t; }
+    void SetNumPinpointLayers(G4int n) { fNPinpointBlocks = n; }
+    void SetAluminumWallThickness(G4double t) { fAluminumWallThickness = t; }
+    G4double GetAluminumWallThickness() const { return fAluminumWallThickness; }
+    void SetAluminumWallWidth(G4double w) { fAluminumWallWidth = w; }
+    G4double GetAluminumWallWidth() const { return fAluminumWallWidth; }
+    void SetAluminumWallHeight(G4double h) { fAluminumWallHeight = h; }
+    G4double GetAluminumWallHeight() const { return fAluminumWallHeight; }
     void SetEnableFaserSpectrometer(G4bool enable) { fEnableFaserSpectrometer = enable; }
     void SetNIPTLayers(G4int n) { fNIPTLayers = n; }
     G4int GetNIPTLayers() const { return fNIPTLayers; }
+
+    void SetPixelDetectorOffsetX(G4double x) { fPixelDetectorOffsetX = x; }
+    void SetPixelDetectorOffsetY(G4double y) { fPixelDetectorOffsetY = y; }
+    void SetScintDetectorOffsetX(G4double x) { fScintDetectorOffsetX = x; }
+    void SetScintDetectorOffsetY(G4double y) { fScintDetectorOffsetY = y; }
+    G4double GetPixelDetectorOffsetX() const { return fPixelDetectorOffsetX; }
+    G4double GetPixelDetectorOffsetY() const { return fPixelDetectorOffsetY; }
+    G4double GetScintDetectorOffsetX() const { return fScintDetectorOffsetX; }
+    G4double GetScintDetectorOffsetY() const { return fScintDetectorOffsetY; }
 
 
     std::vector<G4double> GetPixelXPositions() const {
@@ -130,7 +147,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     }
     G4double GetScintDetectorHeight() const { return fScintDetectorHeight; }
     G4int GetNumScintLayers() const { return fNumScintLayers; }
-    G4double GetMaxDetectorThickness() const { return fMaxDetectorThickness; }
+    // G4double GetMaxDetectorThickness() const { return fMaxDetectorThickness; }
     G4double GetPinpointThickness() const { return fPinpointThickness; }
     G4double GetPinpointTungstenThickness() const { return fPinpointTungstenThickness; }
     G4int GetNPinpointLayers() const { return fNPinpointBlocks; }
@@ -213,10 +230,13 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     // G4int fTotalNLayers = 0;             // total physical layers (pixel + scint)
     std::vector<G4bool> fLayerIsPixel;   // true if layer i (in sequence) is a pixel layer
     G4int fNumScintPanelsPerLayer = 1;  // 0=no scint, 1=single panel, 2=double panel
-    G4double fMaxDetectorThickness = 111.5 * cm;
+    // G4double fMaxDetectorThickness = 111.5 * cm;
     G4double fPinpointThickness = 10.5 * cm;  // if >0, initial pixel-only section (no scint)
     G4int fNPinpointBlocks = 4;           // computed: floor(fPinpointThickness / fFortunePixelBlockThickness)
     G4int fNFortuneBlocks = 6;           // computed: floor(fPinpointThickness / fFortunePixelBlockThickness)
+    G4double fAluminumWallThickness = 1.0 * mm;  // aluminum wall placed before and after each pinpoint/fortune block
+    G4double fAluminumWallWidth = 44.0 * cm;   // transverse width of the aluminum walls
+    G4double fAluminumWallHeight = 44.0 * cm;  // transverse height of the aluminum walls
     G4bool scint_bar_flag = true;
     G4bool fEnableFaserSpectrometer = true;
     G4double fLongMagnetLength = 1500.0 * mm;
@@ -233,6 +253,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fTracker2Position = 1237.4 * mm - fVetoNuPosition;
     G4double fTracker3Position = 2427.4 * mm - fVetoNuPosition;
     G4int fNIPTLayers = 3;
+
+    G4double fPixelDetectorOffsetX = 0.0 * mm;
+    G4double fPixelDetectorOffsetY = 0.0 * mm;
+    G4double fScintDetectorOffsetX = 0.0 * mm;
+    G4double fScintDetectorOffsetY = 0.0 * mm;
 
     G4bool fCheckOverlaps = true;
 

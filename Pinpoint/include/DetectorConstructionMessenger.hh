@@ -49,8 +49,17 @@ class DetectorConstructionMessenger: public G4UImessenger {
     G4UIcmdWithADoubleAndUnit* maxDetectorThicknessCmd;
     G4UIcmdWithADoubleAndUnit* pinpointThicknessCmd;
     G4UIcmdWithADoubleAndUnit* pinpointTungstenThicknessCmd;
+    G4UIcmdWithAnInteger* numPinpointLayersCmd;
+    G4UIcmdWithAnInteger* numFortuneBlocksCmd;
+    G4UIcmdWithADoubleAndUnit* aluminumWallThicknessCmd;
+    G4UIcmdWithADoubleAndUnit* aluminumWallWidthCmd;
+    G4UIcmdWithADoubleAndUnit* aluminumWallHeightCmd;
     G4UIcmdWithABool* enableFaserSpectrometerCmd;
     G4UIcmdWithAnInteger* numIPTLayersCmd;
+    G4UIcmdWithADoubleAndUnit* pixelDetectorOffsetXCmd;
+    G4UIcmdWithADoubleAndUnit* pixelDetectorOffsetYCmd;
+    G4UIcmdWithADoubleAndUnit* scintDetectorOffsetXCmd;
+    G4UIcmdWithADoubleAndUnit* scintDetectorOffsetYCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

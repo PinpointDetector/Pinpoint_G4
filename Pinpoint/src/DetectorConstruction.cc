@@ -65,30 +65,32 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   fFortunePixelBlockThickness  = fFortuneTungstenThickness + fBoxThickness + fSiliconThickness;
   fPinpointPixelBlockThickness = fPinpointTungstenThickness + fBoxThickness + fSiliconThickness;
   fPinpointScintBlockThickness = fPinpointTungstenThickness + fScintThickness;
+  // Tungsten is split into quarter-thickness pieces, each panel independently wrapped by
+  // one before and one after (adjacent panels therefore share a double-thickness boundary).
   fFortuneScintBlockThickness = (fNumScintPanelsPerLayer > 0)
-                                ? fFortuneTungstenThickness + fNumScintPanelsPerLayer * fScintThickness
+                                ? fNumScintPanelsPerLayer * (fScintThickness + 0.5 * fFortuneTungstenThickness)
                                 : 0.0 * mm;
-  G4double pinpointBlockThickness = fPinpointPixelBlockThickness + fPinpointScintBlockThickness;
-  G4double fortuneBlockThickness = fFortunePixelBlockThickness + fNumScintLayers * fFortuneScintBlockThickness;
+  // Pinpoint block: pixel sub-block and scint sub-block each independently wrapped in an aluminum wall pair.
+  G4double pinpointBlockThickness = fPinpointPixelBlockThickness + fPinpointScintBlockThickness + 4 * fAluminumWallThickness;
+  // Fortune block: pixel block + each scint layer independently wrapped in an aluminum wall pair.
+  G4double fortuneBlockThickness = fFortunePixelBlockThickness + fNumScintLayers * fFortuneScintBlockThickness
+                                  + 2 * (fNumScintLayers + 1) * fAluminumWallThickness;
 
   // Each pinpoint block is T + P + T + S
-  fNPinpointBlocks = static_cast<G4int>(fPinpointThickness / pinpointBlockThickness);
+  // fNPinpointBlocks = static_cast<G4int>(fPinpointThickness / pinpointBlockThickness);
   fPinpointThickness = fNPinpointBlocks * pinpointBlockThickness;
 
-  fNFortuneBlocks = static_cast<int>((fMaxDetectorThickness - fPinpointThickness) / fortuneBlockThickness);
+  // fNFortuneBlocks = static_cast<int>((fMaxDetectorThickness - fPinpointThickness) / fortuneBlockThickness);
   G4double fortuneThickness = fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
-  G4double airPixelBlockThickness = fPinpointPixelBlockThickness;
-  G4double trailingAirLayersThickness = fNIPTLayers * airPixelBlockThickness;
-  auto detectorThickness = fPinpointThickness + fortuneThickness + trailingAirLayersThickness;
+  G4double IPTPixelBlockThickness = fPinpointPixelBlockThickness;
+  G4double IPTThickness = fNIPTLayers * IPTPixelBlockThickness;
+  auto detectorThickness = fPinpointThickness + fortuneThickness + IPTThickness;
   G4double detEnvelopeSizeY = std::max(fPixelDetectorHeight, fScintDetectorHeight);
   G4double detEnvelopeSizeX = std::max(fPixelDetectorWidth, fScintDetectorWidth);
-  // detectorYCenter > 0: the detector envelope is shifted upward so its bottom aligns with
-  // the pixel detector bottom (world Y = -0.5*fPixelDetectorHeight).  The top of the envelope
-  // therefore reaches world Y = detEnvelopeSizeY - 0.5*fPixelDetectorHeight.
-  G4double detectorYCenter = -0.5*fPixelDetectorHeight + 0.5*detEnvelopeSizeY;
-  // World must cover: detector (±half-width in X, shifted in Y) and magnets (±fOuterRadius in X/Y)
+  // Detector envelope is centred at (0, 0) on the beam axis.
+  // World must cover: detector (±half-width in X/Y) and magnets (±fOuterRadius in X/Y)
   G4double worldHalfX = std::max(0.5*detEnvelopeSizeX, fOuterRadius);
-  G4double worldHalfY = std::max(detEnvelopeSizeY - 0.5*fPixelDetectorHeight, fOuterRadius);
+  G4double worldHalfY = std::max(0.5*detEnvelopeSizeY, fOuterRadius);
   auto worldSizeX = 2.0 * 1.2 * worldHalfX;
   auto worldSizeY = 2.0 * 1.2 * worldHalfY;
   auto worldSizeZ = 1.2 * (detectorThickness + fTracker3Position);
@@ -99,6 +101,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4Material* worldMaterial = nist->FindOrBuildMaterial("G4_AIR");
   G4Material* tungstenMaterial = nist->FindOrBuildMaterial("G4_W");
   G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
+  G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
     
   //Calling scintillator, wrapping and related variables
   DefineMaterial();
@@ -115,13 +118,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   experimentalHallVisAtt->SetForceWireframe(true);
   worldLV->SetVisAttributes(experimentalHallVisAtt);
 
-  // Detector envelope – Y sized to max(fPixelDetectorHeight, fScintDetectorHeight) so scint bars fit.
-  // Shifted in Y so the bottom edge of the envelope aligns with the bottom of the pixel detector,
-  // which bottom-aligns the scintillators with the pixel detector.
+  // Detector envelope – Y/X sized to max(pixel, scint) extents so all layers fit; centred at (0, 0).
   auto detectorS = new G4Box("Detector", 0.5 * detEnvelopeSizeX, 0.5 * detEnvelopeSizeY, 0.5 * detectorThickness);
   auto detectorLV = new G4LogicalVolume(detectorS, worldMaterial, "Detector");
   // Front face at z=0, back face at z=detectorThickness in world coords
-  new G4PVPlacement(0, G4ThreeVector(0., detectorYCenter, 0.5 * detectorThickness), detectorLV, "Detector", worldLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0., 0., 0.5 * detectorThickness), detectorLV, "Detector", worldLV, false, 0, fCheckOverlaps);
 
   // ---------------------------------------------------------------
   // Tungsten
@@ -129,25 +130,43 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4VisAttributes* TargetVisAtt = new G4VisAttributes(G4Colour::Red());
   TargetVisAtt->SetForceWireframe(true);
 
-  // PINPOINT pixel tungsten
-  auto pinpointTungstenS = new G4Box("PinpointTungsten", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*fPinpointTungstenThickness);
+  // PINPOINT pixel tungsten (transverse size matches the scintillator plates): split into
+  // half-thickness pieces, one before and one after the pixel silicon (see below).
+  G4double pinpointTungstenHalfThickness = 0.5*fPinpointTungstenThickness;
+  auto pinpointTungstenS = new G4Box("PinpointTungsten", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*pinpointTungstenHalfThickness);
   auto pinpointTungstenLV = new G4LogicalVolume(pinpointTungstenS, tungstenMaterial, "PinpointTungsten");
   pinpointTungstenLV->SetVisAttributes(TargetVisAtt);
 
-  // PINPOINT scintillator tungsten
-  auto pinpointScintTungstenS = new G4Box("PinpointScintTungsten", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fPinpointTungstenThickness);
+  // PINPOINT scintillator tungsten: split into half-thickness pieces, one before and one
+  // after the scintillator (see pinpointHorizontalScintBlockLV / pinpointVerticalScintBlockLV below).
+  auto pinpointScintTungstenS = new G4Box("PinpointScintTungsten", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*pinpointTungstenHalfThickness);
   auto pinpointScintTungstenLV = new G4LogicalVolume(pinpointScintTungstenS, tungstenMaterial, "PinpointScintTungsten");
   pinpointScintTungstenLV->SetVisAttributes(TargetVisAtt);
 
   // FORTUNE Pixel Tungsten
-  auto fortuneTungstenS = new G4Box("Tungsten", 0.5 * fPixelDetectorWidth, 0.5 * fPixelDetectorHeight, 0.5 * fFortuneTungstenThickness);
+  auto fortuneTungstenS = new G4Box("Tungsten", 0.5 * fScintDetectorWidth, 0.5 * fScintDetectorHeight, 0.5 * fFortuneTungstenThickness);
   auto fortuneTungstenLV = new G4LogicalVolume(fortuneTungstenS, tungstenMaterial, "Tungsten");
   fortuneTungstenLV->SetVisAttributes(TargetVisAtt);
 
-  // FORTUNE Scintillator Tungsten
-  auto fortuneScintTungstenS = new G4Box("ScintTungsten", 0.5 * fScintDetectorWidth, 0.5 * fScintDetectorHeight, 0.5 * fFortuneTungstenThickness);
+  // FORTUNE Scintillator Tungsten: split into quarter-thickness pieces, one before and one
+  // after each scintillator panel (see fortuneScintBlockLV below).
+  G4double fortuneScintTungstenQuarterThickness = 0.25 * fFortuneTungstenThickness;
+  auto fortuneScintTungstenS = new G4Box("ScintTungsten", 0.5 * fScintDetectorWidth, 0.5 * fScintDetectorHeight, 0.5 * fortuneScintTungstenQuarterThickness);
   auto fortuneScintTungstenLV = new G4LogicalVolume(fortuneScintTungstenS, tungstenMaterial, "ScintTungsten");
   fortuneScintTungstenLV->SetVisAttributes(TargetVisAtt);
+
+  // ---------------------------------------------------------------
+  // Aluminum wall: placed before and after each Pinpoint/Fortune block, spanning the full
+  // transverse extent of the detector envelope.
+  // ---------------------------------------------------------------
+  G4LogicalVolume* aluminumWallLV = nullptr;
+  if (fAluminumWallThickness > 0.) {
+    G4VisAttributes* AlWallVisAtt = new G4VisAttributes(G4Colour::Grey());
+    AlWallVisAtt->SetForceSolid(true);
+    auto aluminumWallS = new G4Box("AluminumWall", 0.5*fAluminumWallWidth, 0.5*fAluminumWallHeight, 0.5*fAluminumWallThickness);
+    aluminumWallLV = new G4LogicalVolume(aluminumWallS, aluminumMaterial, "AluminumWall");
+    aluminumWallLV->SetVisAttributes(AlWallVisAtt);
+  }
 
   // ---------------------------------------------------------------
   // Silicon pixel layer
@@ -161,39 +180,26 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   fPixelLayerLV->SetVisAttributes(LayerAtrrib);
 
   // ---------------------------------------------------------------
-  // FORTUNE pixel block: T + 0.5 * box + P + 0.5 * box
+  // FORTUNE / PINPOINT pixel blocks (T + 0.5*box + P + 0.5*box) are assembled directly
+  // in the detector volume (see below) rather than as a wrapper logical volume, since the
+  // tungsten (centred at the scintillator offset) and the silicon (centred at the pixel
+  // offset) generally sit at different transverse positions.
   // ---------------------------------------------------------------
-  auto fortunePixelBlockS  = new G4Box("FortunePixelBlock", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*fFortunePixelBlockThickness);
-  auto fortunePixelBlockLV = new G4LogicalVolume(fortunePixelBlockS, worldMaterial, "PixelBlock");
-  fortunePixelBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-  // Tungsten
-  G4double z_T_pxl = -0.5*fFortunePixelBlockThickness + 0.5*fFortuneTungstenThickness;
-  new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_pxl), fortuneTungstenLV, "Tungsten", fortunePixelBlockLV, false, 0, fCheckOverlaps);
-  // Pixel
-  G4double z_Si_pxl = -0.5*fFortunePixelBlockThickness + fFortuneTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_pxl), fPixelLayerLV, "PixelLayer", fortunePixelBlockLV, false, 0, fCheckOverlaps);
-
-  // ---------------------------------------------------------------
-  // PINPOINT pixel block: T_pp + 0.5 * box + P + 0.5 * box
-  // ---------------------------------------------------------------
-  auto pinpointPixelBlockS  = new G4Box("PinpointPixelLayer", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*fPinpointPixelBlockThickness);
-  auto pinpointPixelBlockLV = new G4LogicalVolume(pinpointPixelBlockS, worldMaterial, "PinpointPixelLayer");
-  pinpointPixelBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-  // Tungsten
-  G4double z_T_pp = -0.5*fPinpointPixelBlockThickness + 0.5*fPinpointTungstenThickness;
-  new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_pp), pinpointTungstenLV, "PinpointTungsten", pinpointPixelBlockLV, false, 0, fCheckOverlaps);
-  // Pixel
-  G4double z_Si_pp = -0.5*fPinpointPixelBlockThickness + fPinpointTungstenThickness + 0.5 * fBoxThickness + 0.5*fSiliconThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_pp), fPixelLayerLV, "PixelLayer", pinpointPixelBlockLV, false, 0, fCheckOverlaps);
+  G4double ftTungstenOffset = 0.5*fFortuneTungstenThickness;
+  G4double ftSiliconOffset  = fFortuneTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
+  // Pinpoint pixel tungsten is split in half: one piece before, one after the silicon.
+  G4double ppTungstenFrontOffset = 0.5*pinpointTungstenHalfThickness;
+  G4double ppSiliconOffset       = pinpointTungstenHalfThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
+  G4double ppTungstenBackOffset  = fPinpointPixelBlockThickness - 0.5*pinpointTungstenHalfThickness;
 
   // ---------------------------------------------------------------
   // Interface Pixel Tracker (IPT)
   // ---------------------------------------------------------------
-  auto airPixelBlockS  = new G4Box("AirPixelBlock", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*airPixelBlockThickness);
-  auto airPixelBlockLV = new G4LogicalVolume(airPixelBlockS, worldMaterial, "AirPixelBlock");
-  airPixelBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-  G4double z_Si_air = -0.5*airPixelBlockThickness + fPinpointTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_air), fPixelLayerLV, "PixelLayer", airPixelBlockLV, false, 0, fCheckOverlaps);
+  auto IPTPixelBlockS  = new G4Box("AirPixelBlock", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*IPTPixelBlockThickness);
+  auto IPTPixelBlockLV = new G4LogicalVolume(IPTPixelBlockS, worldMaterial, "IPTPixelBlock");
+  IPTPixelBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+  G4double z_Si_IPT = -0.5*IPTPixelBlockThickness + fPinpointTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness;
+  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., z_Si_IPT), fPixelLayerLV, "PixelLayer", IPTPixelBlockLV, false, 0, fCheckOverlaps);
 
   // Scintillator visual attributes (shared by Pinpoint and Fortune)
   G4VisAttributes* ScintLayerAtrrib = new G4VisAttributes(G4Colour::Blue());
@@ -219,14 +225,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4LogicalVolume* pinpointHorizontalScintBlockLV = nullptr;
   G4LogicalVolume* pinpointVerticalScintBlockLV   = nullptr;
   if (fNPinpointBlocks > 0) {
-    G4double z_T_ppsc = -0.5*fPinpointScintBlockThickness + 0.5*fPinpointTungstenThickness;
-    G4double z_ppsc   = -0.5*fPinpointScintBlockThickness + fPinpointTungstenThickness + 0.5*fScintThickness;
+    // Scint tungsten split in half: one piece before, one after the scintillator.
+    G4double z_T_ppsc_front = -0.5*fPinpointScintBlockThickness + 0.5*pinpointTungstenHalfThickness;
+    G4double z_ppsc         = -0.5*fPinpointScintBlockThickness + pinpointTungstenHalfThickness + 0.5*fScintThickness;
+    G4double z_T_ppsc_back  =  0.5*fPinpointScintBlockThickness - 0.5*pinpointTungstenHalfThickness;
 
     // --- Horizontal block (vertical bars: columns segmented in X, each filled with pixels in Y) ---
     auto pinpointHorizontalScintBlockS = new G4Box("PinpointHorizontalScintLayer", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fPinpointScintBlockThickness);
     pinpointHorizontalScintBlockLV = new G4LogicalVolume(pinpointHorizontalScintBlockS, worldMaterial, "PinpointHorizontalScintLayer");
     pinpointHorizontalScintBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointHorizontalScintBlockLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc_front), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointHorizontalScintBlockLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc_back), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointHorizontalScintBlockLV, false, 1, fCheckOverlaps);
     if (!scint_bar_flag) {
       auto ppHScintS = new G4Box("PinpointHorizontalScintBlock", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fScintThickness);
       auto ppHScintLV = new G4LogicalVolume(ppHScintS, scintillator, "PinpointHorizontalScintBlock");
@@ -254,7 +263,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     auto pinpointVerticalScintBlockS = new G4Box("PinpointVerticalScintLayer", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fPinpointScintBlockThickness);
     pinpointVerticalScintBlockLV = new G4LogicalVolume(pinpointVerticalScintBlockS, worldMaterial, "PinpointVerticalScintLayer");
     pinpointVerticalScintBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointVerticalScintBlockLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc_front), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointVerticalScintBlockLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_ppsc_back), pinpointScintTungstenLV, "PinpointScintTungsten", pinpointVerticalScintBlockLV, false, 1, fCheckOverlaps);
     if (!scint_bar_flag) {
       auto ppVScintS = new G4Box("PinpointVerticalScintBlock", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fScintThickness);
       auto ppVScintLV = new G4LogicalVolume(ppVScintS, scintillator, "PinpointVerticalScintBlock");
@@ -279,6 +289,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
   }
 
+  G4cout << "Scint detector size: " << fScintDetectorWidth << ", " << fScintDetectorHeight << G4endl;
+
   // ---------------------------------------------------------------
   // FORTUNE scintillator block: T + fNumScintPanelsPerLayer × S
   // ---------------------------------------------------------------
@@ -287,15 +299,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     auto fortuneScintBlockS  = new G4Box("ScintLayer", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fFortuneScintBlockThickness);
     fortuneScintBlockLV = new G4LogicalVolume(fortuneScintBlockS, worldMaterial, "ScintLayer");
     fortuneScintBlockLV->SetVisAttributes(G4VisAttributes::GetInvisible());
-    // Tungsten
-    G4double z_T_scnt = -0.5*fFortuneScintBlockThickness + 0.5*fFortuneTungstenThickness;
-    new G4PVPlacement(0, G4ThreeVector(0., 0., z_T_scnt), fortuneScintTungstenLV, "ScintTungsten", fortuneScintBlockLV, false, 0, fCheckOverlaps);
-    // Scintillators
-    // Y offset so scintillator bottom-edge aligns with detector bottom-edge
-    G4double yScintOffset = -0.5*fPixelDetectorHeight + 0.5*fScintDetectorHeight;
+    // Tungsten quarter-pieces and scintillator panels, interleaved: each panel is wrapped by
+    // its own tungsten quarter before and after (adjacent panels share a double-thickness
+    // tungsten boundary), e.g. for 2 panels: Tq, S1, Tq, Tq, S2, Tq.
+    G4double zCursorScint = -0.5*fFortuneScintBlockThickness;
+    G4int scintTungstenCopy = 0;
     for (G4int iPanel = 0; iPanel < fNumScintPanelsPerLayer; ++iPanel) {
+      new G4PVPlacement(0, G4ThreeVector(0., 0., zCursorScint + 0.5*fortuneScintTungstenQuarterThickness),
+                        fortuneScintTungstenLV, "ScintTungsten", fortuneScintBlockLV, false, scintTungstenCopy++, fCheckOverlaps);
+      zCursorScint += fortuneScintTungstenQuarterThickness;
+
       G4bool verticalBars = (iPanel == 0); // first panel: vertical bars; second panel: horizontal bars
-      G4double z_panel = -0.5*fFortuneScintBlockThickness + fFortuneTungstenThickness + (iPanel + 0.5)*fScintThickness;
+      G4double z_panel = zCursorScint + 0.5*fScintThickness;
       G4String blockName = "";
       if (!scint_bar_flag) {
         // Solid block
@@ -343,6 +358,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                             scintRowLV, "ScintRow", fortuneScintBlockLV, false, jBar, fCheckOverlaps);
         }
       }
+      zCursorScint += fScintThickness;
+
+      new G4PVPlacement(0, G4ThreeVector(0., 0., zCursorScint + 0.5*fortuneScintTungstenQuarterThickness),
+                        fortuneScintTungstenLV, "ScintTungsten", fortuneScintBlockLV, false, scintTungstenCopy++, fCheckOverlaps);
+      zCursorScint += fortuneScintTungstenQuarterThickness;
     }
   }
 
@@ -350,66 +370,131 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Add blocks to detector geometry
   // ---------------------------------------------------------------
   fLayerIsPixel.clear();
-  // Pixel layers must be offset in Y within the (possibly enlarged) detector envelope
-  // so that they remain at world Y=0 (centred on the beam axis).
-  G4double pixelLayerYInDet = -detectorYCenter;
-  // Scint layers are placed so their bottom edge aligns with the pixel detector bottom
-  // (world Y = -0.5*fPixelDetectorHeight).  When fScintDetectorHeight >= fPixelDetectorHeight this is 0.
-  G4double scintYInDet = 0.5 * (fScintDetectorHeight - detEnvelopeSizeY);
   // ---------------------------------------------------------------
   // PINPOINT
   // ---------------------------------------------------------------
+  // Pixel layers are centred at (fPixelDetectorOffsetX, fPixelDetectorOffsetY);
+  // scintillator layers and tungsten plates are centred at (fScintDetectorOffsetX, fScintDetectorOffsetY).
+  G4double pixelX = fPixelDetectorOffsetX;
+  G4double pixelY = fPixelDetectorOffsetY;
+  G4double scintX = fScintDetectorOffsetX;
+  G4double scintY = fScintDetectorOffsetY;
+
+  // Each pinpoint block wraps the pixel sub-block and the scint sub-block in its own
+  // dedicated wall pair; the two sub-blocks therefore have two walls back-to-back
+  // at their shared boundary.
+  G4int pinpointWallCopy = 0;
   for (G4int i = 0; i < fNPinpointBlocks; ++i) {
-    G4double zGroupStart = -0.5*detectorThickness + i * pinpointBlockThickness;
-    // Pixel bloks
-    G4double zCenter = zGroupStart + 0.5*fPinpointPixelBlockThickness;
-    fLayerPV = new G4PVPlacement(0, G4ThreeVector(0., pixelLayerYInDet, zCenter),
-                                  pinpointPixelBlockLV, "PinpointPixelBlock", detectorLV, false, i, fCheckOverlaps);
+    G4double zCursor = -0.5*detectorThickness + i * pinpointBlockThickness;
+
+    // Pixel block: wall, tungsten (scint offset) + silicon (pixel offset), wall
+    if (aluminumWallLV) {
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                        aluminumWallLV, "AluminumWall", detectorLV, false, pinpointWallCopy++, fCheckOverlaps);
+      zCursor += fAluminumWallThickness;
+    }
+    new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + ppTungstenFrontOffset),
+                      pinpointTungstenLV, "PinpointTungsten", detectorLV, false, 2*i, fCheckOverlaps);
+    fLayerPV = new G4PVPlacement(0, G4ThreeVector(pixelX, pixelY, zCursor + ppSiliconOffset),
+                                  fPixelLayerLV, "PixelLayer", detectorLV, false, i, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + ppTungstenBackOffset),
+                      pinpointTungstenLV, "PinpointTungsten", detectorLV, false, 2*i + 1, fCheckOverlaps);
     fLayerIsPixel.push_back(true);
-    // Scintillator blocks (alternating: horizontal if i%2==0, vertical otherwise)
+    zCursor += fPinpointPixelBlockThickness;
+    if (aluminumWallLV) {
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                        aluminumWallLV, "AluminumWall", detectorLV, false, pinpointWallCopy++, fCheckOverlaps);
+      zCursor += fAluminumWallThickness;
+    }
+
+    // Scint block: wall, tungsten + scintillator, wall (alternating: horizontal if i%2==0, vertical otherwise)
     G4LogicalVolume* ppScintLV = (i % 2 == 0) ? pinpointHorizontalScintBlockLV : pinpointVerticalScintBlockLV;
     if (ppScintLV) {
-      G4double zScintCenter = zGroupStart + fPinpointPixelBlockThickness + 0.5*fPinpointScintBlockThickness;
-      new G4PVPlacement(0, G4ThreeVector(0., scintYInDet, zScintCenter),
+      if (aluminumWallLV) {
+        new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                          aluminumWallLV, "AluminumWall", detectorLV, false, pinpointWallCopy++, fCheckOverlaps);
+        zCursor += fAluminumWallThickness;
+      }
+      G4double zScintCenter = zCursor + 0.5*fPinpointScintBlockThickness;
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zScintCenter),
                         ppScintLV, "ScintLayer", detectorLV, false, i, fCheckOverlaps);
       fLayerIsPixel.push_back(false);
+      zCursor += fPinpointScintBlockThickness;
+      if (aluminumWallLV) {
+        new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                          aluminumWallLV, "AluminumWall", detectorLV, false, pinpointWallCopy++, fCheckOverlaps);
+        zCursor += fAluminumWallThickness;
+      }
     }
   }
   // ---------------------------------------------------------------
   // FORTUNE
   // ---------------------------------------------------------------
+  // Each fortune block wraps every sub-component (pixel block, and each scint block)
+  // in its own dedicated wall pair; adjacent components therefore have two walls
+  // back-to-back at their shared boundary.
+  G4int fortuneWallCopy = pinpointWallCopy;
   for (G4int i = 0; i < fNFortuneBlocks; ++i) {
-    G4double zGroupStart = -0.5*detectorThickness + fPinpointThickness + i * fortuneBlockThickness;
-    // Pixel block
-    G4double zPixelCenter = zGroupStart + 0.5*fFortunePixelBlockThickness;
-    fLayerPV = new G4PVPlacement(0, G4ThreeVector(0., pixelLayerYInDet, zPixelCenter),
-                                  fortunePixelBlockLV, "PinpointPixelLayer", detectorLV, false, fNPinpointBlocks + i, fCheckOverlaps);
+    G4double zCursor = -0.5*detectorThickness + fPinpointThickness + i * fortuneBlockThickness;
+    G4int copyNum = fNPinpointBlocks + i;
+
+    // Pixel block: wall, tungsten (scint offset) + silicon (pixel offset), wall
+    if (aluminumWallLV) {
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                        aluminumWallLV, "AluminumWall", detectorLV, false, fortuneWallCopy++, fCheckOverlaps);
+      zCursor += fAluminumWallThickness;
+    }
+    new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + ftTungstenOffset),
+                      fortuneTungstenLV, "Tungsten", detectorLV, false, copyNum, fCheckOverlaps);
+    fLayerPV = new G4PVPlacement(0, G4ThreeVector(pixelX, pixelY, zCursor + ftSiliconOffset),
+                                  fPixelLayerLV, "PixelLayer", detectorLV, false, copyNum, fCheckOverlaps);
     fLayerIsPixel.push_back(true);
-    // Scint blocks
+    zCursor += fFortunePixelBlockThickness;
+    if (aluminumWallLV) {
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                        aluminumWallLV, "AluminumWall", detectorLV, false, fortuneWallCopy++, fCheckOverlaps);
+      zCursor += fAluminumWallThickness;
+    }
+
+    // Scint blocks: wall, tungsten + N_panels*scintillator, wall (repeated per scint layer)
     for (G4int j = 0; j < fNumScintLayers; ++j) {
-      G4double zScintCenter = zGroupStart + fFortunePixelBlockThickness + j * fFortuneScintBlockThickness + 0.5*fFortuneScintBlockThickness;
+      if (aluminumWallLV) {
+        new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                          aluminumWallLV, "AluminumWall", detectorLV, false, fortuneWallCopy++, fCheckOverlaps);
+        zCursor += fAluminumWallThickness;
+      }
+      G4double zScintCenter = zCursor + 0.5*fFortuneScintBlockThickness;
       G4int scintCopyNum = fNPinpointBlocks + i * fNumScintLayers + j;
-      new G4PVPlacement(0, G4ThreeVector(0., scintYInDet, zScintCenter),
+      new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zScintCenter),
                         fortuneScintBlockLV, "ScintLayer", detectorLV, false, scintCopyNum, fCheckOverlaps);
       fLayerIsPixel.push_back(false);
+      zCursor += fFortuneScintBlockThickness;
+      if (aluminumWallLV) {
+        new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zCursor + 0.5*fAluminumWallThickness),
+                          aluminumWallLV, "AluminumWall", detectorLV, false, fortuneWallCopy++, fCheckOverlaps);
+        zCursor += fAluminumWallThickness;
+      }
     }
   }
 
   // Trailing pixel layer (after last fortune group)
   {
-    G4double zTrailingCenter = -0.5*detectorThickness + fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + 0.5*fFortunePixelBlockThickness;
-    fLayerPV = new G4PVPlacement(0, G4ThreeVector(0., pixelLayerYInDet, zTrailingCenter),
-                                  fortunePixelBlockLV, "FortunePixelLayer", detectorLV, false, fNPinpointBlocks + fNFortuneBlocks, fCheckOverlaps);
+    G4double zGroupStart = -0.5*detectorThickness + fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness;
+    G4int copyNum = fNPinpointBlocks + fNFortuneBlocks;
+    new G4PVPlacement(0, G4ThreeVector(scintX, scintY, zGroupStart + ftTungstenOffset),
+                      fortuneTungstenLV, "Tungsten", detectorLV, false, copyNum, fCheckOverlaps);
+    fLayerPV = new G4PVPlacement(0, G4ThreeVector(pixelX, pixelY, zGroupStart + ftSiliconOffset),
+                                  fPixelLayerLV, "PixelLayer", detectorLV, false, copyNum, fCheckOverlaps);
     fLayerIsPixel.push_back(true);
   }
 
   // Interface Pixel Tracker
   {
-    G4double zAirLayerStart = -0.5*detectorThickness + fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
+    G4double zIPTLayerStart = -0.5*detectorThickness + fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
     for (G4int i = 0; i < fNIPTLayers; ++i) {
-      G4double zCenter = zAirLayerStart + (i + 0.5) * airPixelBlockThickness;
-      fLayerPV = new G4PVPlacement(0, G4ThreeVector(0., pixelLayerYInDet, zCenter),
-                                    airPixelBlockLV, "AirPixelLayer", detectorLV, false, fNPinpointBlocks + fNFortuneBlocks + 1 + i, fCheckOverlaps);
+      G4double zCenter = zIPTLayerStart + (i + 0.5) * IPTPixelBlockThickness;
+      fLayerPV = new G4PVPlacement(0, G4ThreeVector(pixelX, pixelY, zCenter),
+                                    IPTPixelBlockLV, "IPTPixelLayer", detectorLV, false, fNPinpointBlocks + fNFortuneBlocks + 1 + i, fCheckOverlaps);
       fLayerIsPixel.push_back(true);
     }
   }
@@ -492,14 +577,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << G4endl;
   G4cout << "--- Pixel Detector ---" << G4endl;
   G4cout << "  Active area:        " << fPixelDetectorWidth/mm  << " x " << fPixelDetectorHeight/mm  << " mm" << G4endl;
+  G4cout << "  Center (X, Y):      " << pixelX/mm << ", " << pixelY/mm << " mm" << G4endl;
   G4cout << "  Pixel size:         " << fPixelWidth/um << " x " << fPixelHeight/um << " um" << G4endl;
   G4cout << "  Pixel grid:         " << fNPixelsX << " x " << fNPixelsY << " pixels per layer" << G4endl;
   G4cout << "  Silicon thickness:  " << fSiliconThickness/um << " um  (" << siliconMaterial->GetName() << ")" << G4endl;
-  G4cout << "  Air gap (box):      " << fBoxThickness/um << " um" << G4endl;
+  G4cout << "  IPT gap (box):      " << fBoxThickness/um << " um" << G4endl;
 
   G4cout << G4endl;
   G4cout << "--- Scintillator Detector ---" << G4endl;
   G4cout << "  Active area:        " << fScintDetectorWidth/mm << " x " << fScintDetectorHeight/mm << " mm" << G4endl;
+  G4cout << "  Center (X, Y):      " << scintX/mm << ", " << scintY/mm << " mm" << G4endl;
   G4cout << "  Panel thickness:    " << fScintThickness/mm << " mm  (" << scintillator->GetName() << ")" << G4endl;
   G4cout << "  Bar segmentation:   " << nScintBarsX << " x-bars (" << fScintBarWidth/mm << " mm wide)"
          << "  x  " << nScintBarsY << " y-bars (" << fScintBarHeight/mm << " mm tall)" << G4endl;
@@ -516,6 +603,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "  Tungsten thickness: " << fPinpointTungstenThickness/mm << " mm  (" << tungstenMaterial->GetName() << ")" << G4endl;
   G4cout << "  Pixel block (T+gap+Si): " << fPinpointPixelBlockThickness/mm << " mm" << G4endl;
   G4cout << "  Scint block (T+S):      " << fPinpointScintBlockThickness/mm << " mm" << G4endl;
+  G4cout << "  Aluminum wall thickness: " << fAluminumWallThickness/mm << " mm  (x2 per block)" << G4endl;
   G4cout << "  Total Pinpoint thickness: " << fPinpointThickness/mm << " mm" << G4endl;
 
   G4cout << G4endl;
@@ -526,12 +614,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << "  Scint panels per layer: " << fNumScintPanelsPerLayer << G4endl;
   if (fNumScintLayers > 0 && fNumScintPanelsPerLayer > 0)
     G4cout << "  Scint block (T+" << fNumScintPanelsPerLayer << "xS): " << fFortuneScintBlockThickness/mm << " mm" << G4endl;
+  G4cout << "  Aluminum wall thickness: " << fAluminumWallThickness/mm << " mm  (x2 per block)" << G4endl;
 
   G4cout << G4endl;
   G4cout << "--- Total Layer Count ---" << G4endl;
   G4cout << "  Pinpoint pixel layers:  " << fNPinpointBlocks << G4endl;
   G4cout << "  Fortune pixel layers:   " << fNFortuneBlocks + 1 << "  (incl. trailing)" << G4endl;
-  G4cout << "  Trailing air pixel layers: " << fNIPTLayers << G4endl;
+  G4cout << "  Trailing IPT pixel layers: " << fNIPTLayers << G4endl;
   G4cout << "  Total pixel layers:     " << fNPinpointBlocks + fNFortuneBlocks + 1 + fNIPTLayers << G4endl;
   G4cout << "  Fortune scint layers:   " << fNFortuneBlocks * fNumScintLayers << G4endl;
   G4cout << "  Pinpoint scint layers:  " << fNPinpointBlocks << G4endl;
@@ -655,48 +744,72 @@ void DetectorConstruction::ComputeSiliconZPositions()
   fTungstenThicknesses.clear();
   fScintZPositions.clear();
 
-  const G4double pinpointBlockThickness = fPinpointPixelBlockThickness + fPinpointScintBlockThickness;
-  const G4double fortuneBlockThickness  = fFortunePixelBlockThickness  + fNumScintLayers * fFortuneScintBlockThickness;
+  const G4double pinpointBlockThickness = fPinpointPixelBlockThickness + fPinpointScintBlockThickness + 4 * fAluminumWallThickness;
+  const G4double fortuneBlockThickness  = fFortunePixelBlockThickness  + fNumScintLayers * fFortuneScintBlockThickness
+                                          + 2 * (fNumScintLayers + 1) * fAluminumWallThickness;
 
-  // Offsets from the front face of a pixel block to the centre of each sub-layer
-  const G4double ppTungstenOffset = 0.5 * fPinpointTungstenThickness;
-  const G4double ppSiliconOffset  = fPinpointTungstenThickness + 0.5 * fBoxThickness + 0.5 * fSiliconThickness;
+  // Offsets from the front face of a pixel block to the centre of each sub-layer.
+  // Pinpoint tungsten is split in half: one piece before, one after the silicon/scint.
+  const G4double pinpointTungstenHalfThickness = 0.5 * fPinpointTungstenThickness;
+  const G4double ppTungstenFrontOffset = 0.5 * pinpointTungstenHalfThickness;
+  const G4double ppSiliconOffset       = pinpointTungstenHalfThickness + 0.5 * fBoxThickness + 0.5 * fSiliconThickness;
+  const G4double ppTungstenBackOffset  = fPinpointPixelBlockThickness - 0.5 * pinpointTungstenHalfThickness;
+  const G4double ppScintTungstenBackOffset = fPinpointScintBlockThickness - 0.5 * pinpointTungstenHalfThickness;
   const G4double ftTungstenOffset = 0.5 * fFortuneTungstenThickness;
   const G4double ftSiliconOffset  = fFortuneTungstenThickness + 0.5 * fBoxThickness + 0.5 * fSiliconThickness;
 
   // ---- Pinpoint blocks ----
+  // Each pinpoint block wraps the pixel sub-block and the scint sub-block in its own
+  // dedicated wall pair (see Construct()).
   for (G4int i = 0; i < fNPinpointBlocks; ++i) {
-    const G4double blockFront = i * pinpointBlockThickness;
+    G4double cursor = i * pinpointBlockThickness + fAluminumWallThickness;
 
-    // Pixel sub-block
-    fTungstenZPositions.push_back(blockFront + ppTungstenOffset);
-    fTungstenThicknesses.push_back(fPinpointTungstenThickness);
-    fSiliconZPositions.push_back( blockFront + ppSiliconOffset);
+    // Pixel sub-block: tungsten half before + half after the silicon
+    fTungstenZPositions.push_back(cursor + ppTungstenFrontOffset);
+    fTungstenThicknesses.push_back(pinpointTungstenHalfThickness);
+    fSiliconZPositions.push_back( cursor + ppSiliconOffset);
+    fTungstenZPositions.push_back(cursor + ppTungstenBackOffset);
+    fTungstenThicknesses.push_back(pinpointTungstenHalfThickness);
+    cursor += fPinpointPixelBlockThickness + 2 * fAluminumWallThickness;
 
-    // Scint sub-block (same tungsten thickness as pixel tungsten in pinpoint)
-    const G4double scintBlockFront = blockFront + fPinpointPixelBlockThickness;
-    fTungstenZPositions.push_back(scintBlockFront + ppTungstenOffset);
-    fTungstenThicknesses.push_back(fPinpointTungstenThickness);
-    fScintZPositions.push_back(   scintBlockFront + fPinpointTungstenThickness + 0.5 * fScintThickness);
+    // Scint sub-block: tungsten half before + half after the scintillator
+    fTungstenZPositions.push_back(cursor + ppTungstenFrontOffset);
+    fTungstenThicknesses.push_back(pinpointTungstenHalfThickness);
+    fScintZPositions.push_back(   cursor + pinpointTungstenHalfThickness + 0.5 * fScintThickness);
+    fTungstenZPositions.push_back(cursor + ppScintTungstenBackOffset);
+    fTungstenThicknesses.push_back(pinpointTungstenHalfThickness);
   }
 
   // ---- Fortune blocks ----
+  // Each fortune block wraps the pixel sub-block and every scint sub-block in its own
+  // dedicated wall pair (see Construct()).
   for (G4int i = 0; i < fNFortuneBlocks; ++i) {
-    const G4double blockFront = fPinpointThickness + i * fortuneBlockThickness;
+    G4double cursor = fPinpointThickness + i * fortuneBlockThickness + fAluminumWallThickness;
 
     // Pixel sub-block
-    fTungstenZPositions.push_back(blockFront + ftTungstenOffset);
+    fTungstenZPositions.push_back(cursor + ftTungstenOffset);
     fTungstenThicknesses.push_back(fFortuneTungstenThickness);
-    fSiliconZPositions.push_back( blockFront + ftSiliconOffset);
+    fSiliconZPositions.push_back( cursor + ftSiliconOffset);
+    cursor += fFortunePixelBlockThickness + 2 * fAluminumWallThickness;
 
-    // Scint sub-blocks
+    // Scint sub-blocks: tungsten split into quarter-thickness pieces, one before and one
+    // after each scintillator panel (see fortuneScintBlockLV in Construct()).
+    const G4double scintTungstenQuarter = 0.25 * fFortuneTungstenThickness;
     for (G4int j = 0; j < fNumScintLayers; ++j) {
-      const G4double scintBlockFront = blockFront + fFortunePixelBlockThickness + j * fFortuneScintBlockThickness;
-      fTungstenZPositions.push_back(scintBlockFront + ftTungstenOffset);
-      fTungstenThicknesses.push_back(fFortuneTungstenThickness);
+      G4double scintCursor = cursor;
       for (G4int p = 0; p < fNumScintPanelsPerLayer; ++p) {
-        fScintZPositions.push_back(scintBlockFront + fFortuneTungstenThickness + (p + 0.5) * fScintThickness);
+        fTungstenZPositions.push_back(scintCursor + 0.5 * scintTungstenQuarter);
+        fTungstenThicknesses.push_back(scintTungstenQuarter);
+        scintCursor += scintTungstenQuarter;
+
+        fScintZPositions.push_back(scintCursor + 0.5 * fScintThickness);
+        scintCursor += fScintThickness;
+
+        fTungstenZPositions.push_back(scintCursor + 0.5 * scintTungstenQuarter);
+        fTungstenThicknesses.push_back(scintTungstenQuarter);
+        scintCursor += scintTungstenQuarter;
       }
+      cursor += fFortuneScintBlockThickness + 2 * fAluminumWallThickness;
     }
   }
 
@@ -710,10 +823,10 @@ void DetectorConstruction::ComputeSiliconZPositions()
 
   // ---- Interface pixel tracker (fNIPTLayers layers, no tungsten) ----
   {
-    const G4double airLayersStart = fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
-    const G4double airPixelBlockThickness = fPinpointPixelBlockThickness;
+    const G4double IPTLayersStart = fPinpointThickness + fNFortuneBlocks * fortuneBlockThickness + fFortunePixelBlockThickness;
+    const G4double IPTPixelBlockThickness = fPinpointPixelBlockThickness;
     for (G4int i = 0; i < fNIPTLayers; ++i) {
-      const G4double blockFront = airLayersStart + i * airPixelBlockThickness;
+      const G4double blockFront = IPTLayersStart + i * IPTPixelBlockThickness;
       fSiliconZPositions.push_back(blockFront + fPinpointTungstenThickness + 0.5*fBoxThickness + 0.5*fSiliconThickness);
     }
   }
@@ -730,20 +843,20 @@ void DetectorConstruction::ComputePixelCentersXY()
   // X centres: symmetric about beam axis (world X = 0)
   fPixelCenterX.clear();
   fPixelCenterX.reserve(fNPixelsX);
-  const G4double xMin = -0.5 * fPixelDetectorWidth;
+  const G4double xMin = -0.5 * fPixelDetectorWidth + fPixelDetectorOffsetX;
   for (G4int col = 0; col < fNPixelsX; ++col)
     fPixelCenterX.push_back(xMin + (col + 0.5) * fPixelWidth);
 
   // Y centres: pixel detector is centred on beam axis (world Y = 0)
   fPixelCenterY.clear();
   fPixelCenterY.reserve(fNPixelsY);
-  const G4double yMin = -0.5 * fPixelDetectorHeight;
+  const G4double yMin = -0.5 * fPixelDetectorHeight + fPixelDetectorOffsetY;
   for (G4int row = 0; row < fNPixelsY; ++row)
     fPixelCenterY.push_back(yMin + (row + 0.5) * fPixelHeight);
 
   G4cout << "Computed pixel centers: "
-         << fPixelCenterX.size() << " x "
-         << fPixelCenterY.size() << G4endl;
+         << fPixelCenterX.size() << " x " << fPixelCenterY.size() << " centered at ("
+         << fPixelCenterX[0] << ", " << fPixelCenterY[0] << ")" << G4endl;
 }
 
 
@@ -754,17 +867,16 @@ void DetectorConstruction::ComputeScintCentersXY()
   fScintBarCenterX.clear();
   const G4int nBarsX = static_cast<G4int>(fScintDetectorWidth / fScintBarWidth);
   fScintBarCenterX.reserve(nBarsX);
-  const G4double xMin = -0.5 * fScintDetectorWidth;
+  const G4double xMin = -0.5 * fScintDetectorWidth + fScintDetectorOffsetX;
   for (G4int i = 0; i < nBarsX; ++i)
     fScintBarCenterX.push_back(xMin + (i + 0.5) * fScintBarWidth);
 
   // Horizontal bars are segmented in Y (bar runs full scintillator width)
-  // Y centres in world coords: scintillator bottom aligns with pixel detector bottom
-  // at world Y = -0.5 * fPixelDetectorHeight.
+  // Y centres in world coords: scintillator layer is centred at fScintDetectorOffsetY.
   fScintBarCenterY.clear();
   const G4int nBarsY = static_cast<G4int>(fScintDetectorHeight / fScintBarHeight);
   fScintBarCenterY.reserve(nBarsY);
-  const G4double yMin = -0.5 * fPixelDetectorHeight;
+  const G4double yMin = -0.5 * fScintDetectorHeight + fScintDetectorOffsetY;
   for (G4int j = 0; j < nBarsY; ++j)
     fScintBarCenterY.push_back(yMin + (j + 0.5) * fScintBarHeight);
 
