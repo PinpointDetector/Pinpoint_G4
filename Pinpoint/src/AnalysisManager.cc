@@ -219,24 +219,24 @@ void AnalysisManager::bookHitsTrees()
   //* Reco Hits Tree [i == unsigned int; F == float; l == Long unsigned 64 int]
   fPixelHitsTree = new TTree("pixelHits", "pixelHits_Tree");
   fPixelHitsTree->Branch("event_id", &fPixelEventID, "event_id/i");
-  fPixelHitsTree->Branch("hit_rowID", &fPixelRowIDs);
-  fPixelHitsTree->Branch("hit_colID", &fPixelColIDs);
-  fPixelHitsTree->Branch("hit_layerID", &fPixelLayerIDs);
-  fPixelHitsTree->Branch("hit_pdgc", &fPixelPDGCs);
-  fPixelHitsTree->Branch("hit_trackID", &fPixelTrackIDs);
-  fPixelHitsTree->Branch("hit_parentID", &fPixelParentIDs);
+  fPixelHitsTree->Branch("rowID", &fPixelRowIDs);
+  fPixelHitsTree->Branch("colID", &fPixelColIDs);
+  fPixelHitsTree->Branch("layerID", &fPixelLayerIDs);
+  fPixelHitsTree->Branch("pdg", &fPixelPDGCs);
+  fPixelHitsTree->Branch("trackID", &fPixelTrackIDs);
+  fPixelHitsTree->Branch("parentID", &fPixelParentIDs);
   // fPixelHitsTree->Branch("hit_px", &fPixelPxs);
   // fPixelHitsTree->Branch("hit_py", &fPixelPys);
   // fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
   // fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
   // fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
-  fPixelHitsTree->Branch("hit_edep", & fPixelEDep);
+  fPixelHitsTree->Branch("edep", & fPixelEDep);
   // fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
-  fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
-  fPixelHitsTree->Branch("hit_fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
-  fPixelHitsTree->Branch("hit_fromCharmedHadron", &fPixelFromCharmedHadron);
-  fPixelHitsTree->Branch("hit_fromTau", &fPixelFromTau);
+  fPixelHitsTree->Branch("fromPrimaryLepton", &fPixelFromPrimaryLepton);
+  fPixelHitsTree->Branch("fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
+  fPixelHitsTree->Branch("fromCharmedHadron", &fPixelFromCharmedHadron);
+  fPixelHitsTree->Branch("fromTau", &fPixelFromTau);
 
   // if (fSaveTruthHits)
   // {
