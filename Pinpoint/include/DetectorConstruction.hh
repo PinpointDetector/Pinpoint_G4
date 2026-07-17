@@ -232,6 +232,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4int fNumScintPanelsPerLayer = 1;  // 0=no scint, 1=single panel, 2=double panel
     // G4double fMaxDetectorThickness = 111.5 * cm;
     G4double fPinpointThickness = 10.5 * cm;  // if >0, initial pixel-only section (no scint)
+    G4double fPinpointTungstenWidth = 27 * cm;   // width of tungsten layers in Pinpoint
+    G4double fPinpointTungstenHeight = 20 * cm;  // height of tungsten layers in Pinpoint
     G4int fNPinpointBlocks = 4;           // computed: floor(fPinpointThickness / fFortunePixelBlockThickness)
     G4int fNFortuneBlocks = 6;           // computed: floor(fPinpointThickness / fFortunePixelBlockThickness)
     G4double fAluminumWallThickness = 1.0 * mm;  // aluminum wall placed before and after each pinpoint/fortune block

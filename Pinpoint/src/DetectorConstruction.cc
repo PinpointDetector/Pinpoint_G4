@@ -85,8 +85,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4double IPTPixelBlockThickness = fPinpointPixelBlockThickness;
   G4double IPTThickness = fNIPTLayers * IPTPixelBlockThickness;
   auto detectorThickness = fPinpointThickness + fortuneThickness + IPTThickness;
-  G4double detEnvelopeSizeY = std::max(fPixelDetectorHeight, fScintDetectorHeight);
-  G4double detEnvelopeSizeX = std::max(fPixelDetectorWidth, fScintDetectorWidth);
+  G4double detEnvelopeSizeY = std::max({fPixelDetectorHeight, fScintDetectorHeight, fAluminumWallHeight});
+  G4double detEnvelopeSizeX = std::max({fPixelDetectorWidth, fScintDetectorWidth, fAluminumWallWidth});
   // Detector envelope is centred at (0, 0) on the beam axis.
   // World must cover: detector (±half-width in X/Y) and magnets (±fOuterRadius in X/Y)
   G4double worldHalfX = std::max(0.5*detEnvelopeSizeX, fOuterRadius);
@@ -129,11 +129,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // ---------------------------------------------------------------
   G4VisAttributes* TargetVisAtt = new G4VisAttributes(G4Colour::Red());
   TargetVisAtt->SetForceWireframe(true);
+  TargetVisAtt->SetVisibility(true);
+  // TargetVisAtt->SetVisibility(false);
 
   // PINPOINT pixel tungsten (transverse size matches the scintillator plates): split into
   // half-thickness pieces, one before and one after the pixel silicon (see below).
   G4double pinpointTungstenHalfThickness = 0.5*fPinpointTungstenThickness;
-  auto pinpointTungstenS = new G4Box("PinpointTungsten", 0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*pinpointTungstenHalfThickness);
+  fPinpointTungstenWidth = std::max(fPinpointTungstenWidth, fScintDetectorWidth);
+  fPinpointTungstenHeight = std::max(fPinpointTungstenHeight, fScintDetectorHeight);
+  auto pinpointTungstenS = new G4Box("PinpointTungsten", 0.5*fPinpointTungstenWidth, 0.5*fPinpointTungstenHeight, 0.5*pinpointTungstenHalfThickness);
   auto pinpointTungstenLV = new G4LogicalVolume(pinpointTungstenS, tungstenMaterial, "PinpointTungsten");
   pinpointTungstenLV->SetVisAttributes(TargetVisAtt);
 
@@ -163,6 +167,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   if (fAluminumWallThickness > 0.) {
     G4VisAttributes* AlWallVisAtt = new G4VisAttributes(G4Colour::Grey());
     AlWallVisAtt->SetForceSolid(true);
+    AlWallVisAtt->SetVisibility(false);
+    // AlWallVisAtt->SetVisibility(true);
     auto aluminumWallS = new G4Box("AluminumWall", 0.5*fAluminumWallWidth, 0.5*fAluminumWallHeight, 0.5*fAluminumWallThickness);
     aluminumWallLV = new G4LogicalVolume(aluminumWallS, aluminumMaterial, "AluminumWall");
     aluminumWallLV->SetVisAttributes(AlWallVisAtt);
@@ -172,7 +178,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Silicon pixel layer
   // ---------------------------------------------------------------
   G4VisAttributes* LayerAtrrib = new G4VisAttributes(G4Colour::Green());
-  LayerAtrrib->SetVisibility(true);
+  LayerAtrrib->SetVisibility(false);
+  // LayerAtrrib->SetVisibility(true);
   LayerAtrrib->SetForceSolid(true);
 
   auto pixelLayerS = new G4Box("PixelLayer", 0.5*fPixelDetectorWidth, 0.5*fPixelDetectorHeight, 0.5*fSiliconThickness);
@@ -204,6 +211,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Scintillator visual attributes (shared by Pinpoint and Fortune)
   G4VisAttributes* ScintLayerAtrrib = new G4VisAttributes(G4Colour::Blue());
   ScintLayerAtrrib->SetVisibility(true);
+  // ScintLayerAtrrib->SetVisibility(false);
   ScintLayerAtrrib->SetForceSolid(true);
 
   // ---------------------------------------------------------------
@@ -601,6 +609,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4cout << G4endl;
   G4cout << "--- Pinpoint Section (" << fNPinpointBlocks << " blocks) ---" << G4endl;
   G4cout << "  Tungsten thickness: " << fPinpointTungstenThickness/mm << " mm  (" << tungstenMaterial->GetName() << ")" << G4endl;
+  G4cout << "  Tungsten width:     " << fPinpointTungstenWidth/mm << " mm" << G4endl;
+  G4cout << "  Tungsten height:    " << fPinpointTungstenHeight/mm << " mm" << G4endl;
   G4cout << "  Pixel block (T+gap+Si): " << fPinpointPixelBlockThickness/mm << " mm" << G4endl;
   G4cout << "  Scint block (T+S):      " << fPinpointScintBlockThickness/mm << " mm" << G4endl;
   G4cout << "  Aluminum wall thickness: " << fAluminumWallThickness/mm << " mm  (x2 per block)" << G4endl;
