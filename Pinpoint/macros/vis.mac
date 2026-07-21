@@ -6,6 +6,9 @@
 /control/verbose 2
 /run/verbose 2
 
+# ======================================================
+# Detector geometry setup  (/det/)
+# ======================================================
 # Choose the geometry option by importing one of the default macros
 /control/execute macros/geom.mac
 

@@ -7,57 +7,7 @@
 # ======================================================
 # Detector geometry setup  (/det/)
 # ======================================================
-
-/det/setTungstenThickness 5.0 mm
-/det/setSiliconThickness 10 um
-/det/setBoxThickness 4.990 mm
-
-# Pixel dimensions
-/det/setPixelHeight 22.8 um
-/det/setPixelWidth 20.8 um
-
-# Overall detector transverse size
-/det/setDetectorWidth 26.6 cm
-/det/setDetectorHeight 19.6 cm
-
-# Set name of GDML file to be produced
-/det/setGDMLFile pinpoint.gdml
-
-# Scintillator configuration
-/det/setNumScintPanelsPerLayer 2
-
-# Scintillator geometry flag
-#  true  = bar geometry
-#  false = solid block
-/det/setScintBarFlag true
-/det/setScintWidth 27 cm
-/det/setScintHeight 60 cm
-
-/det/setScintBarWidth 10.0 mm
-/det/setScintBarHeight 10.0 mm
-/det/setScintThickness 5 mm
-
-/det/setNumScintLayers 10
-
-#/det/setMaxDetectorThickness 112.5 cm
-
-# FORTUNE GEOMETRY
-
-# PINPOINT GEOMETRY
-#/det/setPinpointThickness 10.5 cm
-#/det/setPinpointTungstenThickness 8 mm
-
-# ======================================================
-# Output and analysis options  (/out/)
-# ======================================================
-
-# Output ROOT file name for histograms / ntuples
-/out/fileName pinpoint.root
-
-# Flags for extra output detail
-/tracking/storeTrajectory 1
-/out/saveTrack true
-/out/saveTruthHits true
+/control/execute macros/geom.mac
 
 # ======================================================
 # Global control
@@ -89,7 +39,18 @@
 /gps/ene/mono 300 GeV
 /gps/ene/sigma 5 GeV
 
+# ======================================================
+# Output and analysis options  (/out/)
+# ======================================================
+
+# Output ROOT file name for histograms / ntuples
 /out/fileName muons.root
+
+# Flags for extra output detail
+/tracking/storeTrajectory 1
+/out/saveTrack true
+/out/saveTruthHits true
+
 
 # ======================================================
 # Initialize and run
@@ -98,5 +59,5 @@
 /run/initialize
 # (optionally geometry, cuts, etc., here if you have other messengers)
 
-/run/beamOn 100   # <-- set number of events
+/run/beamOn 1000   # <-- set number of events
 
