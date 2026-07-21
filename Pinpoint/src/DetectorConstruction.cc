@@ -62,6 +62,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   fNPixelsY = static_cast<G4int>(fPixelDetectorHeight / fPixelHeight);
 
   if (fNumScintLayers == 0) fNumScintPanelsPerLayer = 0;
+  if (fNumScintPanelsPerLayer == 0) fNumScintLayers = 0;
   fFortunePixelBlockThickness  = fFortuneTungstenThickness + fBoxThickness + fSiliconThickness;
   fPinpointPixelBlockThickness = fPinpointTungstenThickness + fBoxThickness + fSiliconThickness;
   fPinpointScintBlockThickness = fPinpointTungstenThickness + fScintThickness;
