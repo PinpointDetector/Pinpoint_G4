@@ -24,8 +24,8 @@
 #  true  = bar geometry
 #  false = solid block
 /det/setScintBarFlag true
-/det/setScintWidth 420 cm
-/det/setScintHeight 430 cm
+/det/setScintWidth 450 mm
+/det/setScintHeight 450 mm
 
 /det/setScintBarWidth 10.0 mm
 /det/setScintBarHeight 10.0 mm
