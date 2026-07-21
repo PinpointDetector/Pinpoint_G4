@@ -20,6 +20,7 @@ std::set<std::pair<G4int,G4int>> ScintillatorSD::sScintHitParticles;
 // Key for bar-level grouping: one entry per (layer, isHorizontal, bar, track)
 struct ScintBarHitID {
     G4int layerID;
+    G4int panelID;      
     G4int barID;        // colID for vertical panels, rowID for horizontal panels
     G4bool isHorizontal;
     G4int trackID;
@@ -31,6 +32,7 @@ struct ScintBarHitID {
 
     bool operator<(const ScintBarHitID& other) const {
         if(layerID != other.layerID) return layerID < other.layerID;
+        if (panelID != other.panelID) return panelID < other.panelID;
         if((int)isHorizontal != (int)other.isHorizontal) return (int)isHorizontal < (int)other.isHorizontal;
         if(barID != other.barID) return barID < other.barID;
         return trackID < other.trackID;
@@ -40,6 +42,7 @@ struct ScintBarHitID {
 // Key for pixel-level grouping: one entry per (layer, isHorizontal, col, row, track)
 struct ScintPixelHitID {
     G4int layerID;
+    G4int panelID;
     G4int colID;
     G4int rowID;
     G4bool isHorizontal;
@@ -52,6 +55,7 @@ struct ScintPixelHitID {
 
     bool operator<(const ScintPixelHitID& other) const {
         if(layerID != other.layerID) return layerID < other.layerID;
+        if (panelID != other.panelID) return panelID < other.panelID;
         if((int)isHorizontal != (int)other.isHorizontal) return (int)isHorizontal < (int)other.isHorizontal;
         if(colID != other.colID) return colID < other.colID;
         if(rowID != other.rowID) return rowID < other.rowID;
@@ -103,6 +107,7 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4StepPoint* preStep = step->GetPreStepPoint();
     G4TouchableHandle touchable = preStep->GetTouchableHandle();
 
+    G4int panelID    = -1;
     G4int layerID    = -1;
     G4int scintRowID = -1;
     G4int scintColID = -1;
@@ -112,14 +117,24 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     const G4int depth = touchable->GetHistoryDepth();
 
     for(G4int i = 0; i < depth; ++i) {
-        const G4String& volName = touchable->GetVolume(i)->GetName();
-        const G4int copyNum = touchable->GetCopyNumber(i);
+    const G4String& volName = touchable->GetVolume(i)->GetName();
+    const G4int copyNum = touchable->GetCopyNumber(i);
 
-        if(volName == "ScintLayer")  layerID      = copyNum;
-        if(volName == "ScintRow")  { scintRowID    = copyNum; isHorizontal = true; }
-        if(volName == "ScintColumn") scintColID    = copyNum;
-        if(volName == "ScintPixel")  scintPixelID  = copyNum;
+    if(volName == "ScintRow")    { scintRowID = copyNum; isHorizontal = true; }
+    if(volName == "ScintColumn")   scintColID = copyNum;
+    if(volName == "ScintPixel")    scintPixelID = copyNum;
+    if(volName == "ScintLayer")  {
+        layerID = copyNum;
+        if(layerID < fNPinpointBlocks) {
+            panelID = layerID;   // Pinpoint: already unique, one plane per copy number
+        } else {
+            G4int fortuneLocalGroup = layerID - fNPinpointBlocks;
+            panelID = fNPinpointBlocks
+                    + fortuneLocalGroup * fNumScintPanelsPerLayer
+                    + (isHorizontal ? 1 : 0);   // panel 0 = vertical, panel 1 = horizontal
+        }
     }
+}
 
     // ScintPixel is inside ScintColumn (vertical panel) or ScintRow (horizontal panel).
     // Its copy number encodes rowID within a column, or colID within a row.
@@ -150,12 +165,12 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     // Bar-level: accumulate energy per (layer, isHorizontal, bar, track)
     G4int barID = isHorizontal ? scintRowID : scintColID;
-    ScintBarHitID barID_key {layerID, barID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
+    ScintBarHitID barID_key {layerID, panelID, barID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
     barEnergyMap[barID_key] += edep;
     if(IsFromMuon(trackID)) barFromMuonMap[barID_key] = true;
 
     // Pixel-level: accumulate energy per (layer, isHorizontal, col, row, track)
-    ScintPixelHitID pixelID_key {layerID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
+    ScintPixelHitID pixelID_key {layerID, panelID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
     pixelEnergyMap[pixelID_key] += edep;
     if(IsFromMuon(trackID)) pixelFromMuonMap[pixelID_key] = true;
 
@@ -171,6 +186,7 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
         if(edep <= 0.) continue;
         auto hit = new ScintHit();
         hit->SetLayerID(hitID.layerID);
+        hit->SetPanelID(hitID.panelID);
         hit->SetColID(hitID.isHorizontal ? -1 : hitID.barID);
         hit->SetRowID(hitID.isHorizontal ? hitID.barID : -1);
         hit->SetIsHorizontal(hitID.isHorizontal);
@@ -191,6 +207,7 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
         if(edep <= 0.) continue;
         auto hit = new ScintHit();
         hit->SetLayerID(hitID.layerID);
+        hit->SetPanelID(hitID.panelID);
         hit->SetColID(hitID.colID);
         hit->SetRowID(hitID.rowID);
         hit->SetIsHorizontal(hitID.isHorizontal);

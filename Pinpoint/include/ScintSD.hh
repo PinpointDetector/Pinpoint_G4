@@ -25,6 +25,10 @@ public:
     static G4bool IsFromMuon(G4int trackID);
     static void ClearMuonHistory();
 
+    void SetLayerIndexing(G4int nPinpointBlocks, G4int nPanelsPerLayer) {
+    fNPinpointBlocks = nPinpointBlocks;
+    fNumScintPanelsPerLayer = nPanelsPerLayer;
+    }
 private:
     ScintHitsCollection* fHitsCollection = nullptr;
     ScintHitsCollection* fPixelHitsCollection = nullptr;
@@ -37,6 +41,8 @@ private:
      static std::set<G4int> sScintMuonDescendants;
 
     G4long fScintCurrentHitId = 0;
+    G4int fNPinpointBlocks = 0;
+    G4int fNumScintPanelsPerLayer = 0;
 };
 
 #endif

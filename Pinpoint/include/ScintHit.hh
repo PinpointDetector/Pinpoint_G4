@@ -32,6 +32,7 @@ public:
   void SetLayerID(G4int layer) { fLayerID = layer; }
   void SetColID(G4int colID) { fColID = colID; }
   void SetRowID(G4int rowID) { fRowID = rowID; }
+  void SetPanelID(G4int panelID) { fPanelID = panelID; }
   void SetTrackID(G4int trackID) { fTrackID = trackID; }
   void SetParentID(G4int parentID) { fParentID = parentID; }
   // void SetPos(G4ThreeVector xyz) { fPos = xyz; }
@@ -51,6 +52,7 @@ public:
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetLayerID() const { return fLayerID; }
+  G4int GetPanelID() const { return fPanelID; }
   G4int GetColID() const { return fColID; }
   G4int GetRowID() const { return fRowID; }
   G4int GetTrackID() const { return fTrackID; }
@@ -72,6 +74,7 @@ public:
   G4bool GetFromTau() const { return fFromTau; }
   G4bool GetIsHorizontal() const { return fIsHorizontal; }
 
+
 private:
   G4int fTrackID = -1;
   G4int fParentID = -1;
@@ -80,6 +83,7 @@ private:
   G4int fRowID = -999;
   G4int fColID = -999;
   G4int fLayerID = -999;
+  G4int fPanelID = -999;
   G4int fCharge = 0;
   G4bool fFromPrimaryLepton = false;
   G4bool fFromPrimaryPizero = false;
@@ -91,6 +95,7 @@ private:
   G4bool fFromPrimaryEMShower = false;
   G4bool fFromTau = false;
   G4bool fIsHorizontal = false;
+
 };
 
 

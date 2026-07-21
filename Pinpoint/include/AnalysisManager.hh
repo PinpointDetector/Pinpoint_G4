@@ -244,6 +244,7 @@ class AnalysisManager {
     //OUTPUT VARIABLES FOR SCINTILLATOR
     UInt_t fScintEventID;
     std::vector<int> fScintLayerID;
+    std::vector<int> fScintPanelID;
     std::vector<int> fScintColID;
     std::vector<int> fScintRowID;
     std::vector<int> fScintIsHorizontal;
@@ -260,6 +261,7 @@ class AnalysisManager {
     //OUTPUT VARIABLES FOR SCINTILLATOR PIXELS
     UInt_t fScintPixelEventID;
     std::vector<int> fScintPixelLayerID;
+    std::vector<int> fScintPixelPanelID;
     std::vector<int> fScintPixelColID;
     std::vector<int> fScintPixelRowID;
     std::vector<int> fScintPixelIsHorizontal;

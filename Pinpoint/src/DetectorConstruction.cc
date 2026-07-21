@@ -669,6 +669,7 @@ void DetectorConstruction::ConstructSDandField()
     
   // Create Scintillator SD
   auto scintSD = new ScintillatorSD("ScintillatorDetector", "ScintHitsCollection", "ScintPixelHitsCollection");
+  scintSD->SetLayerIndexing(fNPinpointBlocks, fNumScintPanelsPerLayer); 
   G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
 
   // Assign SD to all scintillator LVs

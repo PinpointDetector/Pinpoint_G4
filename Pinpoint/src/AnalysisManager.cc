@@ -257,6 +257,7 @@ void AnalysisManager::bookScintTrees()
 
     fScintTree->Branch("event_id", &fScintEventID, "event_id/i");
     fScintTree->Branch("layerID", &fScintLayerID);
+    fScintTree->Branch("panelID", &fScintPanelID);
     fScintTree->Branch("colID", &fScintColID);
     fScintTree->Branch("rowID", &fScintRowID);
     fScintTree->Branch("isHorizontal", &fScintIsHorizontal);
@@ -273,6 +274,7 @@ void AnalysisManager::bookScintTrees()
 
     fScintPixelTree->Branch("event_id", &fScintPixelEventID, "event_id/i");
     fScintPixelTree->Branch("layerID", &fScintPixelLayerID);
+    fScintPixelTree->Branch("panelID", &fScintPixelPanelID);
     fScintPixelTree->Branch("colID", &fScintPixelColID);
     fScintPixelTree->Branch("rowID", &fScintPixelRowID);
     fScintPixelTree->Branch("isHorizontal", &fScintPixelIsHorizontal);
@@ -446,6 +448,7 @@ void AnalysisManager::BeginOfEvent()
   //clean scintillator hits
   //// --- NEW FOR SCINTILLATORS ---
   fScintLayerID.clear();
+  fScintPanelID.clear();
   fScintColID.clear();
   fScintRowID.clear();
   fScintIsHorizontal.clear();
@@ -459,6 +462,7 @@ void AnalysisManager::BeginOfEvent()
   fScintFromTau.clear();
 
   fScintPixelLayerID.clear();
+  fScintPixelPanelID.clear();
   fScintPixelColID.clear();
   fScintPixelRowID.clear();
   fScintPixelIsHorizontal.clear();
@@ -825,6 +829,7 @@ void AnalysisManager::FillScintOutput()
             {
                 auto* hit = (*scintHC)[h];
                 fScintLayerID.push_back(hit->GetLayerID());
+                fScintPanelID.push_back(hit->GetPanelID());
                 fScintColID.push_back(hit->GetColID());
                 fScintRowID.push_back(hit->GetRowID());
                 fScintIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
@@ -845,6 +850,7 @@ void AnalysisManager::FillScintOutput()
             {
                 auto* hit = (*scintHC)[h];
                 fScintPixelLayerID.push_back(hit->GetLayerID());
+                fScintPixelPanelID.push_back(hit->GetPanelID());
                 fScintPixelColID.push_back(hit->GetColID());
                 fScintPixelRowID.push_back(hit->GetRowID());
                 fScintPixelIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
