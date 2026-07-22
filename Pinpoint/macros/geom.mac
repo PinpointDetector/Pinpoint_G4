@@ -2,7 +2,15 @@
 # Detector geometry setup  (/det/)
 # ======================================================
 
-/det/setTungstenThickness 5.0 mm
+# Pinpoint Geometry
+
+# /det/setPinpointThickness 10.5 cm
+/det/setNumPinpointLayers 4
+/det/setPinpointTungstenThickness 8 mm
+
+/det/setPixelDetectorOffsetX 0.0 mm
+/det/setPixelDetectorOffsetY 0.0 mm
+
 /det/setSiliconThickness 10 um
 /det/setBoxThickness 4.990 mm
 
@@ -14,29 +22,32 @@
 /det/setDetectorWidth 26.6 cm
 /det/setDetectorHeight 19.6 cm
 
-# Set name of GDML file to be produced
-/det/setGDMLFile pinpoint.gdml
+# Fortune Geometry
+/det/setNumFortuneBlocks 6
+
+/det/setNumScintLayers 10
+
+/det/setScintDetectorOffsetX -77.0 mm 
+/det/setScintDetectorOffsetY 0.0 mm 
+
+# Fortune tungsten thickness
+/det/setTungstenThickness 5.0 mm
 
 # Scintillator configuration
-/det/setNumScintPanelsPerLayer 2
-
-# Scintillator geometry flag
+/det/setScintBarFlag true
 #  true  = bar geometry
 #  false = solid block
-/det/setScintBarFlag true
-/det/setScintWidth 450 mm
-/det/setScintHeight 450 mm
 
+/det/setNumScintPanelsPerLayer 2
+# /det/setScintWidth 27 cm
+# /det/setScintHeight 60 cm
+/det/setScintWidth 45 cm
+/det/setScintHeight 45 cm
 /det/setScintBarWidth 10.0 mm
 /det/setScintBarHeight 10.0 mm
 /det/setScintThickness 5 mm
 
-/det/setNumScintLayers 10
+# Interface Pixel Tracker (IPT)
+/det/setNumIPTLayers 2 # 
 
-#/det/setMaxDetectorThickness 112.5 cm
-
-# FORTUNE GEOMETRY
-
-# PINPOINT GEOMETRY
-#/det/setPinpointThickness 10.5 cm
-#/det/setPinpointTungstenThickness 8 mm
+/det/setAluminumWallThickness 2.0
