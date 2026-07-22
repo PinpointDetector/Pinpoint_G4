@@ -24,14 +24,15 @@ class GFaserGenerator : public GeneratorBase
 
     void SetInputFileName(const G4String& filename) { fInputFileName = filename; }
     void SetFirstEvent(G4long event) { fFirstEvent = event; }
-    void SetUseFixedZPosition(G4bool useFixedZPosition) { fUseFixedZPosition = useFixedZPosition; }
+    void SetLastEvent(G4long event) { fLastEvent = event; }
+    void SetHitPixelArea(G4bool hitPixelArea) { fHitPixelArea = hitPixelArea; }
 
 
   private:
     G4String fInputFileName;
     G4long fFirstEvent{0};
-    G4bool fUseFixedZPosition;
-    G4int fLayerId = 4;
+    G4long fLastEvent{-1};
+    G4bool fHitPixelArea{false};
 
     TFile *fGfaserFile = nullptr;
     TTree *fGfaserTree = nullptr;
@@ -57,7 +58,7 @@ class GFaserGenerator : public GeneratorBase
     std::vector<double>* fE = nullptr;
 
     G4bool FindParticleDefinition(G4int pdg, G4ParticleDefinition* &particleDefinition) const;
-    G4double GenerateRandomZVertex(G4int layerIndex) const;
+    G4double GenerateRandomZVertex() const;
     G4String EncodeProcessName() const;
 };
 

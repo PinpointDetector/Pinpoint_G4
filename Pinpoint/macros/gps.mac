@@ -1,10 +1,27 @@
+# ======================================================
+# Global control
+# ======================================================
+/control/verbose 1
+/run/verbose 1
 
+# ======================================================
+# Detector geometry setup  (/det/)
+# ======================================================
 /control/execute macros/geom.mac
 
-/run/initialize
+# ======================================================
+# Global control
+# ======================================================
+/control/verbose 1
+/run/verbose 1
+
+# ======================================================
+# Generator setup  (/gen/hepmc)
+# ======================================================
+
 
 /gen/select gun
-/gps/particle tau-
+/gps/particle mu-
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/ang/rot1 -1 0 0
@@ -22,4 +39,25 @@
 /gps/ene/mono 300 GeV
 /gps/ene/sigma 5 GeV
 
-/run/beamOn 1
+# ======================================================
+# Output and analysis options  (/out/)
+# ======================================================
+
+# Output ROOT file name for histograms / ntuples
+/out/fileName muons.root
+
+# Flags for extra output detail
+/tracking/storeTrajectory 1
+/out/saveTrack true
+/out/saveTruthHits true
+
+
+# ======================================================
+# Initialize and run
+# ======================================================
+
+/run/initialize
+# (optionally geometry, cuts, etc., here if you have other messengers)
+
+/run/beamOn 1000   # <-- set number of events
+

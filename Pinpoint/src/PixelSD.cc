@@ -37,11 +37,11 @@ PixelHitAccumulator::PixelHitAccumulator()
 
   fNPixelsX = det->GetNPixelsX();
   fNPixelsY = det->GetNPixelsY();
-  fNLayers = det->GetNlayers();
+  fNLayers = det->GetNLayers();
   fPixelWidth = det->GetPixelWidth();
   fPixelHeight = det->GetPixelHeight();
-  fDetWidth = det->GetDetectorWidth();
-  fDetHeight = det->GetDetectorHeight();
+  fDetWidth = det->GetPixelDetectorWidth();
+  fDetHeight = det->GetPixelDetectorHeight();
   fTotalPixelsPerLayer = fNPixelsX * fNPixelsY;
   Init();
 }
@@ -75,8 +75,18 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   G4int rowID = static_cast<G4int>(
     (pos.y() + 0.5*fDetHeight) / fPixelHeight
   );
+
+  const G4int depth = touchable->GetHistoryDepth();
+  
+  G4int layerID    = -1;
+  for(G4int i = 0; i < depth; ++i) {
+        const G4String& volName = touchable->GetVolume(i)->GetName();
+        const G4int copyNum = touchable->GetCopyNumber(i);
+        if(volName == "PixelLayer")  layerID      = copyNum;
+        if(volName == "IPTPixelLayer")  layerID      = copyNum;   
+    }
     
-  G4int layerID = touchable->GetCopyNumber(1);
+  // G4int layerID = touchable->GetCopyNumber(1);
   G4ThreeVector sensorCenterGlobal = touchable->GetTranslation();
   G4double sensorCentreZ = sensorCenterGlobal.z();
     

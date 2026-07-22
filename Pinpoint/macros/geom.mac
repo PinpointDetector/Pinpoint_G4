@@ -1,7 +1,42 @@
-/det/setTungstenThickness 5 mm
-/det/setSiliconThickness 50 um
-/det/setNLayers 100
-# /det/setPixelHeight 1 cm
-# /det/setPixelWidth 1 cm
-/det/setSimFlag 1
+# ======================================================
+# Detector geometry setup  (/det/)
+# ======================================================
+
+/det/setTungstenThickness 5.0 mm
+/det/setSiliconThickness 10 um
+/det/setBoxThickness 4.990 mm
+
+# Pixel dimensions
+/det/setPixelHeight 22.8 um
+/det/setPixelWidth 20.8 um
+
+# Overall detector transverse size
+/det/setDetectorWidth 26.6 cm
+/det/setDetectorHeight 19.6 cm
+
+# Set name of GDML file to be produced
+/det/setGDMLFile pinpoint.gdml
+
+# Scintillator configuration
+/det/setNumScintPanelsPerLayer 2
+
+# Scintillator geometry flag
+#  true  = bar geometry
+#  false = solid block
 /det/setScintBarFlag true
+/det/setScintWidth 450 mm
+/det/setScintHeight 450 mm
+
+/det/setScintBarWidth 10.0 mm
+/det/setScintBarHeight 10.0 mm
+/det/setScintThickness 5 mm
+
+/det/setNumScintLayers 10
+
+#/det/setMaxDetectorThickness 112.5 cm
+
+# FORTUNE GEOMETRY
+
+# PINPOINT GEOMETRY
+#/det/setPinpointThickness 10.5 cm
+#/det/setPinpointTungstenThickness 8 mm

@@ -23,16 +23,17 @@ GFaserGeneratorMessenger::GFaserGeneratorMessenger(GFaserGenerator* action)
   // fFirstEventCmd->SetDefaultValue((G4int)0);
   // fFirstEventCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-  fUseFixedZPositionCmd = new G4UIcmdWithABool("/gen/gfaser/useFixedZPosition", this);
-  fUseFixedZPositionCmd->SetGuidance("set whether to use a fixed Z position for the neutrino vertex");
-  fUseFixedZPositionCmd->SetDefaultValue((G4bool)1);
-  fUseFixedZPositionCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+  fHitPixelAreaCmd = new G4UIcmdWithABool("/gen/gfaser/hitPixelArea", this);
+  fHitPixelAreaCmd->SetGuidance("If true, skip events whose neutrino transverse position is outside the pixel detector footprint");
+  fHitPixelAreaCmd->SetDefaultValue((G4bool)false);
+  fHitPixelAreaCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 }
 
 
 GFaserGeneratorMessenger::~GFaserGeneratorMessenger()
 {
   delete fInputFileCmd;
+  delete fHitPixelAreaCmd;
   // delete fFirstEventCmd;
   delete fGFaserGeneratorDir;
 }
@@ -43,6 +44,6 @@ void GFaserGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVal
   if (command == fInputFileCmd) fGFaserAction->SetInputFileName(newValues);
   // else if (command == fFirstEventCmd)
   //   fGFaserAction->SetFirstEvent(fFirstEventCmd->GetNewIntValue(newValues));
-  else if (command == fUseFixedZPositionCmd)
-    fGFaserAction->SetUseFixedZPosition(fUseFixedZPositionCmd->GetNewBoolValue(newValues));
+  else if (command == fHitPixelAreaCmd)
+    fGFaserAction->SetHitPixelArea(fHitPixelAreaCmd->GetNewBoolValue(newValues));
 }

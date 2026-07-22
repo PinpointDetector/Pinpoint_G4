@@ -142,26 +142,46 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   G4cout << "oooOOOooo Event # " << fCurrentEvent << "/" << fTotalEvents << " oooOOOooo" << G4endl;
   G4cout << "GeneratePrimaries from file " << fInputFileName << G4endl;
 
-  event->SetEventID(fCurrentEvent);
   if (fCurrentEvent >= fTotalEvents) {
     G4cerr << "** event index beyond range !! **" << G4endl;
+    return;
   }
+
+  if (fLastEvent >= 0 && fCurrentEvent > fLastEvent) {
+    G4cout << "fCurrentEvent " << fCurrentEvent
+           << " exceeds lastEvent " << fLastEvent << ". Aborting run." << G4endl;
+    G4RunManager::GetRunManager()->AbortRun(true);
+    return;
+  }
+
+  const DetectorConstruction* detector =
+    static_cast<const DetectorConstruction*>(
+        G4RunManager::GetRunManager()->GetUserDetectorConstruction()
+    );
 
   fGfaserTree->GetEntry(fCurrentEvent);
-  if (fUseFixedZPosition) {
-    fVz = GenerateRandomZVertex(fLayerId);
-  }
-  else {
-    auto *rm = G4RunManager::GetRunManager();
-    auto det = (DetectorConstruction*) (rm->GetUserDetectorConstruction());
-    G4int maxLayerIndex = det->GetNumberOfLayers();
-    G4int randomLayer = (G4int)(G4UniformRand() * (maxLayerIndex));
-    fVz = GenerateRandomZVertex(randomLayer);
+
+  // If fHitPixelArea is set, advance past any events whose neutrino transverse
+  // position falls outside the pixel detector's footprint
+  if (fHitPixelArea) {
+    const G4double halfW = 0.5 * detector->GetPixelDetectorWidth();
+    const G4double halfH = 0.5 * detector->GetPixelDetectorHeight();
+    while (std::abs(fVx * m) > halfW || std::abs(fVy * m) > halfH) {
+      G4cout << "Skipping event " << fCurrentEvent
+             << " (Vx=" << fVx * 100 << " cm, Vy=" << fVy * 100 << " cm"
+             << " outside pixel area " << halfW / cm << " x " << halfH / cm << " cm)" << G4endl;
+      if (++fCurrentEvent >= fTotalEvents) {
+        G4cerr << "** No events within pixel area remain! **" << G4endl;
+        return;
+      }
+      fGfaserTree->GetEntry(fCurrentEvent);
+    }
   }
 
-  auto *runManager = G4RunManager::GetRunManager();
-  auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
-  if (fVz < 0 || fVz > detector->GetNumberOfLayers() * detector->GetLayerThickness()) {
+  event->SetEventID(fCurrentEvent);
+  fVz = GenerateRandomZVertex();
+
+  if (fVz < 0 || fVz > detector->GetNLayers() * detector->GetLayerThickness()) {
     G4cerr << "** vertex z position out of range !! **" << G4endl;
   }
 
@@ -170,28 +190,6 @@ void GFaserGenerator::GeneratePrimaries(G4Event* event)
   G4PrimaryVertex* vertex = new G4PrimaryVertex(vertexPosition, 0.);
   // Add primary particles
   for (int i = 0; i < fN; i++) {
-    
-    //.   If you get branch address warnings you probably didn't convert your ghep file using `Pinpoint/convertGHEPPinPoint.C`
-    //.   Make sure to use that script to convert your GENIE GHEP files to GFaser format.
-    //.   If that is not possible you can ignore the warnings and uncomment the code commented out by ////   
-    //// Get the neutrino pdg and p4 (GENIE primaries have status 0)
-    //// if ((*fStatus)[i] == 0){
-
-    ////   G4int pdg = (*fPdgc)[i];
-    ////   if (abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16)
-    ////   {
-    ////     fNuPdg = pdg;
-    ////     fPxv = (*fPx)[i];
-    ////     fPyv = (*fPy)[i];
-    ////     fPzv = (*fPz)[i];
-    ////     fEv = (*fE)[i];
-    ////   }
-    ////   else{
-    ////     fTgtPdg = pdg;
-    ////   }
-    ////   continue; 
-    //// }
-
     if ((*fStatus)[i] != 1) continue;
     G4int pdg = (*fPdgc)[i];
     G4ParticleDefinition* particleDefinition;
@@ -268,28 +266,41 @@ G4bool GFaserGenerator::FindParticleDefinition(G4int const pdg, G4ParticleDefini
 }
 
 
-G4double GFaserGenerator::GenerateRandomZVertex(G4int layerIndex) const {
-  auto *runManager = G4RunManager::GetRunManager();
-  auto detector = (DetectorConstruction*) (runManager->GetUserDetectorConstruction());
+G4double GFaserGenerator::GenerateRandomZVertex() const
+{
+  auto* runManager = G4RunManager::GetRunManager();
+  const auto* det = static_cast<const DetectorConstruction*>(
+      runManager->GetUserDetectorConstruction());
 
-  G4double layerThickness = detector->GetLayerThickness();
-  G4double tungstenThickness = detector->GetTungstenThickness();
-  G4double z = layerIndex * layerThickness + tungstenThickness * G4UniformRand();
+  const auto& centres     = det->GetTungstenZPositions();
+  const auto& thicknesses = det->GetTungstenThicknesses();
 
-  if (detector->GetSimFlag() >= 0 && G4UniformRand() > 0.5) {
-    G4double boxThickness = detector->GetBoxThickness();
-    G4double siliconThickness = detector->GetSiliconThickness();
-    // If `GetSimFlag() >= 0` there are two tungsten blocks per layer: [Tungsten | Box | Silicon | Tungsten | Scintillator]
-    // Randomly chose in which tungsten block the neutrino interaction happens and adjust the z vertex accordingly.
-    z += tungstenThickness + boxThickness + siliconThickness;
+  if (centres.empty()) {
+    G4cerr << "GFaserGenerator: tungsten z-positions not yet computed!" << G4endl;
+    return 0.;
   }
-  G4cout << "LayerIndex: " << layerIndex << ", LayerThickness: " << layerThickness/mm << " mm, TungstenThickness: " << tungstenThickness/mm << " mm, " 
-         << " SimFlag: " << detector->GetSimFlag() << ", boxThickness: " << detector->GetBoxThickness()/mm << " mm, " 
-         << "siliconThickness: " << detector->GetSiliconThickness()/mm << " mm"
-         << G4endl;
 
-  G4cout << "Generated random Z vertex at: " << z << " mm = "  << z/m << " m in layer " << layerIndex << G4endl;
+  // Sample uniformly over all tungsten plates, weighted by plate thickness
+  G4double totalT = 0.;
+  for (size_t k = 0; k < centres.size(); ++k) totalT += thicknesses[k];
 
-  return z/m; // convert to meters
+  G4double u     = G4UniformRand() * totalT;
+  G4double cumul = 0.;
+  G4double z     = 0.;
+  G4int    chosen = -1;
+  for (size_t k = 0; k < centres.size(); ++k) {
+    if (u < cumul + thicknesses[k]) {
+      z      = (centres[k] - 0.5 * thicknesses[k]) + (u - cumul);
+      chosen = static_cast<G4int>(k);
+      break;
+    }
+    cumul += thicknesses[k];
+  }
+
+  G4cout << "Generated vertex z = " << z / mm << " mm"
+         << " (plate " << chosen
+         << ", total W = " << totalT / mm << " mm)" << G4endl;
+
+  return z / m;  // convert to metres for the vertex position
 }
 

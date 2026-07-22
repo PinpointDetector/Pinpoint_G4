@@ -12,7 +12,8 @@ class G4HCofThisEvent;
 class ScintillatorSD : public G4VSensitiveDetector
 {
 public:
-    ScintillatorSD(const G4String& name, const G4String& hitsCollectionName);
+    ScintillatorSD(const G4String& name, const G4String& hitsCollectionName,
+                   const G4String& pixelHitsCollectionName);
     ~ScintillatorSD() override = default;
 
     void Initialize(G4HCofThisEvent* hitCollection) override;
@@ -24,8 +25,13 @@ public:
     static G4bool IsFromMuon(G4int trackID);
     static void ClearMuonHistory();
 
+    void SetLayerIndexing(G4int nPinpointBlocks, G4int nPanelsPerLayer) {
+    fNPinpointBlocks = nPinpointBlocks;
+    fNumScintPanelsPerLayer = nPanelsPerLayer;
+    }
 private:
     ScintHitsCollection* fHitsCollection = nullptr;
+    ScintHitsCollection* fPixelHitsCollection = nullptr;
 
     // Static set to track all descendants of the primary lepton (trackId 1)
     static std::set<G4int> sScintPrimaryDescendants;
@@ -35,6 +41,8 @@ private:
      static std::set<G4int> sScintMuonDescendants;
 
     G4long fScintCurrentHitId = 0;
+    G4int fNPinpointBlocks = 0;
+    G4int fNumScintPanelsPerLayer = 0;
 };
 
 #endif

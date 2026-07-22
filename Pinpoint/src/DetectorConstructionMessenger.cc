@@ -28,11 +28,11 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     // detGdmlCmd->SetParameterName("saveGdml", true);
     // detGdmlCmd->SetDefaultValue(false);
     
-    tungstenThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setTungstenThickness", this);
-    tungstenThicknessCmd->SetUnitCategory("Length");
-    tungstenThicknessCmd->SetDefaultUnit("mm");
-    tungstenThicknessCmd->SetParameterName("TungstenThickness", false);
-    tungstenThicknessCmd->SetRange("TungstenThickness>0.");
+    fortuneTungstenThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setTungstenThickness", this);
+    fortuneTungstenThicknessCmd->SetUnitCategory("Length");
+    fortuneTungstenThicknessCmd->SetDefaultUnit("mm");
+    fortuneTungstenThicknessCmd->SetParameterName("TungstenThickness", false);
+    fortuneTungstenThicknessCmd->SetRange("TungstenThickness>0.");
 
     siliconThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setSiliconThickness", this);
     siliconThicknessCmd->SetUnitCategory("Length");
@@ -46,11 +46,6 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     boxThicknessCmd->SetParameterName("BoxThickness", false);
     boxThicknessCmd->SetRange("BoxThickness>0.");
 
-    nLayersCmd = new G4UIcmdWithAnInteger("/det/setNLayers", this);
-    nLayersCmd->SetParameterName("NLayers", false);
-    nLayersCmd->SetRange("NLayers>0");
-    nLayersCmd->SetDefaultValue(100);
-
     pixelHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelHeight", this);
     pixelHeightCmd->SetParameterName("PixelHeight", false);
     pixelHeightCmd->SetDefaultUnit("um");
@@ -63,37 +58,181 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     pixelWidthCmd->SetRange("PixelWidth>0.");
     pixelWidthCmd->SetDefaultValue(20.8);
 
-    detectorWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorWidth", this);
-    detectorWidthCmd->SetParameterName("DetectorWidth", false);
-    detectorWidthCmd->SetDefaultUnit("cm");
-    detectorWidthCmd->SetRange("DetectorWidth>0.");
-    detectorWidthCmd->SetDefaultValue(26.6);
+    pixelDetectorWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorWidth", this);
+    pixelDetectorWidthCmd->SetParameterName("DetectorWidth", false);
+    pixelDetectorWidthCmd->SetDefaultUnit("cm");
+    pixelDetectorWidthCmd->SetRange("DetectorWidth>0.");
+    pixelDetectorWidthCmd->SetDefaultValue(26.6);
 
-    detectorHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorHeight", this);
-    detectorHeightCmd->SetParameterName("DetectorHeight", false);
-    detectorHeightCmd->SetDefaultUnit("cm");
-    detectorHeightCmd->SetRange("DetectorHeight>0.");
-    detectorHeightCmd->SetDefaultValue(19.6);
+    pixelDetectorHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setDetectorHeight", this);
+    pixelDetectorHeightCmd->SetParameterName("DetectorHeight", false);
+    pixelDetectorHeightCmd->SetDefaultUnit("cm");
+    pixelDetectorHeightCmd->SetRange("DetectorHeight>0.");
+    pixelDetectorHeightCmd->SetDefaultValue(19.6);
 
     detGdmlCmd = new G4UIcmdWithAString("/det/setGDMLFile", this);
     detGdmlCmd->SetParameterName("GDMLFile", false);
     detGdmlCmd->SetDefaultValue("pinpoint.gdml");
 
-    // --- sim_flag : -1 = no scint, 0 = single layer, 1 = double layer ---
-    simFlagCmd = new G4UIcmdWithAnInteger("/det/setSimFlag", this);
-    simFlagCmd->SetGuidance("Set simulation scintillator configuration.");
-    simFlagCmd->SetGuidance(" -1: no scintillator");
-    simFlagCmd->SetGuidance("  0: one scintillator layer");
-    simFlagCmd->SetGuidance("  1: two scintillator layers");
-    simFlagCmd->SetParameterName("SimFlag", false);
-    simFlagCmd->SetRange("SimFlag>=-1 && SimFlag<=1");
-    simFlagCmd->SetDefaultValue(0);
+    // --- numScintPanelsPerLayer : 0=no scint, 1=single panel, 2=double panel ---
+    numScintPanelsPerLayerCmd = new G4UIcmdWithAnInteger("/det/setNumScintPanelsPerLayer", this);
+    numScintPanelsPerLayerCmd->SetGuidance("Set number of scintillator panels per scint layer.");
+    numScintPanelsPerLayerCmd->SetGuidance("  0: no scintillator");
+    numScintPanelsPerLayerCmd->SetGuidance("  1: one scintillator panel");
+    numScintPanelsPerLayerCmd->SetGuidance("  2: two scintillator panels");
+    numScintPanelsPerLayerCmd->SetParameterName("NumScintPanelsPerLayer", false);
+    numScintPanelsPerLayerCmd->SetRange("NumScintPanelsPerLayer>=0 && NumScintPanelsPerLayer<=2");
+    numScintPanelsPerLayerCmd->SetDefaultValue(1);
 
     // --- scint_bar_flag : true = bar geometry, false = block geometry ---
     scintBarFlagCmd = new G4UIcmdWithABool("/det/setScintBarFlag", this);
     scintBarFlagCmd->SetGuidance("Use scintillator bar geometry (true) or solid block (false).");
     scintBarFlagCmd->SetParameterName("ScintBarFlag", false);
     scintBarFlagCmd->SetDefaultValue(false);
+
+    // --- scintHeight : height of scintillator panels (may differ from detector height) ---
+    scintDetectorHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintHeight", this);
+    scintDetectorHeightCmd->SetGuidance("Set the height of the scintillator panels.");
+    scintDetectorHeightCmd->SetGuidance("May differ from detector height; panels are bottom-aligned.");
+    scintDetectorHeightCmd->SetParameterName("ScintHeight", false);
+    scintDetectorHeightCmd->SetDefaultUnit("cm");
+    scintDetectorHeightCmd->SetRange("ScintHeight>0.");
+    scintDetectorHeightCmd->SetDefaultValue(42.0);
+
+    scintDetectorWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintWidth", this);
+    scintDetectorWidthCmd->SetGuidance("Set the width of the scintillator panels.");
+    scintDetectorWidthCmd->SetParameterName("ScintWidth", false);
+    scintDetectorWidthCmd->SetDefaultUnit("cm");
+    scintDetectorWidthCmd->SetRange("ScintWidth>0.");
+    scintDetectorWidthCmd->SetDefaultValue(42.0);
+
+    // --- pinpointThickness : thickness of the initial pixel-only section ---
+    // pinpointThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setPinpointThickness", this);
+    // pinpointThicknessCmd->SetGuidance("Thickness of the initial pinpoint section (alternating pixels + scintillators).");
+    // pinpointThicknessCmd->SetGuidance("Set to 0 to disable.");
+    // pinpointThicknessCmd->SetParameterName("PinpointThickness", false);
+    // pinpointThicknessCmd->SetDefaultUnit("cm");
+    // pinpointThicknessCmd->SetUnitCategory("Length");
+    // pinpointThicknessCmd->SetRange("PinpointThickness>=0.");
+    // pinpointThicknessCmd->SetDefaultValue(10.4);
+
+    pinpointTungstenThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setPinpointTungstenThickness", this);
+    pinpointTungstenThicknessCmd->SetGuidance("Tungsten thickness for the Pinpoint sub-detector layers.");
+    pinpointTungstenThicknessCmd->SetParameterName("PinpointTungstenThickness", false);
+    pinpointTungstenThicknessCmd->SetDefaultUnit("mm");
+    pinpointTungstenThicknessCmd->SetUnitCategory("Length");
+    pinpointTungstenThicknessCmd->SetRange("PinpointTungstenThickness>0.");
+    pinpointTungstenThicknessCmd->SetDefaultValue(8.0);
+
+    numPinpointLayersCmd = new G4UIcmdWithAnInteger("/det/setNumPinpointLayers", this);
+    numPinpointLayersCmd->SetGuidance("Number of Pinpoint pixel layers (alternating pixel+scintillator blocks).");
+    numPinpointLayersCmd->SetParameterName("NumPinpointLayers", false);
+    numPinpointLayersCmd->SetRange("NumPinpointLayers>=0");
+    numPinpointLayersCmd->SetDefaultValue(4);
+
+    numFortuneBlocksCmd = new G4UIcmdWithAnInteger("/det/setNumFortuneBlocks", this);
+    numFortuneBlocksCmd->SetGuidance("Number of Fortune pixel+scint groups (excludes the trailing pixel layer).");
+    numFortuneBlocksCmd->SetParameterName("NumFortuneBlocks", false);
+    numFortuneBlocksCmd->SetRange("NumFortuneBlocks>=0");
+    numFortuneBlocksCmd->SetDefaultValue(6);
+
+    aluminumWallThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setAluminumWallThickness", this);
+    aluminumWallThicknessCmd->SetGuidance("Thickness of the aluminum wall placed before and after each Pinpoint/Fortune block.");
+    aluminumWallThicknessCmd->SetParameterName("AluminumWallThickness", false);
+    aluminumWallThicknessCmd->SetDefaultUnit("mm");
+    aluminumWallThicknessCmd->SetUnitCategory("Length");
+    aluminumWallThicknessCmd->SetRange("AluminumWallThickness>=0.");
+    aluminumWallThicknessCmd->SetDefaultValue(2.0);
+
+    aluminumWallWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setAluminumWallWidth", this);
+    aluminumWallWidthCmd->SetGuidance("Transverse width of the aluminum walls.");
+    aluminumWallWidthCmd->SetParameterName("AluminumWallWidth", false);
+    aluminumWallWidthCmd->SetDefaultUnit("cm");
+    aluminumWallWidthCmd->SetUnitCategory("Length");
+    aluminumWallWidthCmd->SetRange("AluminumWallWidth>0.");
+    aluminumWallWidthCmd->SetDefaultValue(44.0);
+
+    aluminumWallHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setAluminumWallHeight", this);
+    aluminumWallHeightCmd->SetGuidance("Transverse height of the aluminum walls.");
+    aluminumWallHeightCmd->SetParameterName("AluminumWallHeight", false);
+    aluminumWallHeightCmd->SetDefaultUnit("cm");
+    aluminumWallHeightCmd->SetUnitCategory("Length");
+    aluminumWallHeightCmd->SetRange("AluminumWallHeight>0.");
+    aluminumWallHeightCmd->SetDefaultValue(44.0);
+
+    // --- maxDetectorThickness : maximum total detector thickness ---
+    // maxDetectorThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setMaxDetectorThickness", this);
+    // maxDetectorThicknessCmd->SetGuidance("Maximum total detector thickness; number of layers is capped to fit within this.");
+    // maxDetectorThicknessCmd->SetParameterName("MaxDetectorThickness", false);
+    // maxDetectorThicknessCmd->SetDefaultUnit("cm");
+    // maxDetectorThicknessCmd->SetUnitCategory("Length");
+    // maxDetectorThicknessCmd->SetRange("MaxDetectorThickness>0.");
+    // maxDetectorThicknessCmd->SetDefaultValue(150.);
+
+    scintBarWidthCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintBarWidth", this);
+    scintBarWidthCmd->SetGuidance("Width of a single scintillator bar (segmentation in X).");
+    scintBarWidthCmd->SetParameterName("ScintBarWidth", false);
+    scintBarWidthCmd->SetDefaultUnit("mm");
+    scintBarWidthCmd->SetRange("ScintBarWidth>0.");
+    scintBarWidthCmd->SetDefaultValue(10.0);
+
+    scintBarHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintBarHeight", this);
+    scintBarHeightCmd->SetGuidance("Height of a single scintillator bar (segmentation in Y).");
+    scintBarHeightCmd->SetParameterName("ScintBarHeight", false);
+    scintBarHeightCmd->SetDefaultUnit("mm");
+    scintBarHeightCmd->SetRange("ScintBarHeight>0.");
+    scintBarHeightCmd->SetDefaultValue(10.0);
+
+    scintThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintThickness", this);
+    scintThicknessCmd->SetGuidance("Thickness of a single scintillator panel.");
+    scintThicknessCmd->SetParameterName("ScintThickness", false);
+    scintThicknessCmd->SetDefaultUnit("mm");
+    scintThicknessCmd->SetRange("ScintThickness>0.");
+    scintThicknessCmd->SetDefaultValue(5.0);
+
+    // --- numScintLayers : scintillator groups per detector layer ---
+    numScintLayersCmd = new G4UIcmdWithAnInteger("/det/setNumScintLayers", this);
+    numScintLayersCmd->SetGuidance("Number of scintillator groups per detector layer.");
+    numScintLayersCmd->SetGuidance("0: no scintillators (T+P only)");
+    numScintLayersCmd->SetGuidance("N: N*(T+S) or N*(T+S+S) groups appended to each T+P layer.");
+    numScintLayersCmd->SetParameterName("NumScintLayers", false);
+    numScintLayersCmd->SetRange("NumScintLayers>=0");
+    numScintLayersCmd->SetDefaultValue(0);
+
+    enableFaserSpectrometerCmd = new G4UIcmdWithABool("/det/enableFaserSpectrometer", this);
+    enableFaserSpectrometerCmd->SetGuidance("Enable FASER spectrometer magnets, tracking stations and magnetic field (default: true).");
+    enableFaserSpectrometerCmd->SetDefaultValue(true);
+    enableFaserSpectrometerCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+
+    numIPTLayersCmd = new G4UIcmdWithAnInteger("/det/setNumIPTLayers", this);
+    numIPTLayersCmd->SetGuidance("Number of Interface Pixel Tracker (IPT) layers at the end of the detector.");
+    numIPTLayersCmd->SetParameterName("NumIPTLayers", false);
+    numIPTLayersCmd->SetRange("NumIPTLayers>=0");
+    numIPTLayersCmd->SetDefaultValue(3);
+
+    pixelDetectorOffsetXCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelDetectorOffsetX", this);
+    pixelDetectorOffsetXCmd->SetGuidance("X offset of the pixel detector (shifts pixel columns).");
+    pixelDetectorOffsetXCmd->SetParameterName("PixelDetectorOffsetX", false);
+    pixelDetectorOffsetXCmd->SetDefaultUnit("mm");
+    pixelDetectorOffsetXCmd->SetDefaultValue(0.0);
+
+    pixelDetectorOffsetYCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelDetectorOffsetY", this);
+    pixelDetectorOffsetYCmd->SetGuidance("Y offset of the pixel detector (shifts pixel rows).");
+    pixelDetectorOffsetYCmd->SetParameterName("PixelDetectorOffsetY", false);
+    pixelDetectorOffsetYCmd->SetDefaultUnit("mm");
+    pixelDetectorOffsetYCmd->SetDefaultValue(0.0);
+
+    scintDetectorOffsetXCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintDetectorOffsetX", this);
+    scintDetectorOffsetXCmd->SetGuidance("X offset of the scintillator detector (shifts vertical bars).");
+    scintDetectorOffsetXCmd->SetParameterName("ScintDetectorOffsetX", false);
+    scintDetectorOffsetXCmd->SetDefaultUnit("mm");
+    scintDetectorOffsetXCmd->SetDefaultValue(-77.0);
+
+    scintDetectorOffsetYCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintDetectorOffsetY", this);
+    scintDetectorOffsetYCmd->SetGuidance("Y offset of the scintillator detector (shifts horizontal bars).");
+    scintDetectorOffsetYCmd->SetParameterName("ScintDetectorOffsetY", false);
+    scintDetectorOffsetYCmd->SetDefaultUnit("mm");
+    scintDetectorOffsetYCmd->SetDefaultValue(0.0);
 
     // magnetFieldCmd = new G4UIcmdWithADoubleAndUnit("/det/magnetField", this);
     // magnetFieldCmd->SetUnitCategory("Magnetic flux density");
@@ -108,26 +247,45 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
 //   delete detGdmlCmd;
   // delete magnetFieldCmd;
   delete detDir;
-  delete tungstenThicknessCmd;
+  delete fortuneTungstenThicknessCmd;
   delete siliconThicknessCmd;
   delete boxThicknessCmd;
-  delete nLayersCmd;
   delete pixelHeightCmd;
   delete pixelWidthCmd;
-  delete detectorWidthCmd;
-  delete detectorHeightCmd;
+  delete pixelDetectorWidthCmd;
+  delete pixelDetectorHeightCmd;
   delete detGdmlCmd;
-  delete simFlagCmd;
+  delete numScintPanelsPerLayerCmd;
   delete scintBarFlagCmd;
+  delete scintDetectorHeightCmd;
+  delete scintDetectorWidthCmd;
+  delete scintBarWidthCmd;
+  delete scintBarHeightCmd;
+  delete scintThicknessCmd;
+  delete numScintLayersCmd;
+  // delete maxDetectorThicknessCmd;
+  // delete pinpointThicknessCmd;
+  delete pinpointTungstenThicknessCmd;
+  delete numPinpointLayersCmd;
+  delete numFortuneBlocksCmd;
+  delete aluminumWallThicknessCmd;
+  delete aluminumWallWidthCmd;
+  delete aluminumWallHeightCmd;
+  delete enableFaserSpectrometerCmd;
+  delete numIPTLayersCmd;
+  delete pixelDetectorOffsetXCmd;
+  delete pixelDetectorOffsetYCmd;
+  delete scintDetectorOffsetXCmd;
+  delete scintDetectorOffsetYCmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
   
-  if (command == tungstenThicknessCmd) {
-    G4double thickness = tungstenThicknessCmd->ConvertToDimensionedDouble(newValues);
-    det->SetTungstenThickness(thickness);
+  if (command == fortuneTungstenThicknessCmd) {
+    G4double thickness = fortuneTungstenThicknessCmd->ConvertToDimensionedDouble(newValues);
+    det->SetFortuneTungstenThickness(thickness);
   }
   if (command == siliconThicknessCmd) {
     G4double thickness = siliconThicknessCmd->ConvertToDimensionedDouble(newValues);
@@ -137,10 +295,6 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
     G4double thickness = boxThicknessCmd->ConvertToDimensionedDouble(newValues);
     det->SetBoxThickness(thickness);
   }
-  if (command == nLayersCmd) {
-    G4int nLayers = nLayersCmd->GetNewIntValue(newValues);
-    det->SetNLayers(nLayers);
-  }
   if (command == pixelHeightCmd) {
     G4double height = pixelHeightCmd->GetNewDoubleValue(newValues);
     det->SetPixelHeight(height);
@@ -149,23 +303,83 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
     G4double width = pixelWidthCmd->GetNewDoubleValue(newValues);
     det->SetPixelWidth(width);
   }
-  if (command == detectorWidthCmd) {
-    G4double width = detectorWidthCmd->GetNewDoubleValue(newValues);
-    det->SetDetectorWidth(width);
+  if (command == pixelDetectorWidthCmd) {
+    G4double width = pixelDetectorWidthCmd->GetNewDoubleValue(newValues);
+    det->SetPixelDetectorWidth(width);
   }
-  if (command == detectorHeightCmd) {
-    G4double height = detectorHeightCmd->GetNewDoubleValue(newValues);
-    det->SetDetectorHeight(height);
+  if (command == pixelDetectorHeightCmd) {
+    G4double height = pixelDetectorHeightCmd->GetNewDoubleValue(newValues);
+    det->SetPixelDetectorHeight(height);
   }
   if (command == detGdmlCmd) {
     // G4String filename = detGdmlCmd->GetNewStringValue(newValues);
     det->SetGDMLFile(newValues);
   }
-  if (command == simFlagCmd) {
-    det->SetSimFlag(simFlagCmd->GetNewIntValue(newValues));
+  if (command == numScintPanelsPerLayerCmd) {
+    det->SetNumScintPanelsPerLayer(numScintPanelsPerLayerCmd->GetNewIntValue(newValues));
   }
   if (command == scintBarFlagCmd) {
       det->SetScintBarFlag(scintBarFlagCmd->GetNewBoolValue(newValues));
+  }
+  if (command == scintDetectorHeightCmd) {
+    det->SetScintDetectorHeight(scintDetectorHeightCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintDetectorWidthCmd) {
+    det->SetScintDetectorWidth(scintDetectorWidthCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintBarWidthCmd) {
+    det->SetScintBarWidth(scintBarWidthCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintBarHeightCmd) {
+    det->SetScintBarHeight(scintBarHeightCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintThicknessCmd) {
+    det->SetScintThickness(scintThicknessCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == numScintLayersCmd) {
+    det->SetNumScintLayers(numScintLayersCmd->GetNewIntValue(newValues));
+  }
+  // if (command == maxDetectorThicknessCmd) {
+  //   det->SetMaxDetectorThickness(maxDetectorThicknessCmd->GetNewDoubleValue(newValues));
+  // }
+  // if (command == pinpointThicknessCmd) {
+  //   det->SetPinpointThickness(pinpointThicknessCmd->GetNewDoubleValue(newValues));
+  // }
+  if (command == pinpointTungstenThicknessCmd) {
+    det->SetPinpointTungstenThickness(pinpointTungstenThicknessCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == numPinpointLayersCmd) {
+    det->SetNumPinpointLayers(numPinpointLayersCmd->GetNewIntValue(newValues));
+  }
+  if (command == numFortuneBlocksCmd) {
+    det->SetNumFortuneBlocks(numFortuneBlocksCmd->GetNewIntValue(newValues));
+  }
+  if (command == enableFaserSpectrometerCmd) {
+    det->SetEnableFaserSpectrometer(enableFaserSpectrometerCmd->GetNewBoolValue(newValues));
+  }
+  if (command == aluminumWallThicknessCmd) {
+    det->SetAluminumWallThickness(aluminumWallThicknessCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == aluminumWallWidthCmd) {
+    det->SetAluminumWallWidth(aluminumWallWidthCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == aluminumWallHeightCmd) {
+    det->SetAluminumWallHeight(aluminumWallHeightCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == numIPTLayersCmd) {
+    det->SetNIPTLayers(numIPTLayersCmd->GetNewIntValue(newValues));
+  }
+  if (command == pixelDetectorOffsetXCmd) {
+    det->SetPixelDetectorOffsetX(pixelDetectorOffsetXCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == pixelDetectorOffsetYCmd) {
+    det->SetPixelDetectorOffsetY(pixelDetectorOffsetYCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintDetectorOffsetXCmd) {
+    det->SetScintDetectorOffsetX(scintDetectorOffsetXCmd->GetNewDoubleValue(newValues));
+  }
+  if (command == scintDetectorOffsetYCmd) {
+    det->SetScintDetectorOffsetY(scintDetectorOffsetYCmd->GetNewDoubleValue(newValues));
   }
 
 

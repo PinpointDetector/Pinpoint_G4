@@ -163,16 +163,46 @@ void AnalysisManager::bookTrkTree()
 void AnalysisManager::bookGeomTree()
 {
   fGeom = new TTree("geometry", "geometry info");
-  fGeom->Branch("detector_width", &detectorWidth, "detectorWidth/F");
-  fGeom->Branch("detector_height", &detectorHeight, "detectorHeight/F");
-  fGeom->Branch("tungsten_thickness", &tungstenThickness, "tungstenThickness/F");
-  fGeom->Branch("silicon_thickness", &siliconThickness, "siliconThickness/F");
-  fGeom->Branch("nLayers", &nLayers, "nLayers/I");
-  fGeom->Branch("pixel_Xpos", &pixelsXPos);
-  fGeom->Branch("pixel_Ypos", &pixelsYPos);
-  fGeom->Branch("pixel_Zpos", &pixelsZPos);
-  fGeom->Branch("sim_flag", &simFlag, "simFlag/I");
-  fGeom->Branch("scint_bar_flag", &scintBarFlag, "scintBarFlag/F");
+
+  // Pixel detector
+  fGeom->Branch("detector_width",           &detectorWidth,            "detector_width/F");
+  fGeom->Branch("detector_height",          &detectorHeight,           "detector_height/F");
+  fGeom->Branch("silicon_thickness",        &siliconThickness,         "silicon_thickness/F");
+
+  // Fortune section
+  fGeom->Branch("tungsten_thickness",       &tungstenThickness,        "tungsten_thickness/F");
+  fGeom->Branch("nFortuneBlocks",           &nFortuneBlocks,           "nFortuneBlocks/I");
+  fGeom->Branch("numScintLayers",           &numScintLayers,           "numScintLayers/I");
+  fGeom->Branch("num_scint_panels_layer",   &numScintPanelsPerLayer,   "num_scint_panels_layer/I");
+
+  // Pinpoint section
+  fGeom->Branch("pinpoint_tungsten_thickness", &pinpointTungstenThickness, "pinpoint_tungsten_thickness/F");
+  fGeom->Branch("nPinpointBlocks",          &nPinpointBlocks,          "nPinpointBlocks/I");
+
+  // Scintillator geometry
+  fGeom->Branch("scint_detector_width",     &scintDetectorWidth,       "scint_detector_width/F");
+  fGeom->Branch("scint_detector_height",    &scintDetectorHeight,      "scint_detector_height/F");
+  fGeom->Branch("scint_thickness",          &scintThickness,           "scint_thickness/F");
+  fGeom->Branch("scint_bar_width",          &scintBarWidth,            "scint_bar_width/F");
+  fGeom->Branch("scint_bar_height",         &scintBarHeight,           "scint_bar_height/F");
+  fGeom->Branch("scint_bar_flag",           &scintBarFlag,             "scint_bar_flag/I");
+
+  // Totals
+  fGeom->Branch("nLayers",                 &nLayers,                  "nLayers/I");
+  fGeom->Branch("layer_is_pixel",          &layerIsPixel);
+
+  // Pixel positions
+  fGeom->Branch("pixel_Xpos",             &pixelsXPos);
+  fGeom->Branch("pixel_Ypos",             &pixelsYPos);
+  fGeom->Branch("pixel_Zpos",             &pixelsZPos);
+
+  // Tungsten and scintillator z positions
+  fGeom->Branch("tungsten_Zpos",          &tungstenZPos);
+  fGeom->Branch("scint_Zpos",             &scintZPos);
+
+  // Scint bar centres (transverse)
+  fGeom->Branch("scint_bar_Xcenter",      &scintBarCenterX);
+  fGeom->Branch("scint_bar_Ycenter",      &scintBarCenterY);
 }
 
 
@@ -189,24 +219,24 @@ void AnalysisManager::bookHitsTrees()
   //* Reco Hits Tree [i == unsigned int; F == float; l == Long unsigned 64 int]
   fPixelHitsTree = new TTree("pixelHits", "pixelHits_Tree");
   fPixelHitsTree->Branch("event_id", &fPixelEventID, "event_id/i");
-  fPixelHitsTree->Branch("hit_rowID", &fPixelRowIDs);
-  fPixelHitsTree->Branch("hit_colID", &fPixelColIDs);
-  fPixelHitsTree->Branch("hit_layerID", &fPixelLayerIDs);
-  fPixelHitsTree->Branch("hit_pdgc", &fPixelPDGCs);
-  fPixelHitsTree->Branch("hit_trackID", &fPixelTrackIDs);
-  fPixelHitsTree->Branch("hit_parentID", &fPixelParentIDs);
+  fPixelHitsTree->Branch("rowID", &fPixelRowIDs);
+  fPixelHitsTree->Branch("colID", &fPixelColIDs);
+  fPixelHitsTree->Branch("layerID", &fPixelLayerIDs);
+  fPixelHitsTree->Branch("pdg", &fPixelPDGCs);
+  fPixelHitsTree->Branch("trackID", &fPixelTrackIDs);
+  fPixelHitsTree->Branch("parentID", &fPixelParentIDs);
   // fPixelHitsTree->Branch("hit_px", &fPixelPxs);
   // fPixelHitsTree->Branch("hit_py", &fPixelPys);
   // fPixelHitsTree->Branch("hit_pz", &fPixelPzs);
   // fPixelHitsTree->Branch("hit_energy", &fPixelEnergies);
   // fPixelHitsTree->Branch("hit_charge", &fPixelCharges);
-  fPixelHitsTree->Branch("hit_edep", & fPixelEDep);
+  fPixelHitsTree->Branch("edep", & fPixelEDep);
   // fPixelHitsTree->Branch("hit_fromPrimaryPizero", &fPixelFromPrimaryPizero);
   // fPixelHitsTree->Branch("hit_fromFSLPizero", &fPixelFromFSLPizero);
-  fPixelHitsTree->Branch("hit_fromPrimaryLepton", &fPixelFromPrimaryLepton);
-  fPixelHitsTree->Branch("hit_fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
-  fPixelHitsTree->Branch("hit_fromCharmedHadron", &fPixelFromCharmedHadron);
-  fPixelHitsTree->Branch("hit_fromTau", &fPixelFromTau);
+  fPixelHitsTree->Branch("fromPrimaryLepton", &fPixelFromPrimaryLepton);
+  fPixelHitsTree->Branch("fromPrimaryEMShower", &fPixelFromPrimaryEMShower);
+  fPixelHitsTree->Branch("fromCharmedHadron", &fPixelFromCharmedHadron);
+  fPixelHitsTree->Branch("fromTau", &fPixelFromTau);
 
   // if (fSaveTruthHits)
   // {
@@ -227,14 +257,35 @@ void AnalysisManager::bookScintTrees()
 
     fScintTree->Branch("event_id", &fScintEventID, "event_id/i");
     fScintTree->Branch("layerID", &fScintLayerID);
+    fScintTree->Branch("panelID", &fScintPanelID);
     fScintTree->Branch("colID", &fScintColID);
     fScintTree->Branch("rowID", &fScintRowID);
+    fScintTree->Branch("isHorizontal", &fScintIsHorizontal);
     fScintTree->Branch("trackID", &fScintTrackID);
     fScintTree->Branch("parentID", &fScintParentID);
     fScintTree->Branch("pdg", &fScintPDG);
     fScintTree->Branch("edep", &fScintEdep);
     fScintTree->Branch("fromMuon", &fScintFromMuon);
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
+    fScintTree->Branch("fromPrimaryEMShower", &fScintFromPrimaryEMShower);
+    fScintTree->Branch("fromTau", &fScintFromTau);
+
+    fScintPixelTree = new TTree("scintillatorPixelHits", "scintillator pixel hits");
+
+    fScintPixelTree->Branch("event_id", &fScintPixelEventID, "event_id/i");
+    fScintPixelTree->Branch("layerID", &fScintPixelLayerID);
+    fScintPixelTree->Branch("panelID", &fScintPixelPanelID);
+    fScintPixelTree->Branch("colID", &fScintPixelColID);
+    fScintPixelTree->Branch("rowID", &fScintPixelRowID);
+    fScintPixelTree->Branch("isHorizontal", &fScintPixelIsHorizontal);
+    fScintPixelTree->Branch("trackID", &fScintPixelTrackID);
+    fScintPixelTree->Branch("parentID", &fScintPixelParentID);
+    fScintPixelTree->Branch("pdg", &fScintPixelPDG);
+    fScintPixelTree->Branch("edep", &fScintPixelEdep);
+    fScintPixelTree->Branch("fromMuon", &fScintPixelFromMuon);
+    fScintPixelTree->Branch("fromPrimaryLepton", &fScintPixelFromPrimaryLepton);
+    fScintPixelTree->Branch("fromPrimaryEMShower", &fScintPixelFromPrimaryEMShower);
+    fScintPixelTree->Branch("fromTau", &fScintPixelFromTau);
 }
 
 //// --- FASER tracking spectrometer hits ---
@@ -344,6 +395,7 @@ void AnalysisManager::EndOfRun()
   fFile->cd(fHits->GetName());
   fPixelHitsTree->Write();
   fScintTree->Write();
+  fScintPixelTree->Write();
   fFaserHitsTree->Write();
 
   // fActsParticlesTree->Write();
@@ -396,14 +448,32 @@ void AnalysisManager::BeginOfEvent()
   //clean scintillator hits
   //// --- NEW FOR SCINTILLATORS ---
   fScintLayerID.clear();
+  fScintPanelID.clear();
   fScintColID.clear();
   fScintRowID.clear();
+  fScintIsHorizontal.clear();
   fScintTrackID.clear();
   fScintParentID.clear();
   fScintPDG.clear();
   fScintEdep.clear();
   fScintFromMuon.clear();
   fScintFromPrimaryLepton.clear();
+  fScintFromPrimaryEMShower.clear();
+  fScintFromTau.clear();
+
+  fScintPixelLayerID.clear();
+  fScintPixelPanelID.clear();
+  fScintPixelColID.clear();
+  fScintPixelRowID.clear();
+  fScintPixelIsHorizontal.clear();
+  fScintPixelTrackID.clear();
+  fScintPixelParentID.clear();
+  fScintPixelPDG.clear();
+  fScintPixelEdep.clear();
+  fScintPixelFromMuon.clear();
+  fScintPixelFromPrimaryLepton.clear();
+  fScintPixelFromPrimaryEMShower.clear();
+  fScintPixelFromTau.clear();
 }
 
 //---------------------------------------------------------------------
@@ -451,7 +521,7 @@ void AnalysisManager::FillEventTree(const G4Event *event)
 {
   G4cout << "Filling event tree" << G4endl;
   EventInformation* eventInfo = static_cast<EventInformation*>(event->GetUserInformation());
-  eventInfo->Print();
+  // eventInfo->Print();
   auto metadata = eventInfo->GetEventMetadata();
   for(int i=0; i<metadata.size(); i++)
   {
@@ -500,8 +570,8 @@ void AnalysisManager::FillPrimariesTree(const G4Event *event)
   /// neutrino truth info from event generator.
   for (G4int ivtx = 0; ivtx < event->GetNumberOfPrimaryVertex(); ++ivtx)
   {
-    G4cout << "=== Vertex " << ivtx+1 << " of " << nPrimaryVertex << " -> " 
-           << event->GetPrimaryVertex(ivtx)->GetNumberOfParticle() << " primaries ===" << G4endl;
+    // G4cout << "=== Vertex " << ivtx+1 << " of " << nPrimaryVertex << " -> " 
+    //        << event->GetPrimaryVertex(ivtx)->GetNumberOfParticle() << " primaries ===" << G4endl;
     for (G4int ipp = 0; ipp < event->GetPrimaryVertex(ivtx)->GetNumberOfParticle(); ++ipp)
     {
       G4PrimaryParticle *primary_particle = event->GetPrimaryVertex(ivtx)->GetPrimary(ipp);
@@ -629,22 +699,50 @@ void AnalysisManager::FillGeomTree()
     static_cast<const DetectorConstruction*>(
         G4RunManager::GetRunManager()->GetUserDetectorConstruction()
     );
-  detectorWidth = det->GetDetectorWidth()/mm;
-  detectorHeight = det->GetDetectorHeight()/mm;
-  tungstenThickness = det->GetTungstenThickness()/mm;
-  siliconThickness = det->GetSiliconThickness()/um;
-  nLayers = det->GetNumberOfLayers();
-  simFlag = det->GetSimFlag();
-  scintBarFlag = det->GetScintBarFlag();
-  
-  // get pixel positions: Idea is that we can get the x,y,z of all hits by indexing into these arrays
-  // pixelsXPos = det->GetPixelXPositions();
-  // pixelsYPos = det->GetPixelYPositions();
-  // pixelsZPos = det->GetPixelZPositions();
+
+  // Pixel detector
+  detectorWidth          = det->GetPixelDetectorWidth()  / mm;
+  detectorHeight         = det->GetPixelDetectorHeight() / mm;
+  siliconThickness       = det->GetSiliconThickness()    / um;
+
+  // Fortune section
+  tungstenThickness      = det->GetFortuneTungstenThickness() / mm;
+  nFortuneBlocks         = det->GetNFortuneBlocks();
+  numScintLayers         = det->GetNumScintLayers();
+  numScintPanelsPerLayer = det->GetNumScintPanelsPerLayer();
+
+  // Pinpoint section
+  pinpointTungstenThickness = det->GetPinpointTungstenThickness() / mm;
+  nPinpointBlocks        = det->GetNPinpointBlocks();
+
+  // Scintillator geometry
+  scintDetectorWidth     = det->GetScintDetectorWidth()  / mm;
+  scintDetectorHeight    = det->GetScintDetectorHeight() / mm;
+  scintThickness         = det->GetScintLayerThickness() / mm;
+  scintBarWidth          = det->GetScintBarWidth()       / mm;
+  scintBarHeight         = det->GetScintBarHeight()      / mm;
+  scintBarFlag           = det->GetScintBarFlag();
+
+  // Total layers
+  nLayers                = det->GetNLayers();
+
+  // Layer sequence
+  layerIsPixel.clear();
+  for (G4bool isPixel : det->GetLayerIsPixel())
+    layerIsPixel.push_back(isPixel ? 1 : 0);
+
+  // Pixel positions
   pixelsXPos = det->GetPixelCenterX();
   pixelsYPos = det->GetPixelCenterY();
   pixelsZPos = det->GetSiliconZPositions();
-  
+
+  // Tungsten and scintillator z positions
+  tungstenZPos = det->GetTungstenZPositions();
+  scintZPos    = det->GetScintZPositions();
+
+  // Scint bar centres (transverse)
+  scintBarCenterX = det->GetScintBarCenterX();
+  scintBarCenterY = det->GetScintBarCenterY();
 
   fGeom->Fill();
 }
@@ -715,6 +813,7 @@ void AnalysisManager::FillHitsOutput()
 void AnalysisManager::FillScintOutput()
 {
     fScintEventID = evtID;
+    fScintPixelEventID = evtID;
 
     G4int nHC = fHCofEvent->GetNumberOfCollections();
 
@@ -723,25 +822,52 @@ void AnalysisManager::FillScintOutput()
         auto* hc = fHCofEvent->GetHC(i);
         auto* scintHC = dynamic_cast<ScintHitsCollection*>(hc);
         if(!scintHC) continue;
-        if(scintHC->GetName() != "ScintHitsCollection") continue;
 
-        for(size_t h = 0; h < scintHC->entries(); ++h)
-        {
-            auto* hit = (*scintHC)[h];
+        // Bar-level (sum per row/column per track)
+        if(scintHC->GetName() == "ScintHitsCollection") {
+            for(size_t h = 0; h < scintHC->entries(); ++h)
+            {
+                auto* hit = (*scintHC)[h];
+                fScintLayerID.push_back(hit->GetLayerID());
+                fScintPanelID.push_back(hit->GetPanelID());
+                fScintColID.push_back(hit->GetColID());
+                fScintRowID.push_back(hit->GetRowID());
+                fScintIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
+                fScintTrackID.push_back(hit->GetTrackID());
+                fScintParentID.push_back(hit->GetParentID());
+                fScintPDG.push_back(hit->GetPDGCode());
+                fScintEdep.push_back(hit->GetEnergyDeposit());
+                fScintFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
+                fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+                fScintFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower() ? 1 : 0);
+                fScintFromTau.push_back(hit->GetFromTau() ? 1 : 0);
+            }
+        }
 
-            fScintLayerID.push_back(hit->GetLayerID());
-            fScintColID.push_back(hit->GetColID());
-            fScintRowID.push_back(hit->GetRowID());
-            fScintTrackID.push_back(hit->GetTrackID());
-            fScintParentID.push_back(hit->GetParentID());
-            fScintPDG.push_back(hit->GetPDGCode());
-            fScintEdep.push_back(hit->GetEnergyDeposit());
-            fScintFromMuon.push_back(hit->GetFromMuon());
-            fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton());
+        // Pixel-level (individual pixel energy per track)
+        if(scintHC->GetName() == "ScintPixelHitsCollection") {
+            for(size_t h = 0; h < scintHC->entries(); ++h)
+            {
+                auto* hit = (*scintHC)[h];
+                fScintPixelLayerID.push_back(hit->GetLayerID());
+                fScintPixelPanelID.push_back(hit->GetPanelID());
+                fScintPixelColID.push_back(hit->GetColID());
+                fScintPixelRowID.push_back(hit->GetRowID());
+                fScintPixelIsHorizontal.push_back(hit->GetIsHorizontal() ? 1 : 0);
+                fScintPixelTrackID.push_back(hit->GetTrackID());
+                fScintPixelParentID.push_back(hit->GetParentID());
+                fScintPixelPDG.push_back(hit->GetPDGCode());
+                fScintPixelEdep.push_back(hit->GetEnergyDeposit());
+                fScintPixelFromMuon.push_back(hit->GetFromMuon() ? 1 : 0);
+                fScintPixelFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
+                fScintPixelFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower() ? 1 : 0);
+                fScintPixelFromTau.push_back(hit->GetFromTau() ? 1 : 0);
+            }
         }
     }
 
     fScintTree->Fill();
+    fScintPixelTree->Fill();
 }
 
 //// FASER SPECTROMETER HITS ---

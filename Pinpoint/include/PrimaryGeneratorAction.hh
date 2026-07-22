@@ -16,6 +16,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     void GeneratePrimaries(G4Event* anEvent) override;
     void SetGenerator(G4String name);
     static void SetFirstEvent(G4int firstEvent) { fFirstEvent = firstEvent; }
+    static void SetLastEvent(G4long lastEvent) { fLastEvent = lastEvent; }
 
   private:
 
@@ -24,6 +25,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4bool fInitialized;
 
     static G4long fFirstEvent;
+    static G4long fLastEvent;
 };
 
 #endif

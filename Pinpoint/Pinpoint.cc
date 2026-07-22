@@ -34,11 +34,15 @@ int main(int argc, char** argv) {
   // pick physics list
   std::string physListName = "FTFP_BERT+PY8DK";
   G4long firstEvent = -1; // -1 indicates not set via command line
+  G4long lastEvent = -1;  // -1 indicates not set via command line
   for (G4int i = 0; i < argc; i = i + 2) {
     G4String g4argv(argv[i]);  // convert only once
     if (g4argv == "-p") physListName = argv[i + 1];
     else if (g4argv == "-f" || g4argv == "--firstEvent") {
       firstEvent = std::atol(argv[i + 1]);
+    }
+    else if (g4argv == "-l" || g4argv == "--lastEvent") {
+      lastEvent = std::atol(argv[i + 1]);
     }
   }
 
@@ -93,6 +97,9 @@ int main(int argc, char** argv) {
 
   if (firstEvent >= 0) {
     PrimaryGeneratorAction::SetFirstEvent(firstEvent);
+  }
+  if (lastEvent >= 0) {
+    PrimaryGeneratorAction::SetLastEvent(lastEvent);
   }
 
   // Parse command line arguments

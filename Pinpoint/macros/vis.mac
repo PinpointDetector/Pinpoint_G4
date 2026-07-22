@@ -6,18 +6,27 @@
 /control/verbose 2
 /run/verbose 2
 
+# ======================================================
+# Detector geometry setup  (/det/)
+# ======================================================
 # Choose the geometry option by importing one of the default macros
 /control/execute macros/geom.mac
+
+# ======================================================
+# Visualisation (/det/)
+# ======================================================
 
 /run/initialize
 
 # Initialize the chosen graphics driver
 # Use this open statement to create an OpenGL view:
 #/vis/open OGLIX 1000x800-0+0
-/vis/open OGL 1000x800-0+0
+#/vis/open OGL 1000x800-0+0
+/vis/open TSG_QT_ZB 1000x800-0+0
+
 
 # For a file-based driver, use DAWN
-/vis/open DAWNFILE
+#/vis/open DAWNFILE
 
 # Disable auto refresh and quieten vis messages whilst scene and
 # trajectories are established:
@@ -34,7 +43,7 @@
 
 # Specify the camera pan/zoom:
 /vis/viewer/pan 0 0
-/vis/viewer/zoom 1
+/vis/viewer/zoom 4
 /vis/viewer/scale 1 1 1
 /vis/viewer/set/background white
 
@@ -84,3 +93,6 @@
 
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
+
+#/vis/ASCIITree/verbose 15
+#/vis/drawTree
