@@ -5,8 +5,8 @@
 # Pinpoint Geometry
 
 # /det/setPinpointThickness 10.5 cm
-/det/setNumPinpointLayers 4
-/det/setPinpointTungstenThickness 8 mm
+/det/setNumPinpointLayers 6
+/det/setPinpointTungstenThickness 5 mm
 
 /det/setPixelDetectorOffsetX 0.0 mm
 /det/setPixelDetectorOffsetY 0.0 mm
@@ -19,15 +19,15 @@
 /det/setPixelWidth 20.8 um
 
 # Overall detector transverse size
-/det/setDetectorWidth 26.6 cm
-/det/setDetectorHeight 19.6 cm
+/det/setDetectorWidth 25 cm
+/det/setDetectorHeight 20 cm
 
 # Fortune Geometry
-/det/setNumFortuneBlocks 6
+/det/setNumFortuneBlocks 7
 
-/det/setNumScintLayers 10
+/det/setNumScintLayers 8
 
-/det/setScintDetectorOffsetX -77.0 mm 
+/det/setScintDetectorOffsetX -85.0 mm 
 /det/setScintDetectorOffsetY 0.0 mm 
 
 # Fortune tungsten thickness
@@ -41,8 +41,8 @@
 /det/setNumScintPanelsPerLayer 2
 # /det/setScintWidth 27 cm
 # /det/setScintHeight 60 cm
-/det/setScintWidth 45 cm
-/det/setScintHeight 45 cm
+/det/setScintWidth 42 cm
+/det/setScintHeight 42 cm
 /det/setScintBarWidth 10.0 mm
 /det/setScintBarHeight 10.0 mm
 /det/setScintThickness 5 mm
