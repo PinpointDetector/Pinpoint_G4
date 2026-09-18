@@ -32,14 +32,12 @@ class DetectorConstructionMessenger: public G4UImessenger {
     
     G4UIcmdWithADoubleAndUnit* fortuneTungstenThicknessCmd;
     G4UIcmdWithADoubleAndUnit* siliconThicknessCmd;
-    G4UIcmdWithADoubleAndUnit* boxThicknessCmd;
     G4UIcmdWithADoubleAndUnit* pixelHeightCmd;
     G4UIcmdWithADoubleAndUnit* pixelWidthCmd;
     G4UIcmdWithADoubleAndUnit* pixelDetectorWidthCmd;
     G4UIcmdWithADoubleAndUnit* pixelDetectorHeightCmd;
     G4UIcmdWithAString* detGdmlCmd;
     G4UIcmdWithAnInteger* numScintPanelsPerLayerCmd;
-    G4UIcmdWithABool* scintBarFlagCmd;
     G4UIcmdWithADoubleAndUnit* scintDetectorHeightCmd;
     G4UIcmdWithADoubleAndUnit* scintDetectorWidthCmd;
     G4UIcmdWithADoubleAndUnit* scintBarWidthCmd;
@@ -47,8 +45,6 @@ class DetectorConstructionMessenger: public G4UImessenger {
     G4UIcmdWithADoubleAndUnit* scintThicknessCmd;
     G4UIcmdWithAnInteger* numScintLayersCmd;
     G4UIcmdWithADoubleAndUnit* maxDetectorThicknessCmd;
-    G4UIcmdWithADoubleAndUnit* pinpointThicknessCmd;
-    G4UIcmdWithADoubleAndUnit* pinpointTungstenThicknessCmd;
     G4UIcmdWithAnInteger* numPinpointLayersCmd;
     G4UIcmdWithAnInteger* numFortuneBlocksCmd;
     G4UIcmdWithADoubleAndUnit* aluminumWallThicknessCmd;

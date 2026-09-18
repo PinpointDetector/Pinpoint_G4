@@ -3,16 +3,12 @@
 # ======================================================
 
 # Pinpoint Geometry
-
-# /det/setPinpointThickness 10.5 cm
 /det/setNumPinpointLayers 6
-/det/setPinpointTungstenThickness 5 mm
+/det/setTungstenThickness 5 mm
 
 /det/setPixelDetectorOffsetX 0.0 mm
 /det/setPixelDetectorOffsetY 0.0 mm
-
 /det/setSiliconThickness 10 um
-/det/setBoxThickness 4.990 mm
 
 # Pixel dimensions
 /det/setPixelHeight 22.8 um
@@ -24,23 +20,14 @@
 
 # Fortune Geometry
 /det/setNumFortuneBlocks 7
-
 /det/setNumScintLayers 8
 
+# Scintillator configuration
 /det/setScintDetectorOffsetX -85.0 mm 
 /det/setScintDetectorOffsetY 0.0 mm 
 
-# Fortune tungsten thickness
-/det/setTungstenThickness 5.0 mm
-
-# Scintillator configuration
-/det/setScintBarFlag true
-#  true  = bar geometry
-#  false = solid block
-
 /det/setNumScintPanelsPerLayer 2
-# /det/setScintWidth 27 cm
-# /det/setScintHeight 60 cm
+
 /det/setScintWidth 42 cm
 /det/setScintHeight 42 cm
 /det/setScintBarWidth 10.0 mm
@@ -48,6 +35,6 @@
 /det/setScintThickness 5 mm
 
 # Interface Pixel Tracker (IPT)
-/det/setNumIPTLayers 2 # 
+/det/setNumIPTLayers 3
 
 /det/setAluminumWallThickness 2.0

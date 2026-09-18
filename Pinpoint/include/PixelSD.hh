@@ -30,6 +30,10 @@ class PixelHitAccumulator
     G4int fNPixelsX{0};
     G4int fNPixelsY{0};
     G4int fNLayers{0};
+    G4int fIPTLayerIDOffset{0}; // layerID of the first IPT layer in the flat pixel_Zpos ordering
+                                 // (= fNLayers - number of IPT layers); Pinpoint/intermediate pixel
+                                 // hits use the "PinpointBlock" copy number directly, which already
+                                 // matches pixel_Zpos ordering with no offset needed.
     G4double fPixelWidth{0.0};
     G4double fPixelHeight{0.0};
     G4double fDetWidth{0.0};

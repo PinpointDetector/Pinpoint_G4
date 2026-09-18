@@ -25,7 +25,7 @@
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/ang/rot1 -1 0 0
-/gps/pos/centre 0 0 -200 cm
+/gps/pos/centre 0 0 -3112 cm
 /gps/pos/halfx 0.5 cm
 /gps/pos/halfy 0.5 cm
 /gps/pos/halfz 0.5 cm

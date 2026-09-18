@@ -186,7 +186,6 @@ class AnalysisManager {
     Int_t   numScintLayers;             // scint groups per Fortune block
     Int_t   numScintPanelsPerLayer;
     // Pinpoint section
-    float_t pinpointTungstenThickness;
     Int_t   nPinpointBlocks;
     // Scintillator geometry
     float_t scintDetectorWidth;
@@ -194,7 +193,6 @@ class AnalysisManager {
     float_t scintThickness;
     float_t scintBarWidth;
     float_t scintBarHeight;
-    Int_t   scintBarFlag;
     // Total layer count
     Int_t   nLayers;
     Int_t   simFlag;

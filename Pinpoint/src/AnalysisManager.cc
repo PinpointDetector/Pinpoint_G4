@@ -176,7 +176,6 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("num_scint_panels_layer",   &numScintPanelsPerLayer,   "num_scint_panels_layer/I");
 
   // Pinpoint section
-  fGeom->Branch("pinpoint_tungsten_thickness", &pinpointTungstenThickness, "pinpoint_tungsten_thickness/F");
   fGeom->Branch("nPinpointBlocks",          &nPinpointBlocks,          "nPinpointBlocks/I");
 
   // Scintillator geometry
@@ -185,7 +184,6 @@ void AnalysisManager::bookGeomTree()
   fGeom->Branch("scint_thickness",          &scintThickness,           "scint_thickness/F");
   fGeom->Branch("scint_bar_width",          &scintBarWidth,            "scint_bar_width/F");
   fGeom->Branch("scint_bar_height",         &scintBarHeight,           "scint_bar_height/F");
-  fGeom->Branch("scint_bar_flag",           &scintBarFlag,             "scint_bar_flag/I");
 
   // Totals
   fGeom->Branch("nLayers",                 &nLayers,                  "nLayers/I");
@@ -712,7 +710,6 @@ void AnalysisManager::FillGeomTree()
   numScintPanelsPerLayer = det->GetNumScintPanelsPerLayer();
 
   // Pinpoint section
-  pinpointTungstenThickness = det->GetPinpointTungstenThickness() / mm;
   nPinpointBlocks        = det->GetNPinpointBlocks();
 
   // Scintillator geometry
@@ -721,7 +718,6 @@ void AnalysisManager::FillGeomTree()
   scintThickness         = det->GetScintLayerThickness() / mm;
   scintBarWidth          = det->GetScintBarWidth()       / mm;
   scintBarHeight         = det->GetScintBarHeight()      / mm;
-  scintBarFlag           = det->GetScintBarFlag();
 
   // Total layers
   nLayers                = det->GetNLayers();

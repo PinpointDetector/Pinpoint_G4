@@ -5,6 +5,7 @@
 #include "G4VSensitiveDetector.hh"
 #include <set>
 #include <vector>
+#include <utility>
 
 class G4Step;
 class G4HCofThisEvent;
@@ -25,9 +26,23 @@ public:
     static G4bool IsFromMuon(G4int trackID);
     static void ClearMuonHistory();
 
-    void SetLayerIndexing(G4int nPinpointBlocks, G4int nPanelsPerLayer) {
-    fNPinpointBlocks = nPinpointBlocks;
-    fNumScintPanelsPerLayer = nPanelsPerLayer;
+    // panelID/layerID lookup tables built by DetectorConstruction::ComputeSiliconZPositions(),
+    // indexed directly by the PinpointBlock/FortuneBlock G4 copy number seen in the touchable
+    // hierarchy. ProcessHits() looks these up directly instead of re-deriving the block offsets
+    // itself -- a prior version of this class computed its own arithmetic for this, which drifted
+    // out of sync with the true physical layout (fScintZPositions) more than once.
+    // numScintLayersPerModule: number of vertical+horizontal scintillator groups per Fortune
+    // block (DetectorConstruction::fNumScintLayersPerModule); the fortunePanelIDBase entry for a
+    // block already points at its first (group 0, vertical) panel, so ProcessHits() just adds
+    // groupCopy*2 + (isHorizontal?1:0) on top.
+    void SetLayerIndexing(std::vector<G4int> pinpointPanelID, std::vector<G4int> pinpointLayerID,
+                           std::vector<G4int> fortunePanelIDBase, std::vector<G4int> fortuneLayerID,
+                           G4int numScintLayersPerModule) {
+    fPinpointPanelID = std::move(pinpointPanelID);
+    fPinpointLayerID = std::move(pinpointLayerID);
+    fFortunePanelIDBase = std::move(fortunePanelIDBase);
+    fFortuneLayerID = std::move(fortuneLayerID);
+    fNumScintLayersPerModule = numScintLayersPerModule;
     }
 private:
     ScintHitsCollection* fHitsCollection = nullptr;
@@ -41,8 +56,11 @@ private:
      static std::set<G4int> sScintMuonDescendants;
 
     G4long fScintCurrentHitId = 0;
-    G4int fNPinpointBlocks = 0;
-    G4int fNumScintPanelsPerLayer = 0;
+    std::vector<G4int> fPinpointPanelID;    // indexed by PinpointBlock copy number
+    std::vector<G4int> fPinpointLayerID;    // indexed by PinpointBlock copy number
+    std::vector<G4int> fFortunePanelIDBase; // indexed by FortuneBlock copy number
+    std::vector<G4int> fFortuneLayerID;     // indexed by FortuneBlock copy number
+    G4int fNumScintLayersPerModule = 0;
 };
 
 #endif

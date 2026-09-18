@@ -38,6 +38,8 @@ PixelHitAccumulator::PixelHitAccumulator()
   fNPixelsX = det->GetNPixelsX();
   fNPixelsY = det->GetNPixelsY();
   fNLayers = det->GetNLayers();
+  fIPTLayerIDOffset = fNLayers - det->GetNIPTLayers(); // IPT layers are the last GetNIPTLayers()
+                                                        // entries of pixel_Zpos
   fPixelWidth = det->GetPixelWidth();
   fPixelHeight = det->GetPixelHeight();
   fDetWidth = det->GetPixelDetectorWidth();
@@ -77,16 +79,18 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   );
 
   const G4int depth = touchable->GetHistoryDepth();
-  
-  G4int layerID    = -1;
+
+  // Current geometry hierarchy for a pixel hit: PixelSensor/IPTPixelModule (sensitive LV)
+  // -> PinpointBlock (Pinpoint + intermediate pixel layers, copy number already matches
+  //    pixel_Zpos ordering) or IPTPixelLayer (trailing IPT layers, offset to continue past
+  //    the Pinpoint/intermediate range) -> Detector/World.
+  G4int layerID = -1;
   for(G4int i = 0; i < depth; ++i) {
         const G4String& volName = touchable->GetVolume(i)->GetName();
         const G4int copyNum = touchable->GetCopyNumber(i);
-        if(volName == "PixelLayer")  layerID      = copyNum;
-        if(volName == "IPTPixelLayer")  layerID      = copyNum;   
+        if(volName == "PinpointBlock")  layerID = copyNum;
+        if(volName == "IPTPixelLayer")  layerID = fIPTLayerIDOffset + copyNum;
     }
-    
-  // G4int layerID = touchable->GetCopyNumber(1);
   G4ThreeVector sensorCenterGlobal = touchable->GetTranslation();
   G4double sensorCentreZ = sensorCenterGlobal.z();
     

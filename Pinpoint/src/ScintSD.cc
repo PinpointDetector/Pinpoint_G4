@@ -111,46 +111,83 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     G4int layerID    = -1;
     G4int scintRowID = -1;
     G4int scintColID = -1;
-    G4int scintPixelID = -1;   // copy number of the ScintPixel volume
+    G4int scintPixelID = -1;   // Reserved for future spacepoint reconstruction (intersection of a
+                               // vertical and horizontal bar within a layer); no dedicated sub-bar
+                               // volume exists in the current geometry, so this never gets set yet.
     G4bool isHorizontal = false;
+
+    // Current geometry hierarchy (innermost -> outermost) for a scintillator hit:
+    //   VertBar/HorizBar -> VertSlot/HorizSlot (replica, bar index)
+    //   -> Scintillator (Pinpoint block's single panel) or Scintillator_Vertical/Scintillator_Horizontal
+    //      (Fortune block's per-group panels, group index)
+    //   -> PinpointBlock or FortuneBlock (block index) -> Detector -> World
+    G4int barCopy   = -1;  // VertSlot/HorizSlot copy number: bar index within its panel
+    G4int groupCopy = -1;  // Scintillator_Vertical/Horizontal copy number: scint-group index within a
+                           // Fortune block (0 for a Pinpoint block's single "Scintillator" panel)
+    G4int blockCopy = -1;  // PinpointBlock or FortuneBlock copy number
+    G4bool isFortuneBlock = false;
 
     const G4int depth = touchable->GetHistoryDepth();
 
     for(G4int i = 0; i < depth; ++i) {
-    const G4String& volName = touchable->GetVolume(i)->GetName();
-    const G4int copyNum = touchable->GetCopyNumber(i);
+        const G4String& volName = touchable->GetVolume(i)->GetName();
+        const G4int copyNum = touchable->GetCopyNumber(i);
 
-    if(volName == "ScintRow")    { scintRowID = copyNum; isHorizontal = true; }
-    if(volName == "ScintColumn")   scintColID = copyNum;
-    if(volName == "ScintPixel")    scintPixelID = copyNum;
-    if(volName == "ScintLayer")  {
-        layerID = copyNum;
-        if(layerID < fNPinpointBlocks) {
-            panelID = layerID;   // Pinpoint: already unique, one plane per copy number
-        } else {
-            G4int fortuneLocalGroup = layerID - fNPinpointBlocks;
-            panelID = fNPinpointBlocks
-                    + fortuneLocalGroup * fNumScintPanelsPerLayer
-                    + (isHorizontal ? 1 : 0);   // panel 0 = vertical, panel 1 = horizontal
-        }
-    }
-}
-
-    // ScintPixel is inside ScintColumn (vertical panel) or ScintRow (horizontal panel).
-    // Its copy number encodes rowID within a column, or colID within a row.
-    if(scintPixelID >= 0) {
-        if(isHorizontal) {
-            scintColID = scintPixelID; // pixel copy = colID within the row
-        } else {
-            scintRowID = scintPixelID; // pixel copy = rowID within the column
-        }
+        if(volName == "VertSlot")               { barCopy = copyNum; }
+        if(volName == "HorizSlot")              { barCopy = copyNum; isHorizontal = true; }
+        if(volName == "Scintillator")             groupCopy = 0; // Pinpoint block's single scintillator panel
+        if(volName == "Scintillator_Vertical")    groupCopy = copyNum;
+        if(volName == "Scintillator_Horizontal")  groupCopy = copyNum;
+        if(volName == "PinpointBlock")          { blockCopy = copyNum; isFortuneBlock = false; }
+        if(volName == "FortuneBlock")           { blockCopy = copyNum; isFortuneBlock = true; }
+        if(volName == "ScintPixel")               scintPixelID = copyNum; // not present yet; see note above
     }
 
-    if(layerID < 0) {
+    if(barCopy < 0 || blockCopy < 0 || groupCopy < 0) {
         G4Exception("ScintillatorSD", "Hit001", JustWarning,
-                    "Could not find ScintLayer volume in touchable hierarchy!");
+                    "Could not find scintillator bar/panel/block volume in touchable hierarchy!");
         return false;
     }
+
+    if(isHorizontal) scintRowID = barCopy;
+    else             scintColID = barCopy;
+
+    // layerID/panelID come from lookup tables built by DetectorConstruction (see SetLayerIndexing()),
+    // indexed directly by the PinpointBlock/FortuneBlock copy number just walked above -- NOT
+    // re-derived here. blockCopy alone does not distinguish an initial Pinpoint block from an
+    // intermediate one (both use the "PinpointBlock" name, but intermediate blocks' copy numbers
+    // continue on past the Fortune blocks' own copy-number range and would otherwise collide with
+    // them), so the lookup tables are what correctly separate the two.
+    if(!isFortuneBlock) {
+        if(blockCopy < 0 || blockCopy >= static_cast<G4int>(fPinpointPanelID.size())) {
+            G4Exception("ScintillatorSD", "Hit002", JustWarning,
+                        "PinpointBlock copy number out of range for scint layer indexing!");
+            return false;
+        }
+        layerID = fPinpointLayerID[blockCopy];
+        panelID = fPinpointPanelID[blockCopy];   // single scintillator panel per Pinpoint block
+    } else {
+        if(blockCopy < 0 || blockCopy >= static_cast<G4int>(fFortunePanelIDBase.size())) {
+            G4Exception("ScintillatorSD", "Hit002", JustWarning,
+                        "FortuneBlock copy number out of range for scint layer indexing!");
+            return false;
+        }
+        layerID = fFortuneLayerID[blockCopy];
+        panelID = fFortunePanelIDBase[blockCopy]
+                + groupCopy * 2
+                + (isHorizontal ? 1 : 0);
+    }
+
+    // Would refine col/row to a finer sub-bar pixel position, once a ScintPixel-equivalent volume
+    // (or a spacepoint reconstruction step combining vertical/horizontal bar intersections) exists.
+    if(scintPixelID >= 0) {
+        if(isHorizontal) {
+            scintColID = scintPixelID;
+        } else {
+            scintRowID = scintPixelID;
+        }
+    }
+
 
     G4int trackID  = track->GetTrackID();
     G4int parentID = track->GetParentID();

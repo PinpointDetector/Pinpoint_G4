@@ -40,12 +40,6 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     siliconThicknessCmd->SetParameterName("SiliconThickness", false);
     siliconThicknessCmd->SetRange("SiliconThickness>0.");
 
-    boxThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setBoxThickness", this);
-    boxThicknessCmd->SetUnitCategory("Length");
-    boxThicknessCmd->SetDefaultUnit("mm");
-    boxThicknessCmd->SetParameterName("BoxThickness", false);
-    boxThicknessCmd->SetRange("BoxThickness>0.");
-
     pixelHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setPixelHeight", this);
     pixelHeightCmd->SetParameterName("PixelHeight", false);
     pixelHeightCmd->SetDefaultUnit("um");
@@ -84,12 +78,6 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     numScintPanelsPerLayerCmd->SetRange("NumScintPanelsPerLayer>=0 && NumScintPanelsPerLayer<=2");
     numScintPanelsPerLayerCmd->SetDefaultValue(1);
 
-    // --- scint_bar_flag : true = bar geometry, false = block geometry ---
-    scintBarFlagCmd = new G4UIcmdWithABool("/det/setScintBarFlag", this);
-    scintBarFlagCmd->SetGuidance("Use scintillator bar geometry (true) or solid block (false).");
-    scintBarFlagCmd->SetParameterName("ScintBarFlag", false);
-    scintBarFlagCmd->SetDefaultValue(false);
-
     // --- scintHeight : height of scintillator panels (may differ from detector height) ---
     scintDetectorHeightCmd = new G4UIcmdWithADoubleAndUnit("/det/setScintHeight", this);
     scintDetectorHeightCmd->SetGuidance("Set the height of the scintillator panels.");
@@ -105,24 +93,6 @@ DetectorConstructionMessenger::DetectorConstructionMessenger(DetectorConstructio
     scintDetectorWidthCmd->SetDefaultUnit("cm");
     scintDetectorWidthCmd->SetRange("ScintWidth>0.");
     scintDetectorWidthCmd->SetDefaultValue(42.0);
-
-    // --- pinpointThickness : thickness of the initial pixel-only section ---
-    // pinpointThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setPinpointThickness", this);
-    // pinpointThicknessCmd->SetGuidance("Thickness of the initial pinpoint section (alternating pixels + scintillators).");
-    // pinpointThicknessCmd->SetGuidance("Set to 0 to disable.");
-    // pinpointThicknessCmd->SetParameterName("PinpointThickness", false);
-    // pinpointThicknessCmd->SetDefaultUnit("cm");
-    // pinpointThicknessCmd->SetUnitCategory("Length");
-    // pinpointThicknessCmd->SetRange("PinpointThickness>=0.");
-    // pinpointThicknessCmd->SetDefaultValue(10.4);
-
-    pinpointTungstenThicknessCmd = new G4UIcmdWithADoubleAndUnit("/det/setPinpointTungstenThickness", this);
-    pinpointTungstenThicknessCmd->SetGuidance("Tungsten thickness for the Pinpoint sub-detector layers.");
-    pinpointTungstenThicknessCmd->SetParameterName("PinpointTungstenThickness", false);
-    pinpointTungstenThicknessCmd->SetDefaultUnit("mm");
-    pinpointTungstenThicknessCmd->SetUnitCategory("Length");
-    pinpointTungstenThicknessCmd->SetRange("PinpointTungstenThickness>0.");
-    pinpointTungstenThicknessCmd->SetDefaultValue(8.0);
 
     numPinpointLayersCmd = new G4UIcmdWithAnInteger("/det/setNumPinpointLayers", this);
     numPinpointLayersCmd->SetGuidance("Number of Pinpoint pixel layers (alternating pixel+scintillator blocks).");
@@ -249,14 +219,12 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
   delete detDir;
   delete fortuneTungstenThicknessCmd;
   delete siliconThicknessCmd;
-  delete boxThicknessCmd;
   delete pixelHeightCmd;
   delete pixelWidthCmd;
   delete pixelDetectorWidthCmd;
   delete pixelDetectorHeightCmd;
   delete detGdmlCmd;
   delete numScintPanelsPerLayerCmd;
-  delete scintBarFlagCmd;
   delete scintDetectorHeightCmd;
   delete scintDetectorWidthCmd;
   delete scintBarWidthCmd;
@@ -264,8 +232,6 @@ DetectorConstructionMessenger::~DetectorConstructionMessenger() {
   delete scintThicknessCmd;
   delete numScintLayersCmd;
   // delete maxDetectorThicknessCmd;
-  // delete pinpointThicknessCmd;
-  delete pinpointTungstenThicknessCmd;
   delete numPinpointLayersCmd;
   delete numFortuneBlocksCmd;
   delete aluminumWallThicknessCmd;
@@ -291,10 +257,6 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
     G4double thickness = siliconThicknessCmd->ConvertToDimensionedDouble(newValues);
     det->SetSiliconThickness(thickness);
   }
-  if (command == boxThicknessCmd) {
-    G4double thickness = boxThicknessCmd->ConvertToDimensionedDouble(newValues);
-    det->SetBoxThickness(thickness);
-  }
   if (command == pixelHeightCmd) {
     G4double height = pixelHeightCmd->GetNewDoubleValue(newValues);
     det->SetPixelHeight(height);
@@ -318,9 +280,6 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
   if (command == numScintPanelsPerLayerCmd) {
     det->SetNumScintPanelsPerLayer(numScintPanelsPerLayerCmd->GetNewIntValue(newValues));
   }
-  if (command == scintBarFlagCmd) {
-      det->SetScintBarFlag(scintBarFlagCmd->GetNewBoolValue(newValues));
-  }
   if (command == scintDetectorHeightCmd) {
     det->SetScintDetectorHeight(scintDetectorHeightCmd->GetNewDoubleValue(newValues));
   }
@@ -342,12 +301,6 @@ void DetectorConstructionMessenger::SetNewValue(G4UIcommand* command, G4String n
   // if (command == maxDetectorThicknessCmd) {
   //   det->SetMaxDetectorThickness(maxDetectorThicknessCmd->GetNewDoubleValue(newValues));
   // }
-  // if (command == pinpointThicknessCmd) {
-  //   det->SetPinpointThickness(pinpointThicknessCmd->GetNewDoubleValue(newValues));
-  // }
-  if (command == pinpointTungstenThicknessCmd) {
-    det->SetPinpointTungstenThickness(pinpointTungstenThicknessCmd->GetNewDoubleValue(newValues));
-  }
   if (command == numPinpointLayersCmd) {
     det->SetNumPinpointLayers(numPinpointLayersCmd->GetNewIntValue(newValues));
   }

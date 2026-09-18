@@ -43,7 +43,7 @@
 
 # Specify the camera pan/zoom:
 /vis/viewer/pan 0 0
-/vis/viewer/zoom 4
+/vis/viewer/zoom 1
 /vis/viewer/scale 1 1 1
 /vis/viewer/set/background white
 
