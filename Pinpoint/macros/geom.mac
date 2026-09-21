@@ -23,7 +23,7 @@
 /det/setNumScintLayers 8
 
 # Scintillator configuration
-/det/setScintDetectorOffsetX -85.0 mm 
+/det/setScintDetectorOffsetX 85.0 mm 
 /det/setScintDetectorOffsetY 0.0 mm 
 
 /det/setNumScintPanelsPerLayer 2

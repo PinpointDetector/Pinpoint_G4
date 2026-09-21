@@ -49,6 +49,8 @@ public:
   void SetFromTau(G4bool fromTau) { fFromTau = fromTau; }
   void SetTruthHitPos(G4ThreeVector pos) { fTruthHitPos = pos; }
   void SetIsHorizontal(G4bool isHorizontal) { fIsHorizontal = isHorizontal; }
+  void SetPhotoelectrons(G4int nPE) { fPhotoelectrons = nPE; }
+  void SetHitTime(G4double t) { fHitTime = t; }
 
   G4int GetPDGCode() const { return fPDGCode; }
   G4int GetLayerID() const { return fLayerID; }
@@ -73,6 +75,8 @@ public:
   G4bool GetFromPrimaryEMShower() const { return fFromPrimaryEMShower; }
   G4bool GetFromTau() const { return fFromTau; }
   G4bool GetIsHorizontal() const { return fIsHorizontal; }
+  G4int GetPhotoelectrons() const { return fPhotoelectrons; }
+  G4double GetHitTime() const { return fHitTime; }
 
 
 private:
@@ -95,6 +99,9 @@ private:
   G4bool fFromPrimaryEMShower = false;
   G4bool fFromTau = false;
   G4bool fIsHorizontal = false;
+
+  G4int fPhotoelectrons = -1;  // Poisson-smeared PE count at the SiPM; -1 = not computed (e.g. pixel-level hits)
+  G4double fHitTime = -1.;     // global time the pulse reaches the SiPM (ns); -1 = not computed
 
 };
 

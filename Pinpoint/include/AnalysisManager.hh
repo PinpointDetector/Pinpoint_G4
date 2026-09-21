@@ -254,6 +254,8 @@ class AnalysisManager {
     std::vector<int> fScintFromPrimaryLepton;
     std::vector<int> fScintFromPrimaryEMShower;
     std::vector<int> fScintFromTau;
+    std::vector<int>   fScintPE;
+    std::vector<float> fScintHitTime;
 
     //----------------------------------------------------
     //OUTPUT VARIABLES FOR SCINTILLATOR PIXELS

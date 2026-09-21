@@ -11,8 +11,12 @@
 #include "G4LorentzVector.hh"
 #include "TrackInformation.hh"
 #include "G4ios.hh"
+#include "G4Box.hh"
+#include "G4PhysicalConstants.hh"
+#include "Randomize.hh"
 #include <map>
 #include <set>
+#include <limits>
 
 std::set<G4int> ScintillatorSD::sScintMuonDescendants;
 std::set<std::pair<G4int,G4int>> ScintillatorSD::sScintHitParticles;
@@ -70,6 +74,28 @@ static std::map<ScintBarHitID, G4bool> barFromMuonMap;
 static std::map<ScintPixelHitID, G4double> pixelEnergyMap;
 static std::map<ScintPixelHitID, G4bool> pixelFromMuonMap;
 
+namespace {
+  // BC408 (Saint-Gobain) fast light/PE readout model. Photons are never tracked directly --
+  // these are analytic, energy-deposit-driven parametrizations of light production, bulk
+  // attenuation, trapping/transport and PDE, standing in for a full G4OpticalPhysics run
+  // (which would be far too slow for production-scale statistics). See project notes for
+  // the calibration discussion that produced these numbers.
+  constexpr G4double kLightYield        = 10000. / MeV;  // BC408 datasheet: photons/MeV
+  constexpr G4double kAttenuationLength = 380. * cm;      // BC408 bulk attenuation length
+  constexpr G4double kTransportEff      = 0.10;           // trapping + coupling/wrapping losses -- TODO: calibrate against a one-off full-optical run
+  constexpr G4double kQuantumEff        = 0.40;           // SiPM PDE at BC408 emission peak (~425nm) -- TODO: use real device PDE curve
+  constexpr G4double kGroupVelocity     = c_light / 1.58; // BC408 refractive index n~1.58
+  constexpr G4double kDecayConstant     = 2.1 * ns;       // BC408 scintillation decay time
+}
+
+// Per-bar-per-track accumulator for the fast PE/timing model, parallel to barEnergyMap
+// (kept separate rather than folded in, so the existing edep accumulation is untouched).
+struct BarSignalAccum {
+    G4double attenuatedYield = 0.;                               // sum_i edep_i * lightYield * exp(-d_i/attLen)
+    G4double earliestArrivalTime = std::numeric_limits<G4double>::max(); // min_i (t_i + d_i/v_group)
+};
+static std::map<ScintBarHitID, BarSignalAccum> barSignalMap;
+
 ScintillatorSD::ScintillatorSD(const G4String& name, const G4String& hitsCollectionName,
                                const G4String& pixelHitsCollectionName)
     : G4VSensitiveDetector(name)
@@ -93,6 +119,7 @@ void ScintillatorSD::Initialize(G4HCofThisEvent* hce)
     barFromMuonMap.clear();
     pixelEnergyMap.clear();
     pixelFromMuonMap.clear();
+    barSignalMap.clear();
     sScintHitParticles.clear();
 }
 
@@ -206,6 +233,21 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
     barEnergyMap[barID_key] += edep;
     if(IsFromMuon(trackID)) barFromMuonMap[barID_key] = true;
 
+    // Fast BC408 light/PE model: accumulate this step's contribution to the bar's SiPM signal.
+    if (const G4Box* barBox = dynamic_cast<const G4Box*>(touchable->GetVolume()->GetLogicalVolume()->GetSolid())) {
+        const G4double halfLength = isHorizontal ? barBox->GetXHalfLength() : barBox->GetYHalfLength();
+        const G4ThreeVector localPos = touchable->GetHistory()->GetTopTransform().TransformPoint(preStep->GetPosition());
+        // SiPM at local +Y for vertical bars, local -X for horizontal bars.
+        const G4double distToSiPM = isHorizontal ? (localPos.x() + halfLength) : (halfLength - localPos.y());
+
+        const G4double attenuated = edep * kLightYield * std::exp(-distToSiPM / kAttenuationLength);
+        const G4double arrivalTime = preStep->GetGlobalTime() + distToSiPM / kGroupVelocity;
+
+        auto& sig = barSignalMap[barID_key];
+        sig.attenuatedYield += attenuated;
+        sig.earliestArrivalTime = std::min(sig.earliestArrivalTime, arrivalTime);
+    }
+
     // Pixel-level: accumulate energy per (layer, isHorizontal, col, row, track)
     ScintPixelHitID pixelID_key {layerID, panelID, scintColID, scintRowID, isHorizontal, trackID, pdgCode, parentID, fromPrimaryLepton, fromPrimaryEMShower, fromTau};
     pixelEnergyMap[pixelID_key] += edep;
@@ -235,6 +277,14 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
         hit->SetFromPrimaryLepton(hitID.fromPrimaryLepton);
         hit->SetFromPrimaryEMShower(hitID.fromPrimaryEMShower);
         hit->SetFromTau(hitID.fromTau);
+
+        const auto& sig = barSignalMap[hitID];
+        const G4double nPEMean = sig.attenuatedYield * kTransportEff * kQuantumEff;
+        hit->SetPhotoelectrons(static_cast<G4int>(CLHEP::RandPoisson::shoot(nPEMean)));
+        hit->SetHitTime(sig.earliestArrivalTime < std::numeric_limits<G4double>::max()
+                        ? sig.earliestArrivalTime + CLHEP::RandExponential::shoot(kDecayConstant)
+                        : -1.);
+
         fHitsCollection->insert(hit);
     }
 
@@ -263,6 +313,7 @@ void ScintillatorSD::EndOfEvent(G4HCofThisEvent*)
     barFromMuonMap.clear();
     pixelEnergyMap.clear();
     pixelFromMuonMap.clear();
+    barSignalMap.clear();
 
     if(verboseLevel > 1) {
         std::size_t nofHits = fHitsCollection->entries();

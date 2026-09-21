@@ -135,9 +135,9 @@ void DetectorConstruction::ConstructScintillatorBarLVs()
   G4Material* scintillatorMaterial = nist->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
   G4Box* scintillatorVertical = new G4Box("ScintillatorVert",
-      0.5*fScintillatorWidth, 0.5*fScintillatorHeight, 0.5*fScintillatorThickness);
+      0.5*fScintBarWidth, 0.5*fScintDetectorHeight, 0.5*fScintillatorThickness);
   G4Box* scintillatorHorizontal = new G4Box("ScintillatorHoriz",
-      0.5*fScintillatorHeight, 0.5*fScintillatorWidth, 0.5*fScintillatorThickness);
+      0.5*fScintDetectorWidth, 0.5*fScintBarHeight, 0.5*fScintillatorThickness);
 
   fScintillatorVertLV = new G4LogicalVolume(scintillatorVertical, scintillatorMaterial, "ScintillatorVertLV");
   fScintillatorVertLV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 0.0, 1.0)));
@@ -154,31 +154,34 @@ void DetectorConstruction::ConstructScintillatorPanelLVs()
 
   ConstructScintillatorBarLVs();
 
-  G4double pitch = fScintillatorHeight / fNumScintBarsPerPanel; // 42 cm / 40 bars
+  // Vertical bars are segmented in X (over the panel's width) and run the full panel height;
+  // horizontal bars are segmented in Y (over the panel's height) and run the full panel width.
+  G4double pitchVert = fScintDetectorWidth / fNumScintBarsPerPanel;
+  G4double pitchHoriz = fScintDetectorHeight / fNumScintBarsPerPanel;
 
   // ---- Vertical panel: bars long along Y, arranged side-by-side along X ----
   G4Box* solidVertPanel = new G4Box("VertPanel",
-      0.5*fScintillatorHeight, 0.5*fScintillatorHeight, 0.5*fScintillatorThickness);
+      0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fScintillatorThickness);
   fScintillatorVertPanelLV = new G4LogicalVolume(solidVertPanel, air, "VertPanelLV");
 
   G4Box* solidVertSlot = new G4Box("VertSlot",
-      0.5*pitch, 0.5*fScintillatorHeight, 0.5*fScintillatorThickness);
+      0.5*pitchVert, 0.5*fScintDetectorHeight, 0.5*fScintillatorThickness);
   G4LogicalVolume* logicVertSlot = new G4LogicalVolume(solidVertSlot, air, "VertSlotLV");
 
-  new G4PVReplica("VertSlot", logicVertSlot, fScintillatorVertPanelLV, kXAxis, fNumScintBarsPerPanel, pitch);
+  new G4PVReplica("VertSlot", logicVertSlot, fScintillatorVertPanelLV, kXAxis, fNumScintBarsPerPanel, pitchVert);
   new G4PVPlacement(nullptr, G4ThreeVector(), fScintillatorVertLV, "VertBar",
       logicVertSlot, false, 0, checkOverlaps);
 
   // ---- Horizontal panel: bars long along X, stacked along Y ----
   G4Box* solidHorizPanel = new G4Box("HorizPanel",
-      0.5*fScintillatorHeight, 0.5*fScintillatorHeight, 0.5*fScintillatorThickness);
+      0.5*fScintDetectorWidth, 0.5*fScintDetectorHeight, 0.5*fScintillatorThickness);
   fScintillatorHorizPanelLV = new G4LogicalVolume(solidHorizPanel, air, "HorizPanelLV");
 
   G4Box* solidHorizSlot = new G4Box("HorizSlot",
-      0.5*fScintillatorHeight, 0.5*pitch, 0.5*fScintillatorThickness);
+      0.5*fScintDetectorWidth, 0.5*pitchHoriz, 0.5*fScintillatorThickness);
   G4LogicalVolume* logicHorizSlot = new G4LogicalVolume(solidHorizSlot, air, "HorizSlotLV");
 
-  new G4PVReplica("HorizSlot", logicHorizSlot, fScintillatorHorizPanelLV, kYAxis, fNumScintBarsPerPanel, pitch);
+  new G4PVReplica("HorizSlot", logicHorizSlot, fScintillatorHorizPanelLV, kYAxis, fNumScintBarsPerPanel, pitchHoriz);
   new G4PVPlacement(nullptr, G4ThreeVector(), fScintillatorHorizLV, "HorizBar",
       logicHorizSlot, false, 0, checkOverlaps);
 }
@@ -253,12 +256,13 @@ void DetectorConstruction::ConstructScintModuleLV()
   // this, the same way the pixel module's aluminum wall (60 cm) already comfortably contains its own offset components.
   const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required, matching the margin already present for the pixel module
 
-  G4double scintHalfWidth = 0.5 * fScintillatorHeight; // scintillator panels are built square, using fScintillatorHeight for both transverse dimensions
+  G4double scintHalfWidth = 0.5 * fScintDetectorWidth;   // scintillator panel X-extent (may now differ from its Y-extent)
+  G4double scintHalfHeight = 0.5 * fScintDetectorHeight; // scintillator panel Y-extent
   G4double tungstenHalfWidth = 0.5 * fTungstenWidth;
   G4double tungstenHalfHeight = 0.5 * fTungstenHeight;
 
   G4double requiredHalfWidth = std::max(scintHalfWidth, tungstenHalfWidth) + std::fabs(fScintDetectorOffsetX);
-  G4double requiredHalfHeight = std::max(scintHalfWidth, tungstenHalfHeight) + std::fabs(fScintDetectorOffsetY);
+  G4double requiredHalfHeight = std::max(scintHalfHeight, tungstenHalfHeight) + std::fabs(fScintDetectorOffsetY);
 
   G4double moduleWidth = std::max(fAlWallWidth, 2.0 * requiredHalfWidth + transverseMargin); // Width of the module is defined by the aluminum wall width, widened if needed to contain the offset panels
   G4double moduleHeight = std::max(fAlWallHeight, 2.0 * requiredHalfHeight + transverseMargin); // Height of the module is defined by the aluminum wall height, widened if needed to contain the offset panels
@@ -296,12 +300,22 @@ void DetectorConstruction::ConstructScintModuleLV()
   G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), aluminumWallLV, "AlWall_Back", scintModuleLV, false, 0, fCheckOverlaps);
   zPosition += fAlWallThickness;
+  // fNumScintPanelsPerLayer: 0=neither panel, 1=vertical only, 2=both (default -- current/original behavior).
+  // Z-bookkeeping (cursor increments, module thickness, and the mirrored loop in
+  // ComputeSiliconZPositions()) is deliberately left unchanged regardless of this setting, so a
+  // skipped panel just leaves its slot as air rather than shifting anything else -- this keeps
+  // ScintSD.cc's panelID/layerID lookup tables (bug #5) exactly as they are; a hit simply never
+  // occurs for a panel that was never placed.
   for (G4int i = 0; i < fNumScintLayersPerModule; ++i) {
-    new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorVertPanelLV, "Scintillator_Vertical", scintModuleLV, false, i, fCheckOverlaps);
+    if (fNumScintPanelsPerLayer >= 1) {
+      new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorVertPanelLV, "Scintillator_Vertical", scintModuleLV, false, i, fCheckOverlaps);
+    }
     zPosition += fScintThickness;
     new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", scintModuleLV, false, i, fCheckOverlaps);
     zPosition += fTungstenPlateThickness + fScintAirGapThickness;
-    new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorHorizPanelLV, "Scintillator_Horizontal", scintModuleLV, false, i, fCheckOverlaps);
+    if (fNumScintPanelsPerLayer >= 2) {
+      new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorHorizPanelLV, "Scintillator_Horizontal", scintModuleLV, false, i, fCheckOverlaps);
+    }
     zPosition += fScintThickness;
   }
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), aluminumWallLV, "AlWall_Front", scintModuleLV, false, 0, fCheckOverlaps);
@@ -701,26 +715,25 @@ void DetectorConstruction::ComputePixelCentersXY()
 
 void DetectorConstruction::ComputeScintCentersXY()
 {
-  // The scintillator panels are square (side = fScintillatorHeight) and are always
-  // segmented into fNumScintBarsPerPanel bars per axis (see ConstructScintillatorPanelLVs()).
-  // fScintDetectorWidth/Height and fScintBarWidth/Height are nominal/metadata values only
-  // and are not what's actually built, so we derive the true bar centres from the real
-  // panel geometry instead.
-  const G4double pitch = fScintillatorHeight / fNumScintBarsPerPanel;
+  // Panels are segmented into fNumScintBarsPerPanel bars per axis (see
+  // ConstructScintillatorPanelLVs()). fScintDetectorWidth/Height now drive the real built
+  // geometry (panel X/Y extent), so the pitch on each axis is derived from the matching extent.
 
-  // Vertical bars are segmented in X (bar runs full panel height)
+  // Vertical bars are segmented in X (bar runs full panel height, over the panel's width)
+  const G4double pitchVert = fScintDetectorWidth / fNumScintBarsPerPanel;
   fScintBarCenterX.clear();
   fScintBarCenterX.reserve(fNumScintBarsPerPanel);
-  const G4double xMin = -0.5 * fScintillatorHeight + fScintDetectorOffsetX;
+  const G4double xMin = -0.5 * fScintDetectorWidth + fScintDetectorOffsetX;
   for (G4int i = 0; i < fNumScintBarsPerPanel; ++i)
-    fScintBarCenterX.push_back(xMin + (i + 0.5) * pitch);
+    fScintBarCenterX.push_back(xMin + (i + 0.5) * pitchVert);
 
-  // Horizontal bars are segmented in Y (bar runs full panel width)
+  // Horizontal bars are segmented in Y (bar runs full panel width, over the panel's height)
+  const G4double pitchHoriz = fScintDetectorHeight / fNumScintBarsPerPanel;
   fScintBarCenterY.clear();
   fScintBarCenterY.reserve(fNumScintBarsPerPanel);
-  const G4double yMin = -0.5 * fScintillatorHeight + fScintDetectorOffsetY;
+  const G4double yMin = -0.5 * fScintDetectorHeight + fScintDetectorOffsetY;
   for (G4int j = 0; j < fNumScintBarsPerPanel; ++j)
-    fScintBarCenterY.push_back(yMin + (j + 0.5) * pitch);
+    fScintBarCenterY.push_back(yMin + (j + 0.5) * pitchHoriz);
 
   G4cout << "Computed scint bar centers: "
          << fScintBarCenterX.size() << " x-bars, "

@@ -267,6 +267,8 @@ void AnalysisManager::bookScintTrees()
     fScintTree->Branch("fromPrimaryLepton", &fScintFromPrimaryLepton);
     fScintTree->Branch("fromPrimaryEMShower", &fScintFromPrimaryEMShower);
     fScintTree->Branch("fromTau", &fScintFromTau);
+    fScintTree->Branch("nPE", &fScintPE);
+    fScintTree->Branch("hitTime", &fScintHitTime);
 
     fScintPixelTree = new TTree("scintillatorPixelHits", "scintillator pixel hits");
 
@@ -458,6 +460,8 @@ void AnalysisManager::BeginOfEvent()
   fScintFromPrimaryLepton.clear();
   fScintFromPrimaryEMShower.clear();
   fScintFromTau.clear();
+  fScintPE.clear();
+  fScintHitTime.clear();
 
   fScintPixelLayerID.clear();
   fScintPixelPanelID.clear();
@@ -837,6 +841,8 @@ void AnalysisManager::FillScintOutput()
                 fScintFromPrimaryLepton.push_back(hit->GetFromPrimaryLepton() ? 1 : 0);
                 fScintFromPrimaryEMShower.push_back(hit->GetFromPrimaryEMShower() ? 1 : 0);
                 fScintFromTau.push_back(hit->GetFromTau() ? 1 : 0);
+                fScintPE.push_back(hit->GetPhotoelectrons());
+                fScintHitTime.push_back(hit->GetHitTime());
             }
         }
 

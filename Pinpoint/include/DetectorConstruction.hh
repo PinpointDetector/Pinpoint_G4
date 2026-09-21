@@ -233,8 +233,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructTungstenPlateLV();
 
     G4double fAlWallThickness = 2 * mm; // thickness of aluminum wall, shared by the pixel and scintillator modules
-    G4double fAlWallHeight = 55 * cm; // height of aluminum wall (pixel module)
-    G4double fAlWallWidth = 60 * cm; // width of aluminum wall (pixel module)
+    G4double fAlWallHeight = 60 * cm; // height of aluminum wall (pixel module)
+    G4double fAlWallWidth = 55 * cm; // width of aluminum wall (pixel module)
     G4LogicalVolume* fAlWallLV;
     void ConstructAlWallLV();
 
@@ -253,8 +253,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructAlCoolingPlateLV();
     
     G4double fScintillatorThickness = 5 * mm; // thickness of scintillator in pixel module
-    G4double fScintillatorHeight = 42 * cm; // height of scintillator
-    G4double fScintillatorWidth = 10 * mm; // width of scintillator
     G4LogicalVolume* fScintillatorVertLV;
     G4LogicalVolume* fScintillatorHorizLV;
     void ConstructScintillatorBarLVs();
@@ -286,11 +284,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructPixelModuleLV();
 
     G4double fScintThickness = 5 * mm; // thickness of a single scintillator panel in the scintillator (Fortune) module
-    G4int fNumScintPanelsPerLayer = 2; // number of scintillator panels per scint layer (bookkeeping/metadata only)
-    G4double fScintDetectorWidth = 42 * cm; // nominal scintillator detector width (bookkeeping/metadata only)
-    G4double fScintDetectorHeight = 42 * cm; // nominal scintillator detector height (bookkeeping/metadata only)
-    G4double fScintBarWidth = 10.0 * mm; // nominal scintillator bar width (bookkeeping/metadata only)
-    G4double fScintBarHeight = 10.0 * mm; // nominal scintillator bar height (bookkeeping/metadata only)
+    G4int fNumScintPanelsPerLayer = 2; // number of scintillator panels per scint layer: 0=none, 1=vertical only, 2=both (see ConstructScintModuleLV())
+    G4double fScintDetectorWidth = 42 * cm; // scintillator panel X-extent: drives horizontal-bar length and vertical-bar pitch/segmentation
+    G4double fScintDetectorHeight = 42 * cm; // scintillator panel Y-extent: drives vertical-bar length and horizontal-bar pitch/segmentation
+    G4double fScintBarWidth = 10.0 * mm; // vertical bar's narrow (X-segmented) cross-axis width
+    G4double fScintBarHeight = 10.0 * mm; // horizontal bar's narrow (Y-segmented) cross-axis width
     G4double fScintAirGapThickness = 0.5 * mm; // thickness of air gap in scintillator module
     G4double fFortuneModuleLength = 0.0 * mm; // length of each scintillator module, initially set to 0, will be computed based on the specified thicknesses
     G4double fFortuneModuleWidth = 0.0 * mm; // width of each scintillator module, initially set to 0, will be computed based on the specified thicknesses
