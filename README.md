@@ -83,6 +83,12 @@ built-in default), which is not always the same as the `G4UIcommand`'s own inter
 |`/det/setScintBarWidth` | Vertical bar's narrow (X-segmented) cross-axis width in mm | `10 mm` |
 |`/det/setScintBarHeight` | Horizontal bar's narrow (Y-segmented) cross-axis width in mm | `10 mm` |
 
+> **Note:** each of the `setNumScintLayers` layers is built, in Z order, as: tungsten plate,
+> vertical bar plane, air gap, horizontal bar plane. The air gap sits between the vertical and
+> horizontal bar planes, and layers are back-to-back (no extra gap between one layer's horizontal
+> plane and the next layer's tungsten plate). The whole stack of layers is sandwiched between the
+> two aluminum walls.
+
 > **Note:** bar width/height must stay comfortably below the pitch implied by the panel
 > extent divided by the (currently fixed, not user-settable) number of bars per panel — 40 by
 > default, giving a 10.5mm pitch at the default 42cm panel size. Setting a bar width/height at or

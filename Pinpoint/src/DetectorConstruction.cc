@@ -249,7 +249,9 @@ void DetectorConstruction::ConstructPixelModuleLV()
 
 void DetectorConstruction::ConstructScintModuleLV()
 {
-  // This is a module of fNumScintLayersPerModule pairs of horizontal and vertical scintillator bars. Each pair is seperated by a tungsten plate. An air gap is placed between each pair of bars. The entire module is wrapped in an aluminum wall.
+  // This is a module of fNumScintLayersPerModule repeated units of: a tungsten plate, a vertical
+  // scintillator bar plane, an air gap, then a horizontal scintillator bar plane. The entire module
+  // is wrapped in an aluminum wall.
   // The tungsten and scintillator bars are NOT centred. They are offset by -85 mm  (fScintDetectorOffsetX) in the x-direction due to trench dimensions. The pixel is centred at (0,0) in the module.
   // Because the scintillator panels and tungsten plates are offset in X, the module must be wide enough to fully contain
   // them -- otherwise they protrude through the aluminum wall. Widen (never shrink) the module cross-section to guarantee
@@ -306,13 +308,14 @@ void DetectorConstruction::ConstructScintModuleLV()
   // skipped panel just leaves its slot as air rather than shifting anything else -- this keeps
   // ScintSD.cc's panelID/layerID lookup tables (bug #5) exactly as they are; a hit simply never
   // occurs for a panel that was never placed.
+  // Per-layer order is Tungsten, Vertical bars, air gap, Horizontal bars.
   for (G4int i = 0; i < fNumScintLayersPerModule; ++i) {
+    new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", scintModuleLV, false, i, fCheckOverlaps);
+    zPosition += fTungstenPlateThickness;
     if (fNumScintPanelsPerLayer >= 1) {
       new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorVertPanelLV, "Scintillator_Vertical", scintModuleLV, false, i, fCheckOverlaps);
     }
-    zPosition += fScintThickness;
-    new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", scintModuleLV, false, i, fCheckOverlaps);
-    zPosition += fTungstenPlateThickness + fScintAirGapThickness;
+    zPosition += fScintThickness + fScintAirGapThickness;
     if (fNumScintPanelsPerLayer >= 2) {
       new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorHorizPanelLV, "Scintillator_Horizontal", scintModuleLV, false, i, fCheckOverlaps);
     }
@@ -645,12 +648,15 @@ void DetectorConstruction::ComputeSiliconZPositions()
     const G4double blockFrontZ = worldOffset + cursor;
     G4double local = fAlWallThickness; // past AlWall_Back
     for (G4int j = 0; j < fNumScintLayersPerModule; ++j) {
-      fScintZPositions.push_back(blockFrontZ + local + 0.5 * fScintThickness);
-      local += fScintThickness;
       fTungstenZPositions.push_back(blockFrontZ + local + 0.5 * fTungstenPlateThickness);
       fTungstenThicknesses.push_back(fTungstenPlateThickness);
-      local += fTungstenPlateThickness + fScintAirGapThickness;
-      fScintZPositions.push_back(blockFrontZ + local + 0.5 * fScintThickness);
+      local += fTungstenPlateThickness;
+      // Push order here (vertical, then horizontal) must stay in sync with ScintSD.cc's
+      // panelID = base + groupCopy*2 + (isHorizontal?1:0) indexing -- that's about which entry
+      // lands first in fScintZPositions, not about which one is physically first in Z.
+      fScintZPositions.push_back(blockFrontZ + local + 0.5 * fScintThickness); // vertical
+      local += fScintThickness + fScintAirGapThickness;
+      fScintZPositions.push_back(blockFrontZ + local + 0.5 * fScintThickness); // horizontal
       local += fScintThickness;
     }
     fLayerIsPixel.push_back(false);
