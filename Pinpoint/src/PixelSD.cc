@@ -78,6 +78,16 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
     (pos.y() + 0.5*fDetHeight) / fPixelHeight
   );
 
+  // fNPixelsX/fNPixelsY = floor(sensor extent / pixel pitch), so the physical sensor is
+  // slightly larger than an integer number of pixels: a strip up to just under one pixel
+  // pitch wide, at the +X/+Y edge only (truncation-toward-zero already keeps -X/-Y at >= 0),
+  // falls outside any valid pixel index. This is a real, physical dead/inactive edge region
+  // of the sensor (not a bug), so drop hits that land there rather than clamping them into
+  // the outermost real pixel.
+  if (colID < 0 || colID >= fNPixelsX || rowID < 0 || rowID >= fNPixelsY) {
+    return false;
+  }
+
   const G4int depth = touchable->GetHistoryDepth();
 
   // Current geometry hierarchy for a pixel hit: PixelSensor/IPTPixelModule (sensitive LV)
@@ -104,9 +114,7 @@ G4bool PixelHitAccumulator::AddHit(G4Step* step)
   G4bool fromCharmedHadron = info && info->IsTrackFromCharmedHadron();
   G4bool fromTau = info && info->IsTrackFromTau();
 
-  assert(rowID < fNPixelsY);
-  assert(colID < fNPixelsX);
-  
+  // rowID/colID are guaranteed in-range by the edge-dead-zone check above.
   using PixelUID = std::uint64_t;
 
   PixelUID uniqueID =
