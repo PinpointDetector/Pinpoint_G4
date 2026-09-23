@@ -40,6 +40,7 @@
 #/vis/viewer/set/viewpointThetaPhi 90 180  # cross-section view
 #/vis/viewer/set/viewpointThetaPhi 70 20   # view with neutrinos enter from the right
 /vis/viewer/set/viewpointThetaPhi 70 200  # view aligns with Yichen's engineering drawing
+/vis/viewer/set/targetPoint 100 0 -300 cm 
 
 # Specify the camera pan/zoom:
 /vis/viewer/pan 0 0

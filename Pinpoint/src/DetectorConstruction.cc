@@ -99,7 +99,7 @@ void DetectorConstruction::ConstructTungstenPlateLV()
   G4Material* tungstenMaterial = nist->FindOrBuildMaterial("G4_W");
   G4Box* tungstenS = new G4Box("TungstenPlate", 0.5 * fTungstenWidth, 0.5 * fTungstenHeight, 0.5 * fTungstenPlateThickness);
   fTungstenPlateLV = new G4LogicalVolume(tungstenS, tungstenMaterial, "TungstenPlateLV");
-  fTungstenPlateLV->SetVisAttributes(G4VisAttributes(G4Colour(0.5, 0.5, 0.5))); // Gray color for tungsten
+  fTungstenPlateLV->SetVisAttributes(G4VisAttributes(G4Colour(0.5, 0.5, 0.5))); // Dark Gray color for tungsten
 }
 
 void DetectorConstruction::ConstructAlWallLV()
@@ -117,14 +117,19 @@ void DetectorConstruction::ConstructPixelSensorLV()
   G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
   G4Box* pixelSensorS = new G4Box("PixelSensor", 0.5 * fPixelSensorWidth, 0.5 * fPixelSensorHeight, 0.5 * fPixelSensorThickness);
   fPixelSensorLV = new G4LogicalVolume(pixelSensorS, siliconMaterial, "PixelSensorLV");
-  fPixelSensorLV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 0.0, 1.0))); // Blue color for silicon sensor
+
+  auto visAttributes = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0)); // Red color for silicon sensor
+  visAttributes->SetForceSolid(true);
+  visAttributes->SetVisibility(true);
+  fPixelSensorLV->SetVisAttributes(visAttributes);
+
 }
 
 void DetectorConstruction::ConstructAlCoolingPlateLV()
 {
   G4NistManager* nist = G4NistManager::Instance();
   G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
-  G4Box* alCoolingPlateS = new G4Box("AlCoolingPlate", 0.5 * fPixelSensorWidth, 0.5 * fPixelSensorHeight, 0.5 * fAlCoolingPlateThickness);
+  G4Box* alCoolingPlateS = new G4Box("AlCoolingPlate", 0.5 * fTungstenWidth, 0.5 * fTungstenHeight, 0.5 * fAlCoolingPlateThickness);
   fAlCoolingPlateLV = new G4LogicalVolume(alCoolingPlateS, aluminumMaterial, "AlCoolingPlateLV");
   fAlCoolingPlateLV->SetVisAttributes(G4VisAttributes(G4Colour(0.8, 0.8, 0.8))); // Light gray color for aluminum cooling plate
 }
@@ -138,12 +143,17 @@ void DetectorConstruction::ConstructScintillatorBarLVs()
       0.5*fScintBarWidth, 0.5*fScintDetectorHeight, 0.5*fScintillatorThickness);
   G4Box* scintillatorHorizontal = new G4Box("ScintillatorHoriz",
       0.5*fScintDetectorWidth, 0.5*fScintBarHeight, 0.5*fScintillatorThickness);
+  
+  auto visAttributes = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); // Blue color for scintillator
+  // make invisible for now
+  visAttributes->SetVisibility(false);
+  visAttributes->SetForceSolid(false);
 
   fScintillatorVertLV = new G4LogicalVolume(scintillatorVertical, scintillatorMaterial, "ScintillatorVertLV");
-  fScintillatorVertLV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 0.0, 1.0)));
+  fScintillatorVertLV->SetVisAttributes(visAttributes);
 
   fScintillatorHorizLV = new G4LogicalVolume(scintillatorHorizontal, scintillatorMaterial, "ScintillatorHorizLV");
-  fScintillatorHorizLV->SetVisAttributes(G4VisAttributes(G4Colour(0.0, 0.0, 1.0)));
+  fScintillatorHorizLV->SetVisAttributes(visAttributes);
 }
 
 void DetectorConstruction::ConstructScintillatorPanelLVs()
@@ -184,12 +194,22 @@ void DetectorConstruction::ConstructScintillatorPanelLVs()
   new G4PVReplica("HorizSlot", logicHorizSlot, fScintillatorHorizPanelLV, kYAxis, fNumScintBarsPerPanel, pitchHoriz);
   new G4PVPlacement(nullptr, G4ThreeVector(), fScintillatorHorizLV, "HorizBar",
       logicHorizSlot, false, 0, checkOverlaps);
+
+  auto visAttributesVert = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); // Blue color for scintillator panels
+  auto visAttributesHoriz = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); // Green color for scintillator panels
+  visAttributesVert->SetVisibility(true);
+  visAttributesVert->SetForceSolid(true);
+
+  visAttributesHoriz->SetVisibility(true);
+  visAttributesHoriz->SetForceSolid(true);
+  fScintillatorVertPanelLV->SetVisAttributes(visAttributesVert);
+  fScintillatorHorizPanelLV->SetVisAttributes(visAttributesHoriz);
 }
 
 void DetectorConstruction::ConstructPixelModuleLV()
 {
   // Pixel module LV.
-  // Consists of Aluminium wall + Scintillator + Tungsten plate + Air Gap + Silicon sensor + Aluminium cooling plate + Tungsten plate + Aluminium wall
+  // Consists of Aluminium wall +  Air Gap + Silicon sensor + Aluminium cooling plate + Tungsten plate + Vertical Scintillator + Tungsten plate + Aluminium wall
   // Make air filled box to hold the module components
   // Tungsten plate and scintillator are NOT centred. They are offset by -85 mm  (fScintDetectorOffsetX) in the x-direction due to trench dimensions. The pixel is centred at (0,0) in the module.
   G4double moduleWidth = fAlWallWidth; // Width of the module is defined by the aluminum wall width
@@ -233,15 +253,15 @@ void DetectorConstruction::ConstructPixelModuleLV()
   // Place the components inside the pixel module
   G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Back", pixelModuleLV, false, 0, fCheckOverlaps);
-  zPosition += fAlWallThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintillatorThickness), fScintillatorVertPanelLV, "Scintillator", pixelModuleLV, false, 0, fCheckOverlaps);
-  zPosition += fScintillatorThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", pixelModuleLV, false, 0, fCheckOverlaps);
-  zPosition += fTungstenPlateThickness + fPixelAirGapThickness;
+  zPosition += fAlWallThickness  + fPixelAirGapThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fPixelSensorThickness), fPixelSensorLV, "PixelSensor", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fPixelSensorThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlCoolingPlateThickness), fAlCoolingPlateLV, "AlCoolingPlate", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fAlCoolingPlateThickness), fAlCoolingPlateLV, "AlCoolingPlate", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fAlCoolingPlateThickness;
+  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", pixelModuleLV, false, 0, fCheckOverlaps);
+  zPosition += fTungstenPlateThickness;
+  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintillatorThickness), fScintillatorVertPanelLV, "Scintillator", pixelModuleLV, false, 0, fCheckOverlaps);
+  zPosition += fScintillatorThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate_Front", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fTungstenPlateThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Front", pixelModuleLV, false, 0, fCheckOverlaps);

@@ -194,13 +194,13 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fOuterRadius = 215.0 * mm;
     // Position of FASER magnets and tracking stations relative to VetoNu scintillator
     G4double fVetoNuPosition = -3112 * mm;
-    G4double fMagnet0Position = -815.3 * mm - fVetoNuPosition;
-    G4double fMagnet1Position = 637.4 * mm - fVetoNuPosition;
-    G4double fMagnet2Position = 1837.4 * mm - fVetoNuPosition;
+    G4double fMagnet0Position = -815.3 * mm;
+    G4double fMagnet1Position = 637.4 * mm; 
+    G4double fMagnet2Position = 1837.4 * mm;
     G4double fTrackerSize = 250.0 * mm;
-    G4double fTracker1Position = 47.4 * mm - fVetoNuPosition;
-    G4double fTracker2Position = 1237.4 * mm - fVetoNuPosition;
-    G4double fTracker3Position = 2427.4 * mm - fVetoNuPosition;
+    G4double fTracker1Position = 47.4 * mm;
+    G4double fTracker2Position = 1237.4 * mm;
+    G4double fTracker3Position = 2427.4 * mm;
     // ==========================
 
 
@@ -275,7 +275,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     // - 5 mm Al Cooling Plate
     // - 5 mm Tungsten
     // - 2 mm Al Wall
-    G4double fPixelAirGapThickness = 12 * mm; // thickness of air gap in pixel module
+    G4double fPixelAirGapThickness = 6 * mm; // thickness of air gap in pixel module
     G4LogicalVolume* fPixelModuleLV;
     G4LogicalVolume* fPixelLayerLV; // alias for the sensitive silicon LV; used for SD attachment and true-position bookkeeping
     G4double fPinpointBlockLength = 0.0 * mm; // length of each Pinpoint block, initially set to 0, will be computed based on the specified thicknesses
