@@ -129,7 +129,7 @@ void DetectorConstruction::ConstructAlCoolingPlateLV()
 {
   G4NistManager* nist = G4NistManager::Instance();
   G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
-  G4Box* alCoolingPlateS = new G4Box("AlCoolingPlate", 0.5 * fTungstenWidth, 0.5 * fTungstenHeight, 0.5 * fAlCoolingPlateThickness);
+  G4Box* alCoolingPlateS = new G4Box("AlCoolingPlate", 0.5 * fAlCoolingPlateWidth, 0.5 * fAlCoolingPlateHeight, 0.5 * fAlCoolingPlateThickness);
   fAlCoolingPlateLV = new G4LogicalVolume(alCoolingPlateS, aluminumMaterial, "AlCoolingPlateLV");
   fAlCoolingPlateLV->SetVisAttributes(G4VisAttributes(G4Colour(0.8, 0.8, 0.8))); // Light gray color for aluminum cooling plate
 }
@@ -211,9 +211,38 @@ void DetectorConstruction::ConstructPixelModuleLV()
   // Pixel module LV.
   // Consists of Aluminium wall +  Air Gap + Silicon sensor + Aluminium cooling plate + Tungsten plate + Vertical Scintillator + Tungsten plate + Aluminium wall
   // Make air filled box to hold the module components
-  // Tungsten plate and scintillator are NOT centred. They are offset by -85 mm  (fScintDetectorOffsetX) in the x-direction due to trench dimensions. The pixel is centred at (0,0) in the module.
-  G4double moduleWidth = fAlWallWidth; // Width of the module is defined by the aluminum wall width
-  G4double moduleHeight = fAlWallHeight; // Height of the module is defined by the aluminum wall height
+  // Tungsten plate, scintillator, aluminium cooling plate and BOTH aluminium walls are NOT centred
+  // in X: they are all offset by fScintDetectorOffsetX (85mm, set via macro) to the same axis, due
+  // to trench dimensions. The tungsten is additionally offset in Y by fTungstenCornerShiftY, to
+  // preserve its (-Y, +X) corner as it grew from 42 to 43cm. Only the silicon pixel sensor stays
+  // centred at (0,0) in the module.
+  const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required, matching the Fortune module
+
+  const G4double alWallCenterX = fScintDetectorOffsetX; // wall centred on the same axis as the tungsten/scintillator planes
+  const G4double tungstenCenterX = fScintDetectorOffsetX + fTungstenCornerShiftX;
+  const G4double tungstenCenterY = fTungstenCornerShiftY;
+
+  // Every offset component must fit inside the module's own G4Box bounds, which is symmetric
+  // about local (0,0) -- otherwise it protrudes through the box and Geant4's overlap checker
+  // (fCheckOverlaps) fatally flags a containment violation at construction time. So the module
+  // half-width/half-height must be at least as large as whichever component reaches furthest.
+  G4double requiredHalfWidth = std::max({
+    0.5 * fPixelSensorWidth,
+    std::fabs(alWallCenterX)         + 0.5 * fAlWallWidth,
+    std::fabs(tungstenCenterX)       + 0.5 * fTungstenWidth,
+    std::fabs(fScintDetectorOffsetX) + 0.5 * fScintDetectorWidth,
+    std::fabs(fScintDetectorOffsetX) + 0.5 * fAlCoolingPlateWidth
+  });
+  G4double requiredHalfHeight = std::max({
+    0.5 * fPixelSensorHeight,
+    0.5 * fAlWallHeight,
+    std::fabs(tungstenCenterY) + 0.5 * fTungstenHeight,
+    0.5 * fScintDetectorHeight,
+    0.5 * fAlCoolingPlateHeight
+  });
+
+  G4double moduleWidth = 2.0 * requiredHalfWidth + transverseMargin; // Width of the module, widened to contain the offset components
+  G4double moduleHeight = 2.0 * requiredHalfHeight + transverseMargin; // Height of the module, widened to contain the offset components
   G4double moduleThickness = fAlWallThickness + fScintillatorThickness + fTungstenPlateThickness + fPixelAirGapThickness + fPixelSensorThickness + fAlCoolingPlateThickness + fTungstenPlateThickness + fAlWallThickness; // Total thickness of the module
   
   fPinpointBlockLength = moduleThickness; // Store the total length of the pixel module for later use
@@ -252,43 +281,51 @@ void DetectorConstruction::ConstructPixelModuleLV()
 
   // Place the components inside the pixel module
   G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module
-  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Back", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Back", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fAlWallThickness  + fPixelAirGapThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fPixelSensorThickness), fPixelSensorLV, "PixelSensor", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fPixelSensorThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fAlCoolingPlateThickness), fAlCoolingPlateLV, "AlCoolingPlate", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fAlCoolingPlateThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(tungstenCenterX, tungstenCenterY, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fTungstenPlateThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintillatorThickness), fScintillatorVertPanelLV, "Scintillator", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fScintillatorThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate_Front", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(tungstenCenterX, tungstenCenterY, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate_Front", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fTungstenPlateThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Front", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Front", pixelModuleLV, false, 0, fCheckOverlaps);
 }
 
 void DetectorConstruction::ConstructScintModuleLV()
 {
   // This is a module of fNumScintLayersPerModule repeated units of: a tungsten plate, a vertical
-  // scintillator bar plane, an air gap, then a horizontal scintillator bar plane. The entire module
-  // is wrapped in an aluminum wall.
-  // The tungsten and scintillator bars are NOT centred. They are offset by -85 mm  (fScintDetectorOffsetX) in the x-direction due to trench dimensions. The pixel is centred at (0,0) in the module.
-  // Because the scintillator panels and tungsten plates are offset in X, the module must be wide enough to fully contain
-  // them -- otherwise they protrude through the aluminum wall. Widen (never shrink) the module cross-section to guarantee
-  // this, the same way the pixel module's aluminum wall (60 cm) already comfortably contains its own offset components.
-  const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required, matching the margin already present for the pixel module
+  // scintillator bar plane, an air gap, then a horizontal scintillator bar plane. Fortune modules
+  // have NO aluminum walls (removed): the module is a bare stack of tungsten/scintillator layers,
+  // unlike the Pinpoint (pixel) module, which still has aluminum walls front and back.
+  // The tungsten and scintillator bars are NOT centred. They are offset by fScintDetectorOffsetX in
+  // the x-direction due to trench dimensions (85mm, set via macro). The tungsten is additionally
+  // offset in Y by fTungstenCornerShiftY, to preserve its (-Y, +X) corner as it grew from 42 to 43cm.
+  // Because the scintillator panels and tungsten plates are offset, the module must be wide/tall
+  // enough to fully contain them -- otherwise they protrude through the module's own G4Box bounds
+  // and Geant4's overlap checker (fCheckOverlaps) fatally flags a containment violation at
+  // construction time.
+  const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required
 
-  G4double scintHalfWidth = 0.5 * fScintDetectorWidth;   // scintillator panel X-extent (may now differ from its Y-extent)
-  G4double scintHalfHeight = 0.5 * fScintDetectorHeight; // scintillator panel Y-extent
-  G4double tungstenHalfWidth = 0.5 * fTungstenWidth;
-  G4double tungstenHalfHeight = 0.5 * fTungstenHeight;
+  const G4double tungstenCenterX = fScintDetectorOffsetX + fTungstenCornerShiftX;
+  const G4double tungstenCenterY = fTungstenCornerShiftY;
 
-  G4double requiredHalfWidth = std::max(scintHalfWidth, tungstenHalfWidth) + std::fabs(fScintDetectorOffsetX);
-  G4double requiredHalfHeight = std::max(scintHalfHeight, tungstenHalfHeight) + std::fabs(fScintDetectorOffsetY);
+  G4double requiredHalfWidth = std::max(
+    std::fabs(tungstenCenterX)       + 0.5 * fTungstenWidth,
+    std::fabs(fScintDetectorOffsetX) + 0.5 * fScintDetectorWidth
+  );
+  G4double requiredHalfHeight = std::max(
+    std::fabs(tungstenCenterY)       + 0.5 * fTungstenHeight,
+    std::fabs(fScintDetectorOffsetY) + 0.5 * fScintDetectorHeight
+  );
 
-  G4double moduleWidth = std::max(fAlWallWidth, 2.0 * requiredHalfWidth + transverseMargin); // Width of the module is defined by the aluminum wall width, widened if needed to contain the offset panels
-  G4double moduleHeight = std::max(fAlWallHeight, 2.0 * requiredHalfHeight + transverseMargin); // Height of the module is defined by the aluminum wall height, widened if needed to contain the offset panels
-  G4double moduleThickness = fNumScintLayersPerModule * (fScintThickness + fScintAirGapThickness + fScintThickness + fTungstenPlateThickness) + 2 * fAlWallThickness;
+  G4double moduleWidth = 2.0 * requiredHalfWidth + transverseMargin; // Width of the module, widened to contain the offset panels
+  G4double moduleHeight = 2.0 * requiredHalfHeight + transverseMargin; // Height of the module, widened to contain the offset panels
+  G4double moduleThickness = fNumScintLayersPerModule * (fScintThickness + fScintAirGapThickness + fScintThickness + fTungstenPlateThickness); // no aluminum walls in the Fortune module
 
   fFortuneModuleLength = moduleThickness; // Store the total length of the scintillator module for later use
   fFortuneModuleWidth = moduleWidth; // Store the total width of the scintillator module for later use
@@ -297,7 +334,6 @@ void DetectorConstruction::ConstructScintModuleLV()
   G4cout << "Scintillator module width: " << fFortuneModuleWidth/mm << " mm" << G4endl;
   G4cout << "Scintillator module height: " << fFortuneModuleHeight/mm << " mm" << G4endl;
   G4cout << "Scintillator module components:" << G4endl;
-  G4cout << "  - Aluminum wall thickness: " << fAlWallThickness/mm << " mm" << G4endl;
   G4cout << "  - Scintillator thickness: " << fScintThickness/mm << " mm" << G4endl;
   G4cout << "  - Tungsten plate thickness: " << fTungstenPlateThickness/mm << " mm" << G4endl;
   G4cout << "  - Air gap thickness: " << fScintAirGapThickness/mm << " mm" << G4endl;
@@ -310,18 +346,8 @@ void DetectorConstruction::ConstructScintModuleLV()
   scintModuleLV = new G4LogicalVolume(scintModuleS, airMaterial, "ScintModuleLV");
   scintModuleLV->SetVisAttributes(G4VisAttributes(G4Colour(0.9, 0.9, 0.9, 0.1))); // Light gray with some transparency for the module
 
-  // Build a dedicated aluminum wall for this module, sized to its own (possibly widened) cross-section.
-  // The pixel module's fAlWallLV (60 x 55 cm) must NOT be reused here: it does not match this module's
-  // cross-section and was the cause of the AlWall_Back/AlWall_Front overlaps with ScintModuleLV.
-  G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
-  G4Box* aluminumWallS = new G4Box("AluminumWall", 0.5 * moduleWidth, 0.5 * moduleHeight, 0.5 * fAlWallThickness);
-  G4LogicalVolume* aluminumWallLV = new G4LogicalVolume(aluminumWallS, aluminumMaterial, "AluminumWallLV");
-  aluminumWallLV->SetVisAttributes(G4VisAttributes(G4Colour(0.8, 0.8, 0.8))); // Light gray color for aluminum
-
   // Place the components inside the scintillator module
-  G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module
-  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), aluminumWallLV, "AlWall_Back", scintModuleLV, false, 0, fCheckOverlaps);
-  zPosition += fAlWallThickness;
+  G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module (no aluminum wall to skip past)
   // fNumScintPanelsPerLayer: 0=neither panel, 1=vertical only, 2=both (default -- current/original behavior).
   // Z-bookkeeping (cursor increments, module thickness, and the mirrored loop in
   // ComputeSiliconZPositions()) is deliberately left unchanged regardless of this setting, so a
@@ -330,7 +356,7 @@ void DetectorConstruction::ConstructScintModuleLV()
   // occurs for a panel that was never placed.
   // Per-layer order is Tungsten, Vertical bars, air gap, Horizontal bars.
   for (G4int i = 0; i < fNumScintLayersPerModule; ++i) {
-    new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", scintModuleLV, false, i, fCheckOverlaps);
+    new G4PVPlacement(nullptr, G4ThreeVector(tungstenCenterX, tungstenCenterY, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate", scintModuleLV, false, i, fCheckOverlaps);
     zPosition += fTungstenPlateThickness;
     if (fNumScintPanelsPerLayer >= 1) {
       new G4PVPlacement(nullptr, G4ThreeVector(fScintDetectorOffsetX, 0, zPosition + 0.5 * fScintThickness), fScintillatorVertPanelLV, "Scintillator_Vertical", scintModuleLV, false, i, fCheckOverlaps);
@@ -341,7 +367,6 @@ void DetectorConstruction::ConstructScintModuleLV()
     }
     zPosition += fScintThickness;
   }
-  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fAlWallThickness), aluminumWallLV, "AlWall_Front", scintModuleLV, false, 0, fCheckOverlaps);
 }
 
 void DetectorConstruction::ConstructIPTPixelBlockLV()
@@ -420,16 +445,33 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   }
 
   // Place the detector in the world volume
-  auto DetectorPV = new G4PVPlacement(0, G4ThreeVector(0, 0, fVetoNuPosition + 0.5 * detectorLength), detectorLV, "Detector", fWorldLV, false, 0, fCheckOverlaps);
+  auto DetectorPV = new G4PVPlacement(0, G4ThreeVector(0, fDetectorYOffset, fVetoNuPosition + 0.5 * detectorLength), detectorLV, "Detector", fWorldLV, false, 0, fCheckOverlaps);
 
-  // Interface Pixel Tracker, keep separate from the main detector to allow for different placement and alignment
-  zPosition = fVetoNuPosition + detectorLength + 0.5 * fIPTPixelBlockThickness;
+  // Interface Pixel Tracker, keep separate from the main detector to allow for different placement and alignment.
+  // fFortuneToIPTClearance is the required air gap between the end of the last Fortune block and
+  // the start of the first IPT layer.
+  zPosition = fVetoNuPosition + detectorLength + fFortuneToIPTClearance + 0.5 * fIPTPixelBlockThickness;
   for (G4int i = 0; i < fNIPTLayers; ++i) {
-    new G4PVPlacement(0, G4ThreeVector(0, 0, zPosition),
+    new G4PVPlacement(0, G4ThreeVector(0, fDetectorYOffset, zPosition),
                       fIPTPixelBlockLV, "IPTPixelLayer", fWorldLV, false, i, fCheckOverlaps);
     zPosition += fIPTPixelBlockThickness;
   }
   zPosition += fIPTPixelBlockThickness; // Add extra spacing after the last IPT layer
+
+  // Report detector Z extent, with and without the trailing IPT layers.
+  {
+    const G4double detStartZ = fVetoNuPosition; // front face of the first Pinpoint block
+    const G4double detEndZ   = fVetoNuPosition + detectorLength; // back face of the last Fortune block (no IPT)
+    const G4double iptStartZ = fVetoNuPosition + detectorLength + fFortuneToIPTClearance; // front face of first IPT layer
+    const G4double iptEndZ   = iptStartZ + fNIPTLayers * fIPTPixelBlockThickness; // back face of last IPT layer
+
+    G4cout << "Detector Z extent (Pinpoint+Fortune stack, no IPT): "
+           << "start = " << detStartZ/mm << " mm, end = " << detEndZ/mm << " mm, "
+           << "length = " << detectorLength/mm << " mm" << G4endl;
+    G4cout << "Detector Z extent (including IPT, IPT spans " << iptStartZ/mm << " to " << iptEndZ/mm << " mm): "
+           << "start = " << detStartZ/mm << " mm, end = " << iptEndZ/mm << " mm, "
+           << "length = " << (iptEndZ - detStartZ)/mm << " mm" << G4endl;
+  }
 
   if (fEnableFaserSpectrometer) {
     // FASER spectrometer magnets:
@@ -458,7 +500,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // Bore field regions placed directly in world (r = 0..fInnerRadius), siblings of the shells
     // Shift in Y so the bottom edge (-fInnerRadius from centre) aligns with the pixel detector
     // bottom at world Y = -0.5*fPixelSensorHeight.
-    G4double fieldYOffset = -0.5 * fPixelSensorHeight + fInnerRadius;
+    G4double fieldYOffset = -0.5 * fPixelSensorHeight + fInnerRadius + fDetectorYOffset;
     auto fieldRegion0LV = new G4LogicalVolume(longFieldS, worldMaterial, "FieldRegion0");
     new G4PVPlacement(nullptr, G4ThreeVector(0., fieldYOffset, fMagnet0Position), fieldRegion0LV, "FieldRegion0", fWorldLV, false, 0, fCheckOverlaps);
     fieldRegion0LV->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -486,7 +528,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4NistManager* nist = G4NistManager::Instance();
     G4Material* siliconMaterial = nist->FindOrBuildMaterial("G4_Si");
 
-    G4double trackerYOffset = -0.5 * fPixelSensorHeight + 0.5 * fTrackerSize;
+    G4double trackerYOffset = -0.5 * fPixelSensorHeight + 0.5 * fTrackerSize + fDetectorYOffset;
     auto trackerS = new G4Box("Tracker", 0.5 * fTrackerSize, 0.5 * fTrackerSize, 0.5 * fPixelSensorThickness);
   
     // Tracker 1
@@ -666,7 +708,7 @@ void DetectorConstruction::ComputeSiliconZPositions()
     fScintPanelIDBaseForFortuneBlock.push_back(static_cast<G4int>(fScintZPositions.size()));
     fScintLayerIDForFortuneBlock.push_back(scintModuleIndex++);
     const G4double blockFrontZ = worldOffset + cursor;
-    G4double local = fAlWallThickness; // past AlWall_Back
+    G4double local = 0; // no aluminum wall in the Fortune module
     for (G4int j = 0; j < fNumScintLayersPerModule; ++j) {
       fTungstenZPositions.push_back(blockFrontZ + local + 0.5 * fTungstenPlateThickness);
       fTungstenThicknesses.push_back(fTungstenPlateThickness);
@@ -703,7 +745,7 @@ void DetectorConstruction::ComputeSiliconZPositions()
   // Trailing IPT layers: placed directly in the world right after the detector volume
   // (see Construct()); each is a single silicon sensor centred in its own
   // fIPTPixelBlockThickness-thick block, so no further sub-offset is needed.
-  G4double iptZ = fVetoNuPosition + detectorLength + 0.5 * fIPTPixelBlockThickness;
+  G4double iptZ = fVetoNuPosition + detectorLength + fFortuneToIPTClearance + 0.5 * fIPTPixelBlockThickness;
   for (G4int i = 0; i < fNIPTLayers; ++i) {
     fSiliconZPositions.push_back(iptZ);
     fLayerIsPixel.push_back(true);
@@ -726,10 +768,11 @@ void DetectorConstruction::ComputePixelCentersXY()
   for (G4int col = 0; col < fNPixelsX; ++col)
     fPixelCenterX.push_back(xMin + (col + 0.5) * fPixelWidth);
 
-  // Y centres: pixel detector is centred on beam axis (world Y = 0)
+  // Y centres: pixel detector is centred on the beam axis, shifted by fDetectorYOffset to match
+  // the real FASER world coordinate system
   fPixelCenterY.clear();
   fPixelCenterY.reserve(fNPixelsY);
-  const G4double yMin = -0.5 * fPixelSensorHeight + fPixelDetectorOffsetY;
+  const G4double yMin = -0.5 * fPixelSensorHeight + fPixelDetectorOffsetY + fDetectorYOffset;
   for (G4int row = 0; row < fNPixelsY; ++row)
     fPixelCenterY.push_back(yMin + (row + 0.5) * fPixelHeight);
 
@@ -757,7 +800,7 @@ void DetectorConstruction::ComputeScintCentersXY()
   const G4double pitchHoriz = fScintDetectorHeight / fNumScintBarsPerPanel;
   fScintBarCenterY.clear();
   fScintBarCenterY.reserve(fNumScintBarsPerPanel);
-  const G4double yMin = -0.5 * fScintDetectorHeight + fScintDetectorOffsetY;
+  const G4double yMin = -0.5 * fScintDetectorHeight + fScintDetectorOffsetY + fDetectorYOffset;
   for (G4int j = 0; j < fNumScintBarsPerPanel; ++j)
     fScintBarCenterY.push_back(yMin + (j + 0.5) * pitchHoriz);
 

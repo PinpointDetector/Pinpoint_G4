@@ -193,7 +193,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fInnerRadius = 100.0 * mm;
     G4double fOuterRadius = 215.0 * mm;
     // Position of FASER magnets and tracking stations relative to VetoNu scintillator
-    G4double fVetoNuPosition = -3112 * mm;
+    G4double fVetoNuPosition = -3000* mm; // end of VetoNu scintillator, start of detector volume
+    // Global Y-offset applied to the whole detector (Pinpoint+Fortune blocks), the trailing IPT
+    // layers, and the FASER spectrometer magnets/trackers, so the simulation's Y=0 lines up with
+    // the real FASER world coordinate system's beam axis. Downwards in Y is negative.
+    G4double fDetectorYOffset = -12.0 * mm;
     G4double fMagnet0Position = -815.3 * mm;
     G4double fMagnet1Position = 637.4 * mm; 
     G4double fMagnet2Position = 1837.4 * mm;
@@ -227,8 +231,15 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructWorldLV();
 
     G4double fTungstenPlateThickness = 5 * mm; // thickness of tungsten plate, shared by the pixel and scintillator modules
-    G4double fTungstenHeight = 42 * cm; // height of tungsten plate in pixel module
-    G4double fTungstenWidth = 42 * cm; // width of tungsten
+    G4double fTungstenHeight = 43 * cm; // height of tungsten plate in pixel module (grew from 42cm; see fTungstenCornerShiftX/Y)
+    G4double fTungstenWidth = 43 * cm; // width of tungsten (grew from 42cm; see fTungstenCornerShiftX/Y)
+    // The tungsten grew by +1cm on each axis (42->43cm), but the corner at (-Y, +X) must stay
+    // fixed -- i.e. all of the growth is in +Y and -X. A G4Box is always symmetric about its own
+    // placement centre, so asymmetric growth is achieved by shifting the placement centre by half
+    // of each axis' growth, in the growth direction: -5mm in X, +5mm in Y relative to the nominal
+    // (fScintDetectorOffsetX, 0) centre used for the other offset components in each module.
+    G4double fTungstenCornerShiftX = -5.0 * mm;
+    G4double fTungstenCornerShiftY = 5.0 * mm;
     G4LogicalVolume* fTungstenPlateLV;
     void ConstructTungstenPlateLV();
 
@@ -249,6 +260,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructPixelSensorLV();
     
     G4double fAlCoolingPlateThickness = 5 * mm; // thickness of aluminum cooling plate in pixel module
+    G4double fAlCoolingPlateHeight = 42 * cm; // height of aluminum cooling plate in pixel module
+    G4double fAlCoolingPlateWidth = 42 * cm; // width of aluminum cooling plate in pixel module
     G4LogicalVolume* fAlCoolingPlateLV;
     void ConstructAlCoolingPlateLV();
     
@@ -263,6 +276,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructScintillatorPanelLVs();
 
     G4double fIPTPixelBlockThickness = 0.0 * mm; // thickness of the Interface Pixel Tracker (IPT) pixel block
+    G4double fFortuneToIPTClearance = 50.0 * mm; // required air gap between the end of the last Fortune block and the start of the first IPT layer
     G4LogicalVolume* fIPTPixelBlockLV;
     void ConstructIPTPixelBlockLV();
   
