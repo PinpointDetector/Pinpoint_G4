@@ -56,6 +56,13 @@ built-in default), which is not always the same as the `G4UIcommand`'s own inter
 |`/det/setNumIPTLayers`| Number of trailing Interface Pixel Tracker (IPT) pixel layers | `3` |
 |`/det/enableFaserSpectrometer`| Enable the FASER spectrometer magnets, tracking stations and magnetic field | `true` |
 
+> **Note:** as of 2026-09, two further placement constants exist in `DetectorConstruction.hh` but
+> are not yet exposed via macro command (same as `fVetoNuPosition`): `fDetectorYOffset` (`-12mm`)
+> shifts the entire detector -- Pinpoint/Fortune blocks, trailing IPT layers, and the FASER
+> spectrometer magnets/trackers -- down in world Y, to align the simulation with the real FASER
+> world coordinate system; `fFortuneToIPTClearance` (`50mm`) is the required air gap inserted
+> between the end of the last Fortune block and the start of the first IPT layer.
+
 #### Pinpoint module (tungsten + pixel sensor)
 
 |Command |Description | Default |
@@ -86,8 +93,10 @@ built-in default), which is not always the same as the `G4UIcommand`'s own inter
 > **Note:** each of the `setNumScintLayers` layers is built, in Z order, as: tungsten plate,
 > vertical bar plane, air gap, horizontal bar plane. The air gap sits between the vertical and
 > horizontal bar planes, and layers are back-to-back (no extra gap between one layer's horizontal
-> plane and the next layer's tungsten plate). The whole stack of layers is sandwiched between the
-> two aluminum walls.
+> plane and the next layer's tungsten plate). Fortune modules have **no aluminum walls** (removed
+> 2026-09) -- the module is a bare stack of tungsten/scintillator layers. This is unlike the
+> Pinpoint (pixel) module, which still has aluminum walls front and back (see "Aluminum walls"
+> below).
 
 > **Note:** bar width/height must stay comfortably below the pitch implied by the panel
 > extent divided by the (currently fixed, not user-settable) number of bars per panel — 40 by
@@ -97,11 +106,30 @@ built-in default), which is not always the same as the `G4UIcommand`'s own inter
 
 #### Aluminum walls
 
+As of 2026-09, aluminum walls exist only in the Pinpoint (pixel) module (Fortune modules no longer
+have them -- see the note above). The Pinpoint walls are centred on the same X axis as the
+tungsten/scintillator/cooling-plate offset (`fScintDetectorOffsetX`, i.e. `/det/setScintDetectorOffsetX`),
+rather than at X=0. The Pinpoint module's cross-section is computed automatically (not just the raw
+wall width/height below) to fully contain whichever offset component -- wall, tungsten, scintillator,
+or cooling plate -- reaches furthest from the module centre, plus a 1cm margin; changing any of these
+sizes/offsets, or the tungsten's asymmetric corner-preserving shift (see next section), grows the
+module automatically and never needs a manual width/height bump.
+
 |Command |Description | Default |
 |:--|:--|:--|
-|`/det/setAluminumWallThickness`| Thickness of the aluminum wall placed before and after each Pinpoint/Fortune block, in mm | `2 mm` |
+|`/det/setAluminumWallThickness`| Thickness of the aluminum wall placed before and after each Pinpoint block, in mm | `2 mm` |
 |`/det/setAluminumWallWidth`| Transverse width of the aluminum walls in cm | `55 cm` |
 |`/det/setAluminumWallHeight`| Transverse height of the aluminum walls in cm | `60 cm` |
+
+#### Tungsten plate asymmetric growth
+
+The shared tungsten plate (used in both Pinpoint and Fortune modules) is `43 x 43 cm` by default
+(grown from `42 x 42 cm`), but the extra 1cm on each axis is **not** centred: the corner at
+(-Y, +X) is kept fixed, so all of the growth is in +Y and -X. Since a Geant4 box is always
+symmetric about its own placement centre, this is implemented as a fixed placement-centre shift
+(`fTungstenCornerShiftX = -5mm`, `fTungstenCornerShiftY = +5mm`, in `DetectorConstruction.hh`,
+not currently exposed via a macro command) applied on top of the usual `fScintDetectorOffsetX`
+X-offset, in every tungsten placement in both modules.
 
 #### Output
 
