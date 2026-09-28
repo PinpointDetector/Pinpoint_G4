@@ -213,9 +213,9 @@ void DetectorConstruction::ConstructPixelModuleLV()
   // Make air filled box to hold the module components
   // Tungsten plate, scintillator, aluminium cooling plate and BOTH aluminium walls are NOT centred
   // in X: they are all offset by fScintDetectorOffsetX (85mm, set via macro) to the same axis, due
-  // to trench dimensions. The tungsten is additionally offset in Y by fTungstenCornerShiftY, to
-  // preserve its (-Y, +X) corner as it grew from 42 to 43cm. Only the silicon pixel sensor stays
-  // centred at (0,0) in the module.
+  // to trench dimensions. The tungsten is additionally offset in X and Y by
+  // fTungstenCornerShiftX/Y, to preserve its (-X, -Y) corner as it grew from 42 to 43cm. Only the
+  // silicon pixel sensor stays centred at (0,0) in the module.
   const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required, matching the Fortune module
 
   const G4double alWallCenterX = fScintDetectorOffsetX; // wall centred on the same axis as the tungsten/scintillator planes
@@ -304,7 +304,8 @@ void DetectorConstruction::ConstructScintModuleLV()
   // unlike the Pinpoint (pixel) module, which still has aluminum walls front and back.
   // The tungsten and scintillator bars are NOT centred. They are offset by fScintDetectorOffsetX in
   // the x-direction due to trench dimensions (85mm, set via macro). The tungsten is additionally
-  // offset in Y by fTungstenCornerShiftY, to preserve its (-Y, +X) corner as it grew from 42 to 43cm.
+  // offset in X and Y by fTungstenCornerShiftX/Y, to preserve its (-X, -Y) corner as it grew from
+  // 42 to 43cm.
   // Because the scintillator panels and tungsten plates are offset, the module must be wide/tall
   // enough to fully contain them -- otherwise they protrude through the module's own G4Box bounds
   // and Geant4's overlap checker (fCheckOverlaps) fatally flags a containment violation at

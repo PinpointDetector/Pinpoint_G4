@@ -125,9 +125,9 @@ module automatically and never needs a manual width/height bump.
 
 The shared tungsten plate (used in both Pinpoint and Fortune modules) is `43 x 43 cm` by default
 (grown from `42 x 42 cm`), but the extra 1cm on each axis is **not** centred: the corner at
-(-Y, +X) is kept fixed, so all of the growth is in +Y and -X. Since a Geant4 box is always
+(-X, -Y) is kept fixed, so all of the growth is in +X and +Y. Since a Geant4 box is always
 symmetric about its own placement centre, this is implemented as a fixed placement-centre shift
-(`fTungstenCornerShiftX = -5mm`, `fTungstenCornerShiftY = +5mm`, in `DetectorConstruction.hh`,
+(`fTungstenCornerShiftX = +5mm`, `fTungstenCornerShiftY = +5mm`, in `DetectorConstruction.hh`,
 not currently exposed via a macro command) applied on top of the usual `fScintDetectorOffsetX`
 X-offset, in every tungsten placement in both modules.
 

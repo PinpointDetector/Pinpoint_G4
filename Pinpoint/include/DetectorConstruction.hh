@@ -233,12 +233,12 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fTungstenPlateThickness = 5 * mm; // thickness of tungsten plate, shared by the pixel and scintillator modules
     G4double fTungstenHeight = 43 * cm; // height of tungsten plate in pixel module (grew from 42cm; see fTungstenCornerShiftX/Y)
     G4double fTungstenWidth = 43 * cm; // width of tungsten (grew from 42cm; see fTungstenCornerShiftX/Y)
-    // The tungsten grew by +1cm on each axis (42->43cm), but the corner at (-Y, +X) must stay
-    // fixed -- i.e. all of the growth is in +Y and -X. A G4Box is always symmetric about its own
+    // The tungsten grew by +1cm on each axis (42->43cm), but the corner at (-X, -Y) must stay
+    // fixed -- i.e. all of the growth is in +X and +Y. A G4Box is always symmetric about its own
     // placement centre, so asymmetric growth is achieved by shifting the placement centre by half
-    // of each axis' growth, in the growth direction: -5mm in X, +5mm in Y relative to the nominal
+    // of each axis' growth, in the growth direction: +5mm in X, +5mm in Y relative to the nominal
     // (fScintDetectorOffsetX, 0) centre used for the other offset components in each module.
-    G4double fTungstenCornerShiftX = -5.0 * mm;
+    G4double fTungstenCornerShiftX = 5.0 * mm;
     G4double fTungstenCornerShiftY = 5.0 * mm;
     G4LogicalVolume* fTungstenPlateLV;
     void ConstructTungstenPlateLV();
