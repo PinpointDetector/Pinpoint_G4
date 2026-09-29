@@ -107,13 +107,17 @@ built-in default), which is not always the same as the `G4UIcommand`'s own inter
 #### Aluminum walls
 
 As of 2026-09, aluminum walls exist only in the Pinpoint (pixel) module (Fortune modules no longer
-have them -- see the note above). The Pinpoint walls are centred on the same X axis as the
-tungsten/scintillator/cooling-plate offset (`fScintDetectorOffsetX`, i.e. `/det/setScintDetectorOffsetX`),
-rather than at X=0. The Pinpoint module's cross-section is computed automatically (not just the raw
-wall width/height below) to fully contain whichever offset component -- wall, tungsten, scintillator,
-or cooling plate -- reaches furthest from the module centre, plus a 1cm margin; changing any of these
-sizes/offsets, or the tungsten's asymmetric corner-preserving shift (see next section), grows the
-module automatically and never needs a manual width/height bump.
+have them -- see the note above). As of 2026-09-28, the Pinpoint walls are no longer independently
+centred on `fScintDetectorOffsetX`; instead they are pinned to the tungsten plate's own (-X, -Y)
+corner (see "Tungsten plate asymmetric growth" below), so the wall's -X and -Y edges exactly match
+the tungsten's -X and -Y edges. Since the walls (55 x 60cm by default) are larger than the tungsten
+plate (43 x 43cm), they extend further only in +X and +Y from that shared corner. The Pinpoint
+module's cross-section is computed automatically (not just the raw wall width/height below) to
+fully contain whichever offset component -- wall, tungsten, scintillator, or cooling plate --
+reaches furthest from the module centre, plus a 1cm margin; changing any of these sizes/offsets,
+or the tungsten's asymmetric corner-preserving shift (see next section), grows the module
+automatically (and, now, moves the wall's pinned corner along with it) and never needs a manual
+width/height bump.
 
 |Command |Description | Default |
 |:--|:--|:--|
