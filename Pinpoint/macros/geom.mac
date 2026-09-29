@@ -15,8 +15,8 @@
 /det/setPixelWidth 20.8 um
 
 # Overall detector transverse size
-/det/setDetectorWidth 25 cm
-/det/setDetectorHeight 20 cm
+/det/setDetectorWidth 26.6 cm
+/det/setDetectorHeight 19.6 cm
 
 # Fortune Geometry
 /det/setNumFortuneBlocks 7
