@@ -108,9 +108,7 @@ void DetectorConstruction::ConstructAlWallLV()
   G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
   G4Box* alWallS = new G4Box("AlWall", 0.5 * fAlWallWidth, 0.5 * fAlWallHeight, 0.5 * fAlWallThickness);
   fAlWallLV = new G4LogicalVolume(alWallS, aluminumMaterial, "AlWallLV");
-  auto visAttributes = new G4VisAttributes(G4Colour(0.8, 0.8, 0.8)); // Light gray color for aluminum
-  visAttributes->SetForceSolid(true);
-  fAlWallLV->SetVisAttributes(visAttributes);
+  fAlWallLV->SetVisAttributes(G4VisAttributes(G4Colour(0.8, 0.8, 0.8))); // Light gray color for aluminum
 }
 
 void DetectorConstruction::ConstructPixelSensorLV()
@@ -133,10 +131,7 @@ void DetectorConstruction::ConstructAlCoolingPlateLV()
   G4Material* aluminumMaterial = nist->FindOrBuildMaterial("G4_Al");
   G4Box* alCoolingPlateS = new G4Box("AlCoolingPlate", 0.5 * fAlCoolingPlateWidth, 0.5 * fAlCoolingPlateHeight, 0.5 * fAlCoolingPlateThickness);
   fAlCoolingPlateLV = new G4LogicalVolume(alCoolingPlateS, aluminumMaterial, "AlCoolingPlateLV");
-  auto visAttributes = new G4VisAttributes(G4Colour(1.0, 1.0, 0.0)); // yellow color for aluminum cooling plate
-  visAttributes->SetVisibility(true);
-  visAttributes->SetForceSolid(true);
-  fAlCoolingPlateLV->SetVisAttributes(visAttributes);
+  fAlCoolingPlateLV->SetVisAttributes(G4VisAttributes(G4Colour(0.8, 0.8, 0.8))); // Light gray color for aluminum cooling plate
 }
 
 void DetectorConstruction::ConstructScintillatorBarLVs()
@@ -216,25 +211,16 @@ void DetectorConstruction::ConstructPixelModuleLV()
   // Pixel module LV.
   // Consists of Aluminium wall +  Air Gap + Silicon sensor + Aluminium cooling plate + Tungsten plate + Vertical Scintillator + Tungsten plate + Aluminium wall
   // Make air filled box to hold the module components
-  // Tungsten plate, scintillator and aluminium cooling plate are NOT centred in X: they are all
-  // offset by fScintDetectorOffsetX (85mm, set via macro) to the same axis, due to trench
-  // dimensions. The tungsten is additionally offset in X and Y by fTungstenCornerShiftX/Y, to
-  // preserve its (-X, -Y) corner as it grew from 42 to 43cm. The aluminium walls are bigger than
-  // the tungsten plate, so rather than being independently offset, they are pinned to the
-  // tungsten's own (-X, -Y) corner: the wall's -X and -Y edges exactly match the tungsten's,
-  // and the wall (being larger) extends further only in +X and +Y from that shared corner. Only
-  // the silicon pixel sensor stays centred at (0,0) in the module.
+  // Tungsten plate, scintillator, aluminium cooling plate and BOTH aluminium walls are NOT centred
+  // in X: they are all offset by fScintDetectorOffsetX (85mm, set via macro) to the same axis, due
+  // to trench dimensions. The tungsten is additionally offset in Y by fTungstenCornerShiftY, to
+  // preserve its (-Y, +X) corner as it grew from 42 to 43cm. Only the silicon pixel sensor stays
+  // centred at (0,0) in the module.
   const G4double transverseMargin = 1.0 * cm; // extra clearance beyond the minimum required, matching the Fortune module
 
+  const G4double alWallCenterX = fScintDetectorOffsetX; // wall centred on the same axis as the tungsten/scintillator planes
   const G4double tungstenCenterX = fScintDetectorOffsetX + fTungstenCornerShiftX;
   const G4double tungstenCenterY = fTungstenCornerShiftY;
-
-  // Aluminium wall (55x60cm) is pinned to the tungsten plate's (-X, -Y) corner rather than being
-  // independently centred -- see comment above.
-  const G4double tungstenMinX = tungstenCenterX - 0.5 * fTungstenWidth;
-  const G4double tungstenMinY = tungstenCenterY - 0.5 * fTungstenHeight;
-  const G4double alWallCenterX = tungstenMinX + 0.5 * fAlWallWidth;
-  const G4double alWallCenterY = tungstenMinY + 0.5 * fAlWallHeight;
 
   // Every offset component must fit inside the module's own G4Box bounds, which is symmetric
   // about local (0,0) -- otherwise it protrudes through the box and Geant4's overlap checker
@@ -249,7 +235,7 @@ void DetectorConstruction::ConstructPixelModuleLV()
   });
   G4double requiredHalfHeight = std::max({
     0.5 * fPixelSensorHeight,
-    std::fabs(alWallCenterY)   + 0.5 * fAlWallHeight,
+    0.5 * fAlWallHeight,
     std::fabs(tungstenCenterY) + 0.5 * fTungstenHeight,
     0.5 * fScintDetectorHeight,
     0.5 * fAlCoolingPlateHeight
@@ -295,7 +281,7 @@ void DetectorConstruction::ConstructPixelModuleLV()
 
   // Place the components inside the pixel module
   G4double zPosition = -0.5 * moduleThickness; // Start from the back of the module
-  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, alWallCenterY, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Back", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Back", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fAlWallThickness  + fPixelAirGapThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(0, 0, zPosition + 0.5 * fPixelSensorThickness), fPixelSensorLV, "PixelSensor", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fPixelSensorThickness;
@@ -307,7 +293,7 @@ void DetectorConstruction::ConstructPixelModuleLV()
   zPosition += fScintillatorThickness;
   new G4PVPlacement(nullptr, G4ThreeVector(tungstenCenterX, tungstenCenterY, zPosition + 0.5 * fTungstenPlateThickness), fTungstenPlateLV, "TungstenPlate_Front", pixelModuleLV, false, 0, fCheckOverlaps);
   zPosition += fTungstenPlateThickness;
-  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, alWallCenterY, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Front", pixelModuleLV, false, 0, fCheckOverlaps);
+  new G4PVPlacement(nullptr, G4ThreeVector(alWallCenterX, 0, zPosition + 0.5 * fAlWallThickness), fAlWallLV, "AlWall_Front", pixelModuleLV, false, 0, fCheckOverlaps);
 }
 
 void DetectorConstruction::ConstructScintModuleLV()
@@ -318,8 +304,7 @@ void DetectorConstruction::ConstructScintModuleLV()
   // unlike the Pinpoint (pixel) module, which still has aluminum walls front and back.
   // The tungsten and scintillator bars are NOT centred. They are offset by fScintDetectorOffsetX in
   // the x-direction due to trench dimensions (85mm, set via macro). The tungsten is additionally
-  // offset in X and Y by fTungstenCornerShiftX/Y, to preserve its (-X, -Y) corner as it grew from
-  // 42 to 43cm.
+  // offset in Y by fTungstenCornerShiftY, to preserve its (-Y, +X) corner as it grew from 42 to 43cm.
   // Because the scintillator panels and tungsten plates are offset, the module must be wide/tall
   // enough to fully contain them -- otherwise they protrude through the module's own G4Box bounds
   // and Geant4's overlap checker (fCheckOverlaps) fatally flags a containment violation at
